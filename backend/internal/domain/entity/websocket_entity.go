@@ -1,97 +1,24 @@
 package entity
 
+import "time"
+
+// factory関数はinterface層で定義されている
 type Message struct {
-	id        string // ユーザーIDを期待する
-	msgType   string
-	sdp       string
-	candidate []string
-	targetID  string
+	id      MessageID // メッセージID
+	roomID  RoomID // 所属するチャットルームのID
+	userID  UserID // 投稿者のID（匿名なら名前など）
+	content string    // 本文
+	sentAt  time.Time // 送信日時
 }
 
+// ID生成方法を隠蔽するためのラッパー
+type WebsicketClientID string
+
+// factory関数はinterface層で定義されている
 type WebsocketClient struct {
-	id        string   
-	sdp       string   
-	candidate []string 
+	id       WebsicketClientID
+	roomID   RoomID
+	userName string
 }
 
-func NewMessage(id string, messageType string, sdp string, candidate []string, targetID string) *Message {
-	return &Message{
-		id:        id,
-		msgType:   messageType,
-		sdp:       sdp,
-		candidate: candidate,
-		targetID:  targetID,
-	}
-}
 
-func (m Message) GetID() string {
-	return m.id
-}
-
-func (m Message) GetType() string {
-	return m.msgType
-}
-
-func (m Message) GetSDP() string {
-	return m.sdp
-}
-
-func (m Message) GetCandidate() []string {
-	return m.candidate
-}
-
-func (m Message) GetTargetID() string {
-	return m.targetID
-}
-
-func (m *Message) SetID(id string) {
-	m.id = id
-}
-
-func (m *Message) SetType(messageType string) {
-	m.msgType = messageType
-}
-
-func (m *Message) SetSDP(sdp string) {
-	m.sdp = sdp
-}
-
-func (m *Message) SetCandidate(candidate []string) {
-	m.candidate = candidate
-}
-
-func (m *Message) SetTargetID(targetID string) {
-	m.targetID = targetID
-}
-
-func NewWebsocketClient(id, sdp string, candidate []string) *WebsocketClient {
-	return &WebsocketClient{
-		id:        id,
-		sdp:       sdp,
-		candidate: candidate,
-	}
-}
-
-func (w *WebsocketClient) GetID() string {
-	return w.id
-}
-
-func (w *WebsocketClient) GetSDP() string {
-	return w.sdp
-}
-
-func (w *WebsocketClient) GetCandidate() []string {
-	return w.candidate
-}
-
-func (w *WebsocketClient) SetID(id string) {
-	w.id = id
-}
-
-func (w *WebsocketClient) SetSDP(sdp string) {
-	w.sdp = sdp
-}
-
-func (w *WebsocketClient) SetCandidate(candidate []string) {
-	w.candidate = candidate
-}
