@@ -3,7 +3,7 @@ package repository
 import "example.com/webrtc-practice/internal/domain/entity"
 
 type RoomRepository interface {
-	CreateRoom(name string) (entity.RoomID, error)
+	CreateRoom(entity.Room) (entity.RoomID, error)
 	GetRoomByID(id entity.RoomID) (entity.Room, error)
 	GetAllRooms() ([]entity.Room, error)
 	AddMemberToRoom(entity.RoomID, entity.UserID) error
