@@ -12,14 +12,23 @@ type User struct {
 	updatedAt  *time.Time
 }
 
-func NewUser(id UserID, name, email, passwdhash string, createdAt time.Time, updatedAt *time.Time) *User {
+type UserParams struct {
+	ID         UserID
+	Name       string
+	Email      string
+	PasswdHash string
+	CreatedAt  time.Time
+	UpdatedAt  *time.Time
+}
+
+func NewUser(p UserParams) *User {
 	return &User{
-		id:         id,
-		name:       name,
-		email:      email,
-		passwdhash: passwdhash,
-		createdAt:  createdAt,
-		updatedAt:  updatedAt,
+		id:         p.ID,
+		name:       p.Name,
+		email:      p.Email,
+		passwdhash: p.PasswdHash,
+		createdAt:  p.CreatedAt,
+		updatedAt:  p.UpdatedAt,
 	}
 }
 

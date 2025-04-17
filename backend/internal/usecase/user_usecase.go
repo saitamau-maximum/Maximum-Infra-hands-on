@@ -16,17 +16,19 @@ type UserUsecase struct {
 	userIDFactory factory.UserIDFactory
 }
 
-func NewUserUsecase(
-	repo repository.UserRepository,
-	hasher adapter.HasherAdapter,
-	tokenService adapter.TokenServiceAdapter,
-	userIDFactory factory.UserIDFactory,
-) *UserUsecase {
+type NewUserUsecaseParams struct {
+	UserRepo      repository.UserRepository
+	Hasher        adapter.HasherAdapter
+	TokenSvc      adapter.TokenServiceAdapter
+	UserIDFactory factory.UserIDFactory
+}
+
+func NewUserUsecase(p NewUserUsecaseParams) *UserUsecase {
 	return &UserUsecase{
-		userRepo:      repo,
-		hasher:        hasher,
-		tokenSvc:      tokenService,
-		userIDFactory: userIDFactory,
+		userRepo:      p.UserRepo,
+		hasher:        p.Hasher,
+		tokenSvc:      p.TokenSvc,
+		userIDFactory: p.UserIDFactory,
 	}
 }
 
@@ -49,16 +51,18 @@ func (u *UserUsecase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 		return nil, err
 	}
 
-	user := entity.NewUser(
-		id,
-		req.Name,
-		req.Email,
-		hashedPassword,
-		time.Now(),
-		nil,
-	)
+	userParams := entity.UserParams{
+		ID:         id,
+		Name:       req.Name,
+		Email:      req.Email,
+		PasswdHash: hashedPassword,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  nil,
+	}
 
-	res, err := u.userRepo.CreateUser(user)
+	user := entity.NewUser(userParams)
+
+	res, err := u.userRepo.SaveUser(user)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +74,7 @@ type AuthenticateUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
 type AuthenticateUserResponse string
 
 func (u *UserUsecase) AuthenticateUser(email, password string) (string, error) {
