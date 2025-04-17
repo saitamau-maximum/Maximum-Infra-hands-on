@@ -1,6 +1,6 @@
-package service
+package adapter
 
-type TokenService interface {
+type TokenServiceAdapter interface {
 	GenerateToken(userID int) (string, error)
 	ValidateToken(token string) (int, error)
 }
