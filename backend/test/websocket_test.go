@@ -22,17 +22,17 @@ import (
 func TestWebsocketHandler_E2E_Real(t *testing.T) {
 	e := echo.New()
 
-	// 本物の依存関係を組み立てる（Factory, Repository, Usecase）
+	// 本物の依存関係を組み立てる（Factory, Repository, UseCase）
 	wsRepo := repository_impl.NewWebsocketRepository()
 	wsManager := websocketmanager.NewWebsocketManager()
 	wsBr := websocketbroadcast.NewBroadcast()
 	wsO := offerservice.NewOfferService()
-	wsUsecase := usecase.NewWebsocketUsecase(wsRepo, wsManager, wsBr, wsO)
+	wsUseCase := usecase.NewWebsocketUseCase(wsRepo, wsManager, wsBr, wsO)
 	upgrader := websocketupgrader.NewWebsocketUpgrader()
 	wsFactory := factory_impl.NewWebsocketConnectionFactoryImpl(upgrader)
 
 	// ハンドラを作ってルーティング
-	wsHandler := handler.NewWebsocketHandler(wsUsecase, wsFactory)
+	wsHandler := handler.NewWebsocketHandler(wsUseCase, wsFactory)
 	wsHandler.Register(e.Group("/ws"))
 
 	// サーバー起動（httptest経由）
@@ -62,7 +62,7 @@ func TestWebsocketHandler_E2E_Real(t *testing.T) {
 		// 少し待機して処理が安定するようにする
 		time.Sleep(100 * time.Millisecond)
 
-		testConnectMessage1 :=`{
+		testConnectMessage1 := `{
 			"id": "client1",
 			"type": "connect",
 			"sdp": "",
@@ -70,7 +70,7 @@ func TestWebsocketHandler_E2E_Real(t *testing.T) {
 			"target_id": ""
 		}`
 
-		testOfferMessage1 :=`{
+		testOfferMessage1 := `{
 			"id": "client1",
 			"type": "offer",
 			"sdp": "sdp1",
@@ -78,7 +78,7 @@ func TestWebsocketHandler_E2E_Real(t *testing.T) {
 			"target_id": ""
 		}`
 
-		testConnectMessage2 :=`{
+		testConnectMessage2 := `{
 			"id": "client2",
 			"type": "connect",
 			"sdp": "",
@@ -89,7 +89,6 @@ func TestWebsocketHandler_E2E_Real(t *testing.T) {
 		err = conn1.WriteMessage(websocket.TextMessage, []byte(testConnectMessage1))
 		assert.NoError(t, err)
 
-		
 		conn1.SetReadDeadline(time.Now().Add(2 * time.Second))
 		// client1がフィードバックメッセージを受け取れているか確認
 		_, msg1, err := conn1.ReadMessage()
@@ -104,7 +103,7 @@ func TestWebsocketHandler_E2E_Real(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		err = conn2.WriteMessage(websocket.TextMessage, []byte(testConnectMessage2))
 		assert.NoError(t, err)
-		
+
 		conn2.SetReadDeadline(time.Now().Add(2 * time.Second))
 		// client2がclient1からのofferを受け取れているか確認
 		_, msg2, err := conn2.ReadMessage()

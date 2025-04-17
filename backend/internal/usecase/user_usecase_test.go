@@ -24,14 +24,14 @@ func TestSignUp(t *testing.T) {
 	mockTokenSvc := mock_adapter.NewMockTokenServiceAdapter(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	params := usecase.NewUserUsecaseParams{
+	params := usecase.NewUserUseCaseParams{
 		UserRepo:      mockUserRepo,
 		Hasher:        mockHasher,
 		TokenSvc:      mockTokenSvc,
 		UserIDFactory: mockUserIDFactory,
 	}
 
-	userUsecase := usecase.NewUserUsecase(params)
+	userUseCase := usecase.NewUserUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
 		signUpRequest := usecase.SignUpRequest{
@@ -50,7 +50,7 @@ func TestSignUp(t *testing.T) {
 				return u, nil
 			})
 
-		response, err := userUsecase.SignUp(signUpRequest)
+		response, err := userUseCase.SignUp(signUpRequest)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -70,7 +70,7 @@ func TestSignUp(t *testing.T) {
 
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return("", expectedErr)
 
-		response, err := userUsecase.SignUp(signUpRequest)
+		response, err := userUseCase.SignUp(signUpRequest)
 
 		assert.Error(t, err)
 		assert.Nil(t, response.User)
@@ -89,7 +89,7 @@ func TestSignUp(t *testing.T) {
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return(hashedPassword, nil)
 		mockUserIDFactory.EXPECT().NewUserID().Return(entity.UserID(""), expectedErr)
 
-		response, err := userUsecase.SignUp(signUpRequest)
+		response, err := userUseCase.SignUp(signUpRequest)
 
 		assert.Error(t, err)
 		assert.Nil(t, response.User)
@@ -107,14 +107,14 @@ func TestAuthenticateUser(t *testing.T) {
 	mockTokenSvc := mock_adapter.NewMockTokenServiceAdapter(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	params := usecase.NewUserUsecaseParams{
+	params := usecase.NewUserUseCaseParams{
 		UserRepo:      mockUserRepo,
 		Hasher:        mockHasher,
 		TokenSvc:      mockTokenSvc,
 		UserIDFactory: mockUserIDFactory,
 	}
 
-	userUsecase := usecase.NewUserUsecase(params)
+	userUseCase := usecase.NewUserUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
 		email := "test@email.com"
@@ -142,7 +142,7 @@ func TestAuthenticateUser(t *testing.T) {
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(true, nil)
 		mockTokenSvc.EXPECT().GenerateToken(user.GetID()).Return(token, nil)
 
-		response, err := userUsecase.AuthenticateUser(req)
+		response, err := userUseCase.AuthenticateUser(req)
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, response.GetToken(), token)
@@ -159,7 +159,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		mockUserRepo.EXPECT().GetUserByEmail(email).Return(nil, errors.New("user not found"))
 
-		response, err := userUsecase.AuthenticateUser(req)
+		response, err := userUseCase.AuthenticateUser(req)
 		assert.Error(t, err)
 		assert.Equal(t, usecase.AuthenticateUserResponse{nil}, response)
 	})
@@ -186,9 +186,8 @@ func TestAuthenticateUser(t *testing.T) {
 		mockUserRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(false, nil)
 
-		response, err := userUsecase.AuthenticateUser(req)
+		response, err := userUseCase.AuthenticateUser(req)
 		assert.Error(t, err)
 		assert.Equal(t, usecase.AuthenticateUserResponse{nil}, response)
 	})
 }
-

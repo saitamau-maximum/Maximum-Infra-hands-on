@@ -10,22 +10,22 @@ import (
 	"example.com/webrtc-practice/internal/interface/factory"
 )
 
-type UserUsecase struct {
+type UserUseCase struct {
 	userRepo      repository.UserRepository
 	hasher        adapter.HasherAdapter
 	tokenSvc      adapter.TokenServiceAdapter
 	userIDFactory factory.UserIDFactory
 }
 
-type NewUserUsecaseParams struct {
+type NewUserUseCaseParams struct {
 	UserRepo      repository.UserRepository
 	Hasher        adapter.HasherAdapter
 	TokenSvc      adapter.TokenServiceAdapter
 	UserIDFactory factory.UserIDFactory
 }
 
-func NewUserUsecase(p NewUserUsecaseParams) *UserUsecase {
-	return &UserUsecase{
+func NewUserUseCase(p NewUserUseCaseParams) *UserUseCase {
+	return &UserUseCase{
 		userRepo:      p.UserRepo,
 		hasher:        p.Hasher,
 		tokenSvc:      p.TokenSvc,
@@ -43,7 +43,7 @@ type SignUpResponse struct {
 	User *entity.User
 }
 
-func (u *UserUsecase) SignUp(req SignUpRequest) (SignUpResponse, error) {
+func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 	hashedPassword, err := u.hasher.HashPassword(req.Password)
 	if err != nil {
 		return SignUpResponse{nil}, err
@@ -81,7 +81,8 @@ type AuthenticateUserRequest struct {
 type AuthenticateUserResponse struct {
 	Token *string `json:"token"`
 }
-func(res *AuthenticateUserResponse) IsTokenNil() bool {
+
+func (res *AuthenticateUserResponse) IsTokenNil() bool {
 	return res.Token == nil
 }
 func (res *AuthenticateUserResponse) GetToken() string {
@@ -91,7 +92,7 @@ func (res *AuthenticateUserResponse) GetToken() string {
 	return *res.Token
 }
 
-func (u *UserUsecase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
+func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
 	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
 		return AuthenticateUserResponse{Token: nil}, err

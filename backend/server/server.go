@@ -40,7 +40,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	websocketManager := websocketmanager.NewWebsocketManager()
 	websocketBroadcast := websocketbroadcast.NewBroadcast()
 	websocketOfferService := offerservice.NewOfferService()
-	websocketUsecase := usecase.NewWebsocketUsecase(
+	websocketUseCase := usecase.NewWebsocketUseCase(
 		websocketRepository,
 		websocketManager,
 		websocketBroadcast,
@@ -48,7 +48,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	)
 	websocketUpgrader := websocketupgrader.NewWebsocketUpgrader()
 	websocketConnectionFactory := factory_impl.NewWebsocketConnectionFactoryImpl(websocketUpgrader)
-	websocketHandler := handler.NewWebsocketHandler(websocketUsecase, websocketConnectionFactory)
+	websocketHandler := handler.NewWebsocketHandler(websocketUseCase, websocketConnectionFactory)
 
 	routes.SetupRoutes(e, cfg, userHandler, websocketHandler)
 
