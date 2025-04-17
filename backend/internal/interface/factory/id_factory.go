@@ -1,21 +1,23 @@
 package factory
 
+import "example.com/webrtc-practice/internal/domain/entity"
+
 type UserIDFactory interface {
-	CreateUserID() (string, error)
+	NewUserID() (entity.UserID, error)
 }
 
 type RoomIDFactory interface {
-	CreateRoomID() (int, error)
+	NewRoomID() (entity.RoomID, error)
 }
 
 type RoomPublicIDFactory interface {
-	CreateRoomPublicID() (string, error)
+	NewRoomPublicID() (entity.RoomPublicID, error)
 }
 
 type MessageIDFactory interface {
-	CreateMessageID() (string, error)
+	NewMessageID() (entity.MessageID, error)
 }
 
 type WebsocketClientIDFactory interface {
-	CreateWebsocketClientID() (string, error)
+	NewWebsocketClientID() (entity.WebsocketClientID, error)
 }
