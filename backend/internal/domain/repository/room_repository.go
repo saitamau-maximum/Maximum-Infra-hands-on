@@ -3,14 +3,15 @@ package repository
 import "example.com/webrtc-practice/internal/domain/entity"
 
 type RoomRepository interface {
-	CreateRoom(entity.Room) (entity.RoomID, error)
-	GetRoomByID(id entity.RoomID) (entity.Room, error)
-	GetAllRooms() ([]entity.Room, error)
+	SaveRoom(*entity.Room) (entity.RoomID, error)
+	GetRoomByID(id entity.RoomID) (*entity.Room, error)
+	GetAllRooms() ([]*entity.Room, error)
+	GetUsersInRoom(entity.RoomID) ([]*entity.User, error)
 	AddMemberToRoom(entity.RoomID, entity.UserID) error
-	GetUsersInRoom(entity.RoomID) ([]entity.UserID, error)
 	RemoveMemberFromRoom(entity.RoomID, entity.UserID) error
-	DeleteRoom(entity.RoomID) error
+	GetRoomByNameLike(name string) ([]*entity.Room, error)
 	UpdateRoomName(entity.RoomID, string) error
-	GetRoomByName(name string) (entity.Room, error)
+	DeleteRoom(entity.RoomID) error
 	GetRoomIDByPublicID(id entity.RoomPublicID) (entity.RoomID, error)
+	GetPublickIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error)
 }
