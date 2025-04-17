@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"time"
 
 	"example.com/webrtc-practice/internal/domain/entity"
@@ -38,17 +39,19 @@ type SignUpRequest struct {
 	Password string `json:"password"`
 }
 
-type SignUpResponse *entity.User
+type SignUpResponse struct {
+	User *entity.User
+}
 
 func (u *UserUsecase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 	hashedPassword, err := u.hasher.HashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return SignUpResponse{nil}, err
 	}
 
 	id, err := u.userIDFactory.NewUserID()
 	if err != nil {
-		return nil, err
+		return SignUpResponse{nil}, err
 	}
 
 	userParams := entity.UserParams{
@@ -64,10 +67,10 @@ func (u *UserUsecase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 
 	res, err := u.userRepo.SaveUser(user)
 	if err != nil {
-		return nil, err
+		return SignUpResponse{nil}, err
 	}
 
-	return res, nil
+	return SignUpResponse{User: res}, nil
 }
 
 type AuthenticateUserRequest struct {
@@ -75,22 +78,26 @@ type AuthenticateUserRequest struct {
 	Password string `json:"password"`
 }
 
-type AuthenticateUserResponse string
+type AuthenticateUserResponse struct {
+	Token string `json:"token"`
+}
 
-func (u *UserUsecase) AuthenticateUser(email, password string) (string, error) {
-	user, err := u.userRepo.GetUserByEmail(email)
+func (u *UserUsecase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
+	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		return "", err
+		return AuthenticateUserResponse{Token: ""}, err
 	}
 
-	ok, err := u.hasher.ComparePassword(user.GetPasswdHash(), password)
+	ok, err := u.hasher.ComparePassword(user.GetPasswdHash(), req.Password)
 	if err != nil {
-		return "", err
+		return AuthenticateUserResponse{Token: ""}, err
 	}
 
 	if !ok {
-		return "", err
+		return AuthenticateUserResponse{Token: ""}, errors.New("password mismatch")
 	}
 
-	return u.tokenSvc.GenerateToken(user.GetID())
+	res, err := u.tokenSvc.GenerateToken(user.GetID())
+
+	return AuthenticateUserResponse{Token: res}, err
 }
