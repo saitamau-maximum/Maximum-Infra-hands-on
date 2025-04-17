@@ -145,7 +145,7 @@ func TestAuthenticateUser(t *testing.T) {
 		response, err := userUsecase.AuthenticateUser(req)
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
-		assert.Equal(t, response.Token, token)
+		assert.Equal(t, response.GetToken(), token)
 	})
 
 	t.Run("ユーザーが存在しない場合", func(t *testing.T) {
@@ -161,7 +161,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		response, err := userUsecase.AuthenticateUser(req)
 		assert.Error(t, err)
-		assert.Equal(t, usecase.AuthenticateUserResponse{Token: ""}, response)
+		assert.Equal(t, usecase.AuthenticateUserResponse{nil}, response)
 	})
 
 	t.Run("パスワードが一致しない場合", func(t *testing.T) {
@@ -188,7 +188,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		response, err := userUsecase.AuthenticateUser(req)
 		assert.Error(t, err)
-		assert.Equal(t, usecase.AuthenticateUserResponse{Token: ""}, response)
+		assert.Equal(t, usecase.AuthenticateUserResponse{nil}, response)
 	})
 }
 

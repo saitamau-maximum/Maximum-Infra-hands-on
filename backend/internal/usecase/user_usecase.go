@@ -79,25 +79,34 @@ type AuthenticateUserRequest struct {
 }
 
 type AuthenticateUserResponse struct {
-	Token string `json:"token"`
+	Token *string `json:"token"`
+}
+func(res *AuthenticateUserResponse) IsTokenNil() bool {
+	return res.Token == nil
+}
+func (res *AuthenticateUserResponse) GetToken() string {
+	if res.Token == nil {
+		return ""
+	}
+	return *res.Token
 }
 
 func (u *UserUsecase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
 	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		return AuthenticateUserResponse{Token: ""}, err
+		return AuthenticateUserResponse{Token: nil}, err
 	}
 
 	ok, err := u.hasher.ComparePassword(user.GetPasswdHash(), req.Password)
 	if err != nil {
-		return AuthenticateUserResponse{Token: ""}, err
+		return AuthenticateUserResponse{Token: nil}, err
 	}
 
 	if !ok {
-		return AuthenticateUserResponse{Token: ""}, errors.New("password mismatch")
+		return AuthenticateUserResponse{Token: nil}, errors.New("password mismatch")
 	}
 
 	res, err := u.tokenSvc.GenerateToken(user.GetID())
 
-	return AuthenticateUserResponse{Token: res}, err
+	return AuthenticateUserResponse{Token: &res}, err
 }
