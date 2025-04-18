@@ -10,9 +10,11 @@ type WebSocketConnection interface {
 
 type WebsocketManager interface {
 	// コネクションの登録・削除
-	Register(conn WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error
-	Unregister(conn WebSocketConnection) error
+	Register(conn *WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error
+	Unregister(conn *WebSocketConnection) error
+	// コネクションの取得
+	GetConnctionByUserID(userID entity.UserID) (*WebSocketConnection, error)
 
 	// 指定した部屋にいるユーザーにブロードキャスト
-	BroadcastToRoom(roomID entity.RoomID, msg entity.Message) error
+	BroadcastToRoom(roomID entity.RoomID, msg *entity.Message) error
 }
