@@ -1,16 +1,7 @@
-.PHONY: test test-user-usecase test-signup test-auth test-room-usecase
-
-test:
-	go test -v ./...
+.PHONY: test-user-usecase test-room-usecase
 
 test-user_usecase:
 	go test -v ./internal/usecase/user_usecase_test.go
-
-test-signup:
-	go test -v -run '^TestSignUp$$' ./internal/usecase/user_usecase_test.go
-
-test-auth:
-	go test -v -run '^TestAuthenticateUser$$' ./internal/usecase/user_usecase_test.go
 
 test-room-usecase:
 	go test -v ./internal/usecase/room_usecase_test.go
