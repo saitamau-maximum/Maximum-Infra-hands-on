@@ -83,19 +83,19 @@ func (mr *MockRoomRepositoryMockRecorder) GetAllRooms() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRooms", reflect.TypeOf((*MockRoomRepository)(nil).GetAllRooms))
 }
 
-// GetPublickIDByRoomID mocks base method.
-func (m *MockRoomRepository) GetPublickIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error) {
+// GetPublicIDByRoomID mocks base method.
+func (m *MockRoomRepository) GetPublicIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPublickIDByRoomID", id)
+	ret := m.ctrl.Call(m, "GetPublicIDByRoomID", id)
 	ret0, _ := ret[0].(entity.RoomPublicID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetPublickIDByRoomID indicates an expected call of GetPublickIDByRoomID.
-func (mr *MockRoomRepositoryMockRecorder) GetPublickIDByRoomID(id any) *gomock.Call {
+// GetPublicIDByRoomID indicates an expected call of GetPublicIDByRoomID.
+func (mr *MockRoomRepositoryMockRecorder) GetPublicIDByRoomID(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublickIDByRoomID", reflect.TypeOf((*MockRoomRepository)(nil).GetPublickIDByRoomID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicIDByRoomID", reflect.TypeOf((*MockRoomRepository)(nil).GetPublicIDByRoomID), id)
 }
 
 // GetRoomByID mocks base method.

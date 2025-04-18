@@ -13,5 +13,5 @@ type RoomRepository interface {
 	UpdateRoomName(entity.RoomID, string) error
 	DeleteRoom(entity.RoomID) error
 	GetRoomIDByPublicID(id entity.RoomPublicID) (entity.RoomID, error)
-	GetPublickIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error)
+	GetPublicIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error)
 }
