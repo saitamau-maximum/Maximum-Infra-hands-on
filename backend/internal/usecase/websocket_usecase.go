@@ -140,13 +140,19 @@ func (w *WebsocketUseCase) GetMessageHistory(req GetMessageHistoryRequest) (GetM
 }
 
 type NewWebsocketUseCaseParams struct {
+	UserRepo         repository.UserRepository
+	RoomRepo         repository.RoomRepository
+	MsgRepo          repository.MessageRepository
+	WsClientRepo     repository.WebsocketClientRepository
 	WebsocketManager service.WebsocketManager
+	MsgIDFactory     factory.MessageIDFactory
+	ClientIDFactory  factory.WebsocketClientIDFactory
 }
 
 type ConnectUserToRoomRequest struct {
 	UserID       entity.UserID
 	PublicRoomID entity.RoomPublicID
-	Conn         *service.WebSocketConnection
+	Conn         service.WebSocketConnection
 }
 
 type SendMessageRequest struct {
