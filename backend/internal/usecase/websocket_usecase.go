@@ -126,7 +126,7 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 }
 
 func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
-	conn, err := w.websocketManager.GetConnctionByUserID(req.UserID)
+	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@ type RoomParams struct {
 func NewRoom(params RoomParams) *Room {
 	return &Room{
 		id: params.ID,
-		publick_id: params.PublicID,
+		public_id: params.PublicID,
 		name: params.Name,
 		members: params.Members,
 	}
