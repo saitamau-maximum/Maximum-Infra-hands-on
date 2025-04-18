@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"time"
 
 	"example.com/webrtc-practice/internal/domain/entity"
@@ -33,15 +34,32 @@ type WebsocketUseCase struct {
 	clientIDFactory  factory.WebsocketClientIDFactory
 }
 
-func NewWebsocketUseCase(parms NewWebsocketUseCaseParams) WebsocketUseCaseInterface {
+func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInterface {
+	// Paramsのバリデーションを行う
+	required := map[string]any{
+		"UserRepo":         params.UserRepo,
+		"RoomRepo":         params.RoomRepo,
+		"MsgRepo":          params.MsgRepo,
+		"WsClientRepo":     params.WsClientRepo,
+		"WebsocketManager": params.WebsocketManager,
+		"MsgIDFactory":     params.MsgIDFactory,
+		"ClientIDFactory":  params.ClientIDFactory,
+	}
+
+	for name, f := range required {
+		if f == nil {
+			panic(fmt.Sprintf("%s is required", name))
+		}
+	}
+
 	return &WebsocketUseCase{
-		userRepo:         parms.UserRepo,
-		roomRepo:         parms.RoomRepo,
-		msgRepo:          parms.MsgRepo,
-		wsClientRepo:     parms.WsClientRepo,
-		websocketManager: parms.WebsocketManager,
-		msgIDFactory:     parms.MsgIDFactory,
-		clientIDFactory:  parms.ClientIDFactory,
+		userRepo:         params.UserRepo,
+		roomRepo:         params.RoomRepo,
+		msgRepo:          params.MsgRepo,
+		wsClientRepo:     params.WsClientRepo,
+		websocketManager: params.WebsocketManager,
+		msgIDFactory:     params.MsgIDFactory,
+		clientIDFactory:  params.ClientIDFactory,
 	}
 }
 
@@ -98,7 +116,7 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 		Content: req.Content,
 		SentAt:  time.Now(),
 	})
-	
+
 	err = w.websocketManager.BroadcastToRoom(roomID, msg)
 	if err != nil {
 		return err
