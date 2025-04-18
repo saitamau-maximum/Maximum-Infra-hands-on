@@ -4,5 +4,5 @@ import "example.com/webrtc-practice/internal/domain/entity"
 
 type MessageRepository interface {
 	CreateMessage(entity.Message) (string, error)
-	GetMessagesByRoomID(roomID string) ([]entity.Message, error)
+	GetMessagesByRoomID(roomID entity.RoomID) ([]*entity.Message, error)
 }

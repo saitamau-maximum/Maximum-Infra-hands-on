@@ -1,61 +1,121 @@
 package usecase
 
 import (
+	"errors"
+	"time"
+
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/domain/repository"
-	"example.com/webrtc-practice/internal/domain/service"
+	"example.com/webrtc-practice/internal/interface/adapter"
+	"example.com/webrtc-practice/internal/interface/factory"
 )
 
-type IUserUsecase struct {
-	repo         repository.IUserRepository
-	hasher       service.Hasher
-	tokenService service.TokenService
+// UserUseCaseInterface: ユーザーに関するユースケースを管理するインターフェース
+type UserUseCaseInterface interface {
+	SignUp(req SignUpRequest) (SignUpResponse, error)
+	AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error)
 }
 
-func NewUserUsecase(
-	repo repository.IUserRepository,
-	hasher service.Hasher,
-	tokenService service.TokenService,
-) *IUserUsecase {
-	return &IUserUsecase{
-		repo:         repo,
-		hasher:       hasher,
-		tokenService: tokenService,
+type UserUseCase struct {
+	userRepo      repository.UserRepository
+	hasher        adapter.HasherAdapter
+	tokenSvc      adapter.TokenServiceAdapter
+	userIDFactory factory.UserIDFactory
+}
+
+type NewUserUseCaseParams struct {
+	UserRepo      repository.UserRepository
+	Hasher        adapter.HasherAdapter
+	TokenSvc      adapter.TokenServiceAdapter
+	UserIDFactory factory.UserIDFactory
+}
+
+func NewUserUseCase(p NewUserUseCaseParams) *UserUseCase {
+	return &UserUseCase{
+		userRepo:      p.UserRepo,
+		hasher:        p.Hasher,
+		tokenSvc:      p.TokenSvc,
+		userIDFactory: p.UserIDFactory,
 	}
 }
 
-func (u *IUserUsecase) SignUp(name, email, password string) (*entity.User, error) {
-	hashedPassword, err := u.hasher.HashPassword(password)
+func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
+	hashedPassword, err := u.hasher.HashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return SignUpResponse{nil}, err
 	}
 
-	res, err := u.repo.CreateUser(repository.CreateUserParams{
-		Name:       name,
-		Email:      email,
+	id, err := u.userIDFactory.NewUserID()
+	if err != nil {
+		return SignUpResponse{nil}, err
+	}
+
+	userParams := entity.UserParams{
+		ID:         id,
+		Name:       req.Name,
+		Email:      req.Email,
 		PasswdHash: hashedPassword,
-	})
-	if err != nil {
-		return nil, err
+		CreatedAt:  time.Now(),
+		UpdatedAt:  nil,
 	}
 
-	return res, nil
+	user := entity.NewUser(userParams)
+
+	res, err := u.userRepo.SaveUser(user)
+	if err != nil {
+		return SignUpResponse{nil}, err
+	}
+
+	return SignUpResponse{User: res}, nil
 }
 
-func (u *IUserUsecase) AuthenticateUser(email, password string) (string, error) {
-	user, err := u.repo.GetUserByEmail(email)
+func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
+	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		return "", err
+		return AuthenticateUserResponse{Token: nil}, err
 	}
 
-	ok, err := u.hasher.ComparePassword(user.GetPasswdHash(), password)
+	ok, err := u.hasher.ComparePassword(user.GetPasswdHash(), req.Password)
 	if err != nil {
-		return "", err
+		return AuthenticateUserResponse{Token: nil}, err
 	}
 
 	if !ok {
-		return "", err
+		return AuthenticateUserResponse{Token: nil}, errors.New("password mismatch")
 	}
 
-	return u.tokenService.GenerateToken(user.GetID())
+	res, err := u.tokenSvc.GenerateToken(user.GetID())
+
+	return AuthenticateUserResponse{Token: &res}, err
+}
+
+// DTOs
+type SignUpRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type SignUpResponse struct {
+	User *entity.User
+}
+
+type AuthenticateUserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type AuthenticateUserResponse struct {
+	Token *string `json:"token"`
+}
+
+func (res *AuthenticateUserResponse) IsTokenNil() bool {
+	return res.Token == nil
+}
+
+func (res *AuthenticateUserResponse) GetToken() string {
+	if res.Token == nil {
+		return ""
+	}
+	return *res.Token
 }

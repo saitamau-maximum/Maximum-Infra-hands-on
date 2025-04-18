@@ -9,3 +9,21 @@ type Message struct {
 	content string    // 本文
 	sentAt  time.Time // 送信日時
 }
+
+type MessageParams struct {
+	ID 		MessageID
+	RoomID 	RoomID
+	UserID 	UserID
+	Content string
+	SentAt 	time.Time
+}
+
+func NewMessage(params MessageParams) *Message {
+	return &Message{
+		id:      params.ID,
+		roomID:  params.RoomID,
+		userID:  params.UserID,
+		content: params.Content,
+		sentAt:  params.SentAt,
+	}
+}

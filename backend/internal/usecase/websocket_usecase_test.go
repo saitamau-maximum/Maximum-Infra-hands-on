@@ -1,633 +1,310 @@
 package usecase_test
 
 import (
-	"fmt"
-	"sync"
 	"testing"
+	"time"
 
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/usecase"
+	mock_repository "example.com/webrtc-practice/mocks/domain/repository"
+	mock_service "example.com/webrtc-practice/mocks/domain/service"
+	mock_factory "example.com/webrtc-practice/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-
-	mock_repository "example.com/webrtc-practice/mocks/repository"
-	mock_service "example.com/webrtc-practice/mocks/service"
 )
 
-// 新しいUsecaseインスタンスを作成するテスト
-func TestNewWebsocketUsecase(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
-
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
-	// Test（インスタンスが作成できているか確認）
-	assert.NotNil(t, usecase)
+type mockDeps struct {
+	UserRepo         *mock_repository.MockUserRepository
+	RoomRepo         *mock_repository.MockRoomRepository
+	MsgRepo          *mock_repository.MockMessageRepository
+	WsClientRepo     *mock_repository.MockWebsocketClientRepository
+	WebsocketManager *mock_service.MockWebsocketManager
+	ClientIDFactory  *mock_factory.MockWebsocketClientIDFactory
+	MsgIDFactory     *mock_factory.MockMessageIDFactory
 }
 
-// RegisterClientメソッドのテスト
-func TestRegisterClient(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func newTestWebsocketUseCase(
+	ctrl *gomock.Controller,
+) (usecase.WebsocketUseCaseInterface, mockDeps) {
+	// モックの作成
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockMsgRepo := mock_repository.NewMockMessageRepository(ctrl)
+	mockWsClientRepo := mock_repository.NewMockWebsocketClientRepository(ctrl)
+	mockWebsocketManager := mock_service.NewMockWebsocketManager(ctrl)
+	mockClientIDFactory := mock_factory.NewMockWebsocketClientIDFactory(ctrl)
+	mockMsgIDFactory := mock_factory.NewMockMessageIDFactory(ctrl)
 
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
+	params := usecase.NewWebsocketUseCaseParams{
+		UserRepo:         mockUserRepo,
+		RoomRepo:         mockRoomRepo,
+		MsgRepo:          mockMsgRepo,
+		WsClientRepo:     mockWsClientRepo,
+		WebsocketManager: mockWebsocketManager,
+		MsgIDFactory:     mockMsgIDFactory,
+		ClientIDFactory:  mockClientIDFactory,
+	}
+	useCase := usecase.NewWebsocketUseCase(params)
 
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
-	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
-
-	mockWm.EXPECT().RegisterConnection(mockConn).Return(nil)
-
-	// Test（RegisterClientメソッドの呼び出し）
-	err := usecase.RegisterClient(mockConn)
-	assert.NoError(t, err)
+	// モックをテスト内で使いたいため構造体で返す
+	return useCase, mockDeps{
+		UserRepo:         mockUserRepo,
+		RoomRepo:         mockRoomRepo,
+		MsgRepo:          mockMsgRepo,
+		WsClientRepo:     mockWsClientRepo,
+		WebsocketManager: mockWebsocketManager,
+		ClientIDFactory:  mockClientIDFactory,
+		MsgIDFactory:     mockMsgIDFactory,
+	}
 }
 
-// ゴルーチンで呼ばれるListenForMessagesメソッドのテスト
-func TestListenForMessages(t *testing.T) {
+func TestConnectUserToRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
+	useCase, mocks := newTestWebsocketUseCase(ctrl)
 
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
+	// テストデータ
+	userID := entity.UserID("user123")
+	publicRoomID := entity.RoomPublicID("room123")
+	roomID := entity.RoomID(123)
+	clientID := entity.WebsocketClientID("client123")
+	testUser := entity.NewUser(entity.UserParams{
+		ID:         userID,
+		Name:       "John Doe",
+		Email:      "test@mail.com",
+		PasswdHash: "hashed_password",
+		CreatedAt:  time.Now(),
+		UpdatedAt:  nil,
+	})
+	// モックの作成
 	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
-
-	testMessage := entity.NewMessage("testID", "connect", "testSDP", []string{"testCandidate"}, "targetID")
-
 	t.Run("正常系", func(t *testing.T) {
-		mockConn.EXPECT().
-			ReadMessage().
-			Return(1, *testMessage, nil).
-			Times(1)
-
-		mockWm.EXPECT().
-			ExistsByID(testMessage.GetID()).
-			Return(false).
-			Times(1)
-
-		mockWm.EXPECT().
-			RegisterID(mockConn, testMessage.GetID()).
-			Times(1)
-		mockBr.EXPECT().
-			Send(*testMessage).
-			Times(1)
-
-		mockRepo.EXPECT().
-			CreateClient(testMessage.GetID()).
-			Times(1)
-
-		mockConn.EXPECT().
-			ReadMessage().
-			Return(0, entity.Message{}, assert.AnError).
-			Times(1)
-
-		mockWm.EXPECT().
-			DeleteConnection(mockConn).
-			Times(1)
-
-		mockRepo.EXPECT().
-			DeleteClient(testMessage.GetID()).
-			Times(1)
-
-		mockO.EXPECT().
-			ClearOffer().
-			Times(1)
-
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			usecase.ListenForMessages(mockConn)
-		}()
-		wg.Wait()
-	})
-
-	t.Run("ID既登録時の接続拒否", func(t *testing.T) {
-		mockConn.EXPECT().
-			ReadMessage().
-			Return(0, *testMessage, nil).
-			Times(1)
-
-		mockWm.EXPECT().
-			ExistsByID(testMessage.GetID()).
-			Return(true).
-			Times(1)
-
-		mockWm.EXPECT().
-			DeleteConnection(mockConn).
-			Times(1)
-
-		mockO.EXPECT().
-			ClearOffer().
-			Times(1)
-
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			usecase.ListenForMessages(mockConn)
-		}()
-		wg.Wait()
-	})
-
-	t.Run("ReadMessageがError", func(t *testing.T) {
-		mockConn.EXPECT().
-			ReadMessage().
-			Return(0, entity.Message{}, assert.AnError).
-			Times(1)
-
-		mockWm.EXPECT().
-			DeleteConnection(mockConn).
-			Times(1)
-
-		mockRepo.EXPECT().
-			DeleteClient("").
-			Times(1)
-
-		mockO.EXPECT().
-			ClearOffer().
-			Times(1)
-
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			usecase.ListenForMessages(mockConn)
-		}()
-		wg.Wait()
-	})
-
-	t.Run("ID登録後のループ", func(t *testing.T) {
-		gomock.InOrder(
-			// 初回メッセージ（ID登録）
-			mockConn.EXPECT().
-				ReadMessage().
-				Return(1, *testMessage, nil),
-
-			mockWm.EXPECT().
-				ExistsByID(testMessage.GetID()).
-				Return(false),
-
-			mockWm.EXPECT().
-				RegisterID(mockConn, testMessage.GetID()),
-
-			mockRepo.EXPECT().
-				CreateClient(testMessage.GetID()),
-
-			mockBr.EXPECT().
-				Send(*testMessage),
-
-			// 2回目のメッセージ（すでにID登録済み）
-			mockConn.EXPECT().
-				ReadMessage().
-				Return(1, *testMessage, nil),
-			mockBr.EXPECT().
-				Send(*testMessage),
-
-			// 終了条件
-			mockConn.EXPECT().
-				ReadMessage().
-				Return(0, entity.Message{}, assert.AnError),
-
-			mockWm.EXPECT().
-				DeleteConnection(mockConn),
-
-			mockRepo.EXPECT().
-				DeleteClient(testMessage.GetID()),
-
-			mockO.EXPECT().
-				ClearOffer(),
-		)
-
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			usecase.ListenForMessages(mockConn)
-		}()
-		wg.Wait()
-	})
-}
-
-func TestConnect(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
-	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
-
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
-	testConnectMessage := entity.NewMessage("testID", "connect", "", nil, "")
-
-	t.Run("誰もOfferしていない場合、接続者にoffer要求を送る", func(t *testing.T) {
-		msgToSend := entity.NewMessage(testConnectMessage.GetID(), "offer", "", nil, "")
-
-		// 期待される動作
-		mockWm.EXPECT().
-			GetConnectionByID(testConnectMessage.GetID()).
-			Return(mockConn, nil)
-
-		mockO.EXPECT().
-			IsOffer().
-			Return(false)
-
-		mockO.EXPECT().
-			SetOffer(testConnectMessage.GetID())
-
-		mockConn.EXPECT().
-			WriteMessage(*msgToSend).
-			Times(1)
+		// モックの期待値設定
+		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(clientID, nil)
+		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(nil)
 
 		// テスト実行
-		usecase.Connect(*testConnectMessage)
+		request := usecase.ConnectUserToRoomRequest{
+			UserID:       userID,
+			PublicRoomID: publicRoomID,
+			Conn:         mockConn,
+		}
+		err := useCase.ConnectUserToRoom(request)
+
+		// 検証
+		assert.NoError(t, err)
 	})
 
-	t.Run("offerが自分自身だった場合、何もしない", func(t *testing.T) {
-		mockWm.EXPECT().
-			GetConnectionByID(testConnectMessage.GetID()).
-			Return(mockConn, nil)
-
-		mockO.EXPECT().
-			IsOffer().
-			Return(true)
-
-		mockO.EXPECT().
-			IsOfferID(testConnectMessage.GetID()).
-			Return(true)
-
-		// WriteMessageは呼ばれない
-
-		usecase.Connect(*testConnectMessage)
-	})
-
-	t.Run("offerが他の人だった場合、offerを送信", func(t *testing.T) {
-		msgToSend := entity.NewMessage("otherID", "offer", "otherSDP", nil, testConnectMessage.GetID())
-
-		mockWm.EXPECT().
-			GetConnectionByID(testConnectMessage.GetID()).
-			Return(mockConn, nil).
-			Times(1)
-
-		mockO.EXPECT().
-			IsOffer().
-			Return(true).
-			Times(1)
-
-		mockO.EXPECT().
-			IsOfferID(testConnectMessage.GetID()).
-			Return(false).
-			Times(1)
-
-		mockO.EXPECT().
-			GetOffer().
-			Return("otherID").
-			Times(1)
-
-		mockRepo.EXPECT().
-			GetSDPByID("otherID").
-			Return("otherSDP", nil).
-			Times(1)
-
-		mockO.EXPECT().
-			GetOffer().
-			Return("otherID").
-			Times(1)
-
-		mockConn.EXPECT().
-			WriteMessage(*msgToSend).
-			Times(1)
-
+	t.Run("異常系：ユーザ取得失敗", func(t *testing.T) {
+		// モックの期待値設定
+		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(nil, assert.AnError)
 		// テスト実行
-		usecase.Connect(*testConnectMessage)
+		request := usecase.ConnectUserToRoomRequest{
+			UserID:       userID,
+			PublicRoomID: publicRoomID,
+			Conn:         mockConn,
+		}
+		err := useCase.ConnectUserToRoom(request)
+
+		// 検証
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：部屋取得失敗", func(t *testing.T) {
+		// モックの期待値設定
+		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(entity.RoomID(0), assert.AnError)
+		// テスト実行
+		request := usecase.ConnectUserToRoomRequest{
+			UserID:       userID,
+			PublicRoomID: publicRoomID,
+			Conn:         mockConn,
+		}
+		err := useCase.ConnectUserToRoom(request)
+
+		// 検証
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：クライアントID生成失敗", func(t *testing.T) {
+		// モックの期待値設定
+		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(entity.WebsocketClientID(""), assert.AnError)
+		// テスト実行
+		request := usecase.ConnectUserToRoomRequest{
+			UserID:       userID,
+			PublicRoomID: publicRoomID,
+			Conn:         mockConn,
+		}
+		err := useCase.ConnectUserToRoom(request)
+
+		// 検証
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：クライアント作成失敗", func(t *testing.T) {
+		// モックの期待値設定
+		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(clientID, nil)
+		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(assert.AnError)
+		// テスト実行
+		request := usecase.ConnectUserToRoomRequest{
+			UserID:       userID,
+			PublicRoomID: publicRoomID,
+			Conn:         mockConn,
+		}
+		err := useCase.ConnectUserToRoom(request)
+
+		// 検証
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：WebSocket登録失敗", func(t *testing.T) {
+		// モックの期待値設定
+		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(clientID, nil)
+		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(assert.AnError)
+		// テスト実行
+		request := usecase.ConnectUserToRoomRequest{
+			UserID:       userID,
+			PublicRoomID: publicRoomID,
+			Conn:         mockConn,
+		}
+		err := useCase.ConnectUserToRoom(request)
+
+		// 検証
+		assert.Error(t, err)
 	})
 }
 
-func TestOffer(t *testing.T) {
+func TestSendMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
-
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
-	testOfferMessage := entity.NewMessage("testID", "offer", "testSDP", nil, "")
-
-	t.Run("SDPが正常に保存されること", func(t *testing.T) {
-		mockRepo.EXPECT().
-			SaveSDP(testOfferMessage.GetID(), testOfferMessage.GetSDP()).
-			Times(1)
-
-		usecase.Offer(*testOfferMessage)
-	})
-}
-
-func TestSendAnswer(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
-
-	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-	testMessage := entity.NewMessage("senderID", "answer", "testSDP", nil, "receiverID")
+	useCase, mocks := newTestWebsocketUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
-		msgToSend := entity.NewMessage(
-			testMessage.GetTargetID(),
-			"answer",
-			testMessage.GetSDP(),
-			nil,
-			testMessage.GetID(),
-		)
+		roomPublicID := entity.RoomPublicID("room123")
+		roomID := entity.RoomID(123)
+		senderID := entity.UserID("user123")
+		content := "Hello, World!"
+		messageID := entity.MessageID("msg123")
 
-		mockWm.EXPECT().
-			GetConnectionByID(testMessage.GetTargetID()).
-			Return(mockConn, nil).
-			Times(1)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(roomPublicID).Return(roomID, nil)
+		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
+		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(nil)
 
-		mockConn.EXPECT().
-			WriteMessage(*msgToSend).
-			Times(1)
+		request := usecase.SendMessageRequest{
+			RoomPublicID: roomPublicID,
+			Sender:       senderID,
+			Content:      content,
+		}
+		err := useCase.SendMessage(request)
 
-		usecase.Answer(*testMessage)
+		assert.NoError(t, err)
 	})
 
-	t.Run("クライアントが見つからない場合", func(t *testing.T) {
-		mockWm.EXPECT().
-			GetConnectionByID(testMessage.GetTargetID()).
-			Return(nil, assert.AnError).
-			Times(1)
+	t.Run("異常系：部屋取得失敗", func(t *testing.T) {
+		roomPublicID := entity.RoomPublicID("room123")
+		senderID := entity.UserID("user123")
+		content := "Hello, World!"
 
-		usecase.Answer(*testMessage)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(roomPublicID).Return(entity.RoomID(0), assert.AnError)
+
+		request := usecase.SendMessageRequest{
+			RoomPublicID: roomPublicID,
+			Sender:       senderID,
+			Content:      content,
+		}
+		err := useCase.SendMessage(request)
+
+		assert.Error(t, err)
 	})
 }
 
-func TestCandidateAdd(t *testing.T) {
+func TestDisconnectUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
+	useCase, mocks := newTestWebsocketUseCase(ctrl)
 
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
-	t.Run("直接通信＋Candidateを返答", func(t *testing.T) {
-		// テストで使用するメッセージを作成
-		testMessage := entity.NewMessage(
-			"senderID",
-			"candidate",
-			"",
-			[]string{"testCandidate1", "testCandidate2"},
-			"receiverID",
-		)
-		msgToSend := entity.NewMessage(
-			testMessage.GetID(),
-			"candidate",
-			"",
-			testMessage.GetCandidate(),
-			testMessage.GetTargetID(),
-		)
-
+	t.Run("正常系", func(t *testing.T) {
+		userID := entity.UserID("user123")
 		mockConn := mock_service.NewMockWebSocketConnection(ctrl)
+		mockClient := entity.NewWebsocketClient(entity.WebsocketClientParams{
+			ID:     entity.WebsocketClientID("client123"),
+			UserID: userID,
+			RoomID: entity.RoomID(123),
+		})
 
-		// GetConnectionByIDが正常に動作し、クライアントが取得できる
-		mockWm.EXPECT().
-			GetConnectionByID(testMessage.GetTargetID()).
-			Return(mockConn, nil).
-			Times(1)
+		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(mockConn, nil)
+		mocks.WsClientRepo.EXPECT().GetClientsByUserID(userID).Return(mockClient, nil)
+		mocks.WebsocketManager.EXPECT().Unregister(mockConn).Return(nil)
+		mocks.WsClientRepo.EXPECT().DeleteClient(mockClient.GetID()).Return(nil)
 
-		// WriteMessageが呼ばれる
-		mockConn.EXPECT().
-			WriteMessage(*msgToSend).
-			Times(1)
+		request := usecase.DisconnectUserRequest{UserID: userID}
+		err := useCase.DisconnectUser(request)
 
-		mockRepo.EXPECT().
-			ExistsCandidateByID(testMessage.GetID()).
-			Return(true).
-			Times(1)
-
-		mockRepo.EXPECT().
-			AddCandidate(testMessage.GetID(), testMessage.GetCandidate()).
-			Return(nil).
-			Times(1)
-
-		mockO.EXPECT().
-			IsOfferID(testMessage.GetTargetID()).
-			Return(true).
-			Times(1)
-
-		// CandidateAddを呼び出し
-		result := usecase.CandidateAdd(*testMessage)
-
-		// 結果としてtrueを期待
-		if !result {
-			t.Errorf("Expected result to be true, but got false")
-		}
+		assert.NoError(t, err)
 	})
 
-	t.Run("候補者が保存されていない場合（保存処理）", func(t *testing.T) {
-		// テストで使用するメッセージを作成
-		testMessage := entity.NewMessage(
-			"senderID",
-			"candidate",
-			"",
-			[]string{"testCandidate1", "testCandidate2"},
-			"",
-		)
+	t.Run("異常系：接続取得失敗", func(t *testing.T) {
+		userID := entity.UserID("user123")
 
-		// SaveCandidateが呼ばれる
-		mockRepo.EXPECT().
-			ExistsCandidateByID(testMessage.GetID()). 
-			Return(false).
-			Times(1)
+		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(nil, assert.AnError)
 
-		mockRepo.EXPECT().
-			SaveCandidate(testMessage.GetID(), testMessage.GetCandidate()). 
-			Return(nil).
-			Times(1)
+		request := usecase.DisconnectUserRequest{UserID: userID}
+		err := useCase.DisconnectUser(request)
 
-		mockO.EXPECT().
-			IsOfferID(testMessage.GetTargetID()). 
-			Return(false).
-			Times(1)
-
-		// CandidateAddを呼び出し
-		result := usecase.CandidateAdd(*testMessage)
-
-		// 結果としてfalseを期待（targetIDが空なので送信はしない）
-		if result {
-			t.Errorf("Expected result to be false, but got true")
-		}
-	})
-
-	t.Run("候補者の保存でエラーが発生した場合", func(t *testing.T) {
-		// テストで使用するメッセージを作成
-		testMessage := entity.NewMessage(
-			"senderID",
-			"candidate",
-			"",
-			[]string{"testCandidate1", "testCandidate2"},
-			"",
-		)
-
-		// SaveCandidateでエラーが発生するシナリオ
-		mockRepo.EXPECT().
-			ExistsCandidateByID(testMessage.GetID()). // Updated to use GetID()
-			Return(false).
-			Times(1)
-
-		mockRepo.EXPECT().
-			SaveCandidate(testMessage.GetID(), testMessage.GetCandidate()). // Updated to use GetID()
-			Return(fmt.Errorf("save error")).
-			Times(1)
-
-		// CandidateAddを呼び出し、falseが返る
-		result := usecase.CandidateAdd(*testMessage)
-
-		if result {
-			t.Errorf("Expected result to be false, but got true")
-		}
+		assert.Error(t, err)
 	})
 }
 
-func TestSendCandidate(t *testing.T) {
+func TestGetMessageHistory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := mock_repository.NewMockIWebsocketRepository(ctrl)
-	mockWm := mock_service.NewMockWebsocketManager(ctrl)
-	mockBr := mock_service.NewMockWebSocketBroadcastService(ctrl)
-	mockO := mock_service.NewMockOfferService(ctrl)
-
-	usecase := usecase.NewWebsocketUsecase(mockRepo, mockWm, mockBr, mockO)
-
-	testMessage := entity.NewMessage(
-		"senderID",
-		"candidate",
-		"",
-		[]string{"testCandidate1", "testCandidate2"},
-		"receiverID",
-	)
-
-	offerID := "offerID"
-	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
+	useCase, mocks := newTestWebsocketUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
-		msgToSend := entity.NewMessage(
-			testMessage.GetID(),
-			"candidate",
-			"",
-			[]string{"testCandidate2"},
-			offerID,
-		)
+		publicRoomID := entity.RoomPublicID("room123")
+		roomID := entity.RoomID(123)
+		messages := []*entity.Message{
+			entity.NewMessage(entity.MessageParams{
+				ID:      entity.MessageID("msg1"),
+				RoomID:  roomID,
+				UserID:  entity.UserID("user1"),
+				Content: "Hello",
+				SentAt:  time.Now(),
+			}),
+		}
 
-		mockO.EXPECT().
-			GetOffer().
-			Return(offerID).
-			Times(1)
-		
-		mockRepo.EXPECT().
-			ExistsCandidateByID(offerID).
-			Return(true).
-			Times(1)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
+		mocks.MsgRepo.EXPECT().GetMessagesByRoomID(roomID).Return(messages, nil)
 
-		mockWm.EXPECT().
-			GetConnectionByID(testMessage.GetID()).
-			Return(mockConn, nil).
-			Times(1)
-		
-		mockRepo.EXPECT().
-			GetCandidatesByID(offerID).
-			Return(msgToSend.GetCandidate(), nil). // Updated to use GetCandidate()
-			Times(1)
+		request := usecase.GetMessageHistoryRequest{PublicRoomID: publicRoomID}
+		response, err := useCase.GetMessageHistory(request)
 
-		mockConn.EXPECT().
-			WriteMessage(*msgToSend).
-			Times(1)
-
-		usecase.SendCandidate(*testMessage)
+		assert.NoError(t, err)
+		assert.Equal(t, messages, response.Messages)
 	})
 
-	t.Run("Candidateが存在しない場合", func(t *testing.T) {
-		mockO.EXPECT().
-			GetOffer().
-			Return(offerID).
-			Times(1)
+	t.Run("異常系：部屋取得失敗", func(t *testing.T) {
+		publicRoomID := entity.RoomPublicID("room123")
 
-		mockRepo.EXPECT().
-			ExistsCandidateByID(offerID).
-			Return(false).
-			Times(1)
+		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(entity.RoomID(0), assert.AnError)
 
-		usecase.SendCandidate(*testMessage)
-	})
+		request := usecase.GetMessageHistoryRequest{PublicRoomID: publicRoomID}
+		_, err := useCase.GetMessageHistory(request)
 
-	t.Run("Connection取得失敗", func(t *testing.T) {
-		mockO.EXPECT().
-			GetOffer().
-			Return(offerID).
-			Times(1)
-
-		mockRepo.EXPECT().
-			ExistsCandidateByID(offerID).
-			Return(true).
-			Times(1)
-
-		mockWm.EXPECT().
-			GetConnectionByID(testMessage.GetID()). // Updated to use GetID()
-			Return(nil, fmt.Errorf("connection not found")).
-			Times(1)
-
-		usecase.SendCandidate(*testMessage)
-	})
-
-	t.Run("Candidate取得失敗", func(t *testing.T) {
-		mockO.EXPECT().
-			GetOffer().
-			Return(offerID).
-			Times(1)
-
-		mockRepo.EXPECT().
-			ExistsCandidateByID(offerID).
-			Return(true).
-			Times(1)
-
-		mockWm.EXPECT().
-			GetConnectionByID(testMessage.GetID()). // Updated to use GetID()
-			Return(mockConn, nil).
-			Times(1)
-
-		mockRepo.EXPECT().
-			GetCandidatesByID(offerID).
-			Return(nil, fmt.Errorf("failed to get candidate")).
-			Times(1)
-
-		usecase.SendCandidate(*testMessage)
+		assert.Error(t, err)
 	})
 }
-

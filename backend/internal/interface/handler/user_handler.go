@@ -10,7 +10,7 @@ import (
 )
 
 type UserHandler struct {
-	UserUsecase    *usecase.IUserUsecase
+	UserUseCase    *usecase.IUserUseCase
 	UserRepository repository.IUserRepository
 }
 
@@ -21,7 +21,7 @@ func NewUserHandler(
 	tokenService service.TokenService,
 ) UserHandler {
 	return UserHandler{
-		UserUsecase: usecase.NewUserUsecase(
+		UserUseCase: usecase.NewUserUseCase(
 			repo,
 			hasher,
 			tokenService,
@@ -50,7 +50,7 @@ func (h *UserHandler) SignUp(c echo.Context) error {
 		})
 	}
 
-	user, err := h.UserUsecase.SignUp(params.Name, params.Email, params.Password)
+	user, err := h.UserUseCase.SignUp(params.Name, params.Email, params.Password)
 	if err != nil {
 		return c.JSON(400, map[string]any{
 			"error": err.Error(),
@@ -87,7 +87,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		})
 	}
 
-	token, err := h.UserUsecase.AuthenticateUser(req.Email, req.Password)
+	token, err := h.UserUseCase.AuthenticateUser(req.Email, req.Password)
 	if err != nil {
 		return c.JSON(400, map[string]any{
 			"error": err.Error(),

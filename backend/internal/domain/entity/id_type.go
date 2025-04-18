@@ -3,7 +3,9 @@ package entity
 
 type UserID string
 
-type RoomID string
+type RoomID int
+
+type RoomPublicID string
 
 type MessageID string
 

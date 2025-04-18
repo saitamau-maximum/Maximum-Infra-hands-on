@@ -9,16 +9,16 @@ import (
 )
 
 type WebsocketHandler struct {
-	Usecase                    usecase.IWebsocketUsecaseInterface
+	UseCase                    usecase.IWebsocketUseCaseInterface
 	WebsocketConnectionFactory factory.WebsocketConnectionFactory
 }
 
 func NewWebsocketHandler(
-	usecase usecase.IWebsocketUsecaseInterface,
+	usecase usecase.IWebsocketUseCaseInterface,
 	factory factory.WebsocketConnectionFactory,
 ) WebsocketHandler {
 	h := WebsocketHandler{
-		Usecase:                    usecase,
+		UseCase:                    usecase,
 		WebsocketConnectionFactory: factory,
 	}
 
@@ -41,17 +41,17 @@ func (h *WebsocketHandler) HandleWebsocket(c echo.Context) error {
 	}
 	defer conn.Close()
 
-	err = h.Usecase.RegisterClient(conn)
+	err = h.UseCase.RegisterClient(conn)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "client already registered"})
 	}
 
-	h.Usecase.ListenForMessages(conn)
+	h.UseCase.ListenForMessages(conn)
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "success"})
 }
 
 // メッセージ処理の呼び出し
 func (h *WebsocketHandler) HandleMessages() {
-	h.Usecase.ProcessMessage()
+	h.UseCase.ProcessMessage()
 }

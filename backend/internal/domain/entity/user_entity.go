@@ -4,7 +4,7 @@ import (
 	"time"
 )
 type User struct {
-	id         int
+	id         UserID
 	name       string
 	email      string
 	passwdhash string
@@ -12,18 +12,27 @@ type User struct {
 	updatedAt  *time.Time
 }
 
-func NewUser(id int, name, email, passwdhash string, createdAt time.Time, updatedAt *time.Time) *User {
+type UserParams struct {
+	ID         UserID
+	Name       string
+	Email      string
+	PasswdHash string
+	CreatedAt  time.Time
+	UpdatedAt  *time.Time
+}
+
+func NewUser(p UserParams) *User {
 	return &User{
-		id:         id,
-		name:       name,
-		email:      email,
-		passwdhash: passwdhash,
-		createdAt:  createdAt,
-		updatedAt:  updatedAt,
+		id:         p.ID,
+		name:       p.Name,
+		email:      p.Email,
+		passwdhash: p.PasswdHash,
+		createdAt:  p.CreatedAt,
+		updatedAt:  p.UpdatedAt,
 	}
 }
 
-func (u User) GetID() int {
+func (u User) GetID() UserID {
 	return u.id
 }
 
