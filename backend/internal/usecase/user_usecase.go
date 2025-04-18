@@ -10,6 +10,12 @@ import (
 	"example.com/webrtc-practice/internal/interface/factory"
 )
 
+// UserUseCaseInterface: ユーザーに関するユースケースを管理するインターフェース
+type UserUseCaseInterface interface {
+	SignUp(req SignUpRequest) (SignUpResponse, error)
+	AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error)
+}
+
 type UserUseCase struct {
 	userRepo      repository.UserRepository
 	hasher        adapter.HasherAdapter
@@ -31,16 +37,6 @@ func NewUserUseCase(p NewUserUseCaseParams) *UserUseCase {
 		tokenSvc:      p.TokenSvc,
 		userIDFactory: p.UserIDFactory,
 	}
-}
-
-type SignUpRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type SignUpResponse struct {
-	User *entity.User
 }
 
 func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
@@ -73,25 +69,6 @@ func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 	return SignUpResponse{User: res}, nil
 }
 
-type AuthenticateUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type AuthenticateUserResponse struct {
-	Token *string `json:"token"`
-}
-
-func (res *AuthenticateUserResponse) IsTokenNil() bool {
-	return res.Token == nil
-}
-func (res *AuthenticateUserResponse) GetToken() string {
-	if res.Token == nil {
-		return ""
-	}
-	return *res.Token
-}
-
 func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
 	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
@@ -110,4 +87,35 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 	res, err := u.tokenSvc.GenerateToken(user.GetID())
 
 	return AuthenticateUserResponse{Token: &res}, err
+}
+
+// DTOs
+type SignUpRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type SignUpResponse struct {
+	User *entity.User
+}
+
+type AuthenticateUserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type AuthenticateUserResponse struct {
+	Token *string `json:"token"`
+}
+
+func (res *AuthenticateUserResponse) IsTokenNil() bool {
+	return res.Token == nil
+}
+
+func (res *AuthenticateUserResponse) GetToken() string {
+	if res.Token == nil {
+		return ""
+	}
+	return *res.Token
 }

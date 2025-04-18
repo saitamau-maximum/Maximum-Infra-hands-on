@@ -8,6 +8,18 @@ import (
 	"example.com/webrtc-practice/internal/interface/factory"
 )
 
+type RoomUseCaseInterface interface {
+	CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error)
+	GetRoomByPublicID(params GetRoomByPublicIDParams) (GetRoomByPublicIDResponse, error)
+	GetAllRooms() ([]*entity.Room, error)
+	GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomResponse, error)
+	JoinRoom(req JoinRoomRequest) error
+	LeaveRoom(req LeaveRoomRequest) error
+	SearchRoom(req SearchRoomRequest) (SearchRoomResponse, error)
+	UpdateRoomName(req UpdateRoomNameRequest) error
+	DeleteRoom(req DeleteRoomRequest) error
+}
+
 // RoomUseCase構造体: 部屋に関するユースケースを管理
 type RoomUseCase struct {
 	roomRepo            repository.RoomRepository
