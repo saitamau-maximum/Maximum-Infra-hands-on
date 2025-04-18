@@ -14,7 +14,7 @@ type WebsocketManager interface {
 	Register(conn WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error
 	Unregister(conn WebSocketConnection) error
 	// コネクションの取得
-	GetConnctionByUserID(userID entity.UserID) (WebSocketConnection, error)
+	GetConnectionByUserID(userID entity.UserID) (WebSocketConnection, error)
 
 	// 指定した部屋にいるユーザーにブロードキャスト
 	BroadcastToRoom(roomID entity.RoomID, msg *entity.Message) error
