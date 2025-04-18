@@ -35,7 +35,13 @@ type WebsocketUseCase struct {
 
 func NewWebsocketUseCase(parms NewWebsocketUseCaseParams) WebsocketUseCaseInterface {
 	return &WebsocketUseCase{
+		userRepo:         parms.UserRepo,
+		roomRepo:         parms.RoomRepo,
+		msgRepo:          parms.MsgRepo,
+		wsClientRepo:     parms.WsClientRepo,
 		websocketManager: parms.WebsocketManager,
+		msgIDFactory:     parms.MsgIDFactory,
+		clientIDFactory:  parms.ClientIDFactory,
 	}
 }
 
@@ -62,7 +68,10 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 		RoomID: roomID,
 	})
 
-	w.wsClientRepo.CreateClient(client)
+	err = w.wsClientRepo.CreateClient(client)
+	if err != nil {
+		return err
+	}
 
 	err = w.websocketManager.Register(req.Conn, req.UserID, roomID)
 	if err != nil {
@@ -82,7 +91,6 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 	if err != nil {
 		return err
 	}
-
 	msg := entity.NewMessage(entity.MessageParams{
 		ID:      msgID,
 		RoomID:  roomID,
@@ -90,7 +98,7 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 		Content: req.Content,
 		SentAt:  time.Now(),
 	})
-
+	
 	err = w.websocketManager.BroadcastToRoom(roomID, msg)
 	if err != nil {
 		return err
