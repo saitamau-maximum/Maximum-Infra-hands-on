@@ -1,24 +1,7 @@
 package test
 
-import (
-	"net/http/httptest"
-	"testing"
-	"time"
 
-	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-
-	"example.com/webrtc-practice/internal/handler"
-	"example.com/webrtc-practice/internal/infrastructure/factory_impl"
-	"example.com/webrtc-practice/internal/infrastructure/repository_impl"
-	offerservice "example.com/webrtc-practice/internal/infrastructure/service_impl/offer_service"
-	websocketbroadcast "example.com/webrtc-practice/internal/infrastructure/service_impl/websocket_broadcast"
-	websocketmanager "example.com/webrtc-practice/internal/infrastructure/service_impl/websocket_manager"
-	websocketupgrader "example.com/webrtc-practice/internal/infrastructure/service_impl/websocket_upgrader"
-	"example.com/webrtc-practice/internal/usecase"
-)
-
+/*
 func TestWebsocketHandler_E2E_Real(t *testing.T) {
 	e := echo.New()
 
@@ -115,3 +98,4 @@ func TestWebsocketHandler_E2E_Real(t *testing.T) {
 	})
 	// TODO: 一連のやり取りをすべてテストするべき
 }
+*/

@@ -1,5 +1,5 @@
 package  main
-
+/*
 import (
 	"log"
 	"example.com/webrtc-practice/internal/infrastructure/repository_impl/sqlite3"
@@ -20,3 +20,4 @@ func main() {
 		log.Fatal(err)
 	}
 }
+	*/
