@@ -11,6 +11,7 @@ package mock_repository
 
 import (
 	reflect "reflect"
+	time "time"
 
 	entity "example.com/webrtc-practice/internal/domain/entity"
 	gomock "go.uber.org/mock/gomock"
@@ -52,6 +53,23 @@ func (m *MockMessageRepository) CreateMessage(arg0 *entity.Message) error {
 func (mr *MockMessageRepositoryMockRecorder) CreateMessage(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMessage", reflect.TypeOf((*MockMessageRepository)(nil).CreateMessage), arg0)
+}
+
+// GetMessageHistoryInRoom mocks base method.
+func (m *MockMessageRepository) GetMessageHistoryInRoom(roomID entity.RoomID, limit int, beforeSentAt time.Time) ([]*entity.Message, time.Time, bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessageHistoryInRoom", roomID, limit, beforeSentAt)
+	ret0, _ := ret[0].([]*entity.Message)
+	ret1, _ := ret[1].(time.Time)
+	ret2, _ := ret[2].(bool)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// GetMessageHistoryInRoom indicates an expected call of GetMessageHistoryInRoom.
+func (mr *MockMessageRepositoryMockRecorder) GetMessageHistoryInRoom(roomID, limit, beforeSentAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageHistoryInRoom", reflect.TypeOf((*MockMessageRepository)(nil).GetMessageHistoryInRoom), roomID, limit, beforeSentAt)
 }
 
 // GetMessagesByRoomID mocks base method.
