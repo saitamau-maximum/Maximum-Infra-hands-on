@@ -39,10 +39,10 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 	}
 }
 
-func RegisterUserRoutes(e *echo.Echo, handler *UserHandler) {
-	e.POST("/register", handler.RegisterUser)
-	e.POST("/login", handler.Login)
-	e.GET("/me", handler.GetMe)
+func (h *UserHandler) Register(g *echo.Group) {
+	g.POST("/register", h.RegisterUser)
+	g.POST("/login", h.Login)
+	g.GET("/me", h.GetMe)
 }
 
 type RegisterUserRequest struct {

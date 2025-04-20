@@ -45,12 +45,12 @@ func NewRoomHandler(params NewRoomHandlerParams) *RoomHandler {
 	}
 }
 
-func RegisterRoutes(e *echo.Echo, handler *RoomHandler) {
-	e.POST("/rooms", handler.CreateRoom)
-	e.POST("/rooms/:public_id/join", handler.JoinRoom)
-	e.POST("/rooms/:public_id/leave", handler.LeaveRoom)
-	e.GET("/rooms/:public_id", handler.GetRoom)
-	e.GET("/rooms", handler.GetRooms)
+func (h *RoomHandler) Register(g *echo.Group) {
+	g.POST("/rooms", h.CreateRoom)
+	g.POST("/rooms/:room_public_id/join", h.JoinRoom)
+	g.POST("/rooms/:room_public_id/leave", h.LeaveRoom)
+	g.GET("/rooms/:room_public_id", h.GetRoom)
+	g.GET("/rooms", h.GetRooms)
 }
 
 type CreateRoomRequest struct {
