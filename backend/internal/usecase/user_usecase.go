@@ -72,21 +72,21 @@ func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
 	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		return AuthenticateUserResponse{Token: nil}, err
+		return AuthenticateUserResponse{token: nil}, err
 	}
 
 	ok, err := u.hasher.ComparePassword(user.GetPasswdHash(), req.Password)
 	if err != nil {
-		return AuthenticateUserResponse{Token: nil}, err
+		return AuthenticateUserResponse{token: nil}, err
 	}
 
 	if !ok {
-		return AuthenticateUserResponse{Token: nil}, errors.New("password mismatch")
+		return AuthenticateUserResponse{token: nil}, errors.New("password mismatch")
 	}
 
 	res, err := u.tokenSvc.GenerateToken(user.GetID())
 
-	return AuthenticateUserResponse{Token: &res}, err
+	return AuthenticateUserResponse{token: &res}, err
 }
 
 // DTOs
@@ -106,16 +106,16 @@ type AuthenticateUserRequest struct {
 }
 
 type AuthenticateUserResponse struct {
-	Token *string `json:"token"`
+	token *string 
 }
 
 func (res *AuthenticateUserResponse) IsTokenNil() bool {
-	return res.Token == nil
+	return res.token == nil
 }
 
 func (res *AuthenticateUserResponse) GetToken() string {
-	if res.Token == nil {
+	if res.token == nil {
 		return ""
 	}
-	return *res.Token
+	return *res.token
 }
