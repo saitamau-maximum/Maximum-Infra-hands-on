@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"net/http"
@@ -9,6 +9,7 @@ import (
 
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/infrastructure/validator"
+	"example.com/webrtc-practice/internal/interface/handler"
 	"example.com/webrtc-practice/internal/usecase"
 	mock_factory "example.com/webrtc-practice/mocks/interface/factory"
 	mock_usecase "example.com/webrtc-practice/mocks/usecase"
@@ -28,7 +29,7 @@ func TestRegisterUser(t *testing.T) {
 	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	handler := NewUserHandler(NewUserHandlerParams{
+	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   mockUserUseCase,
 		UserIDFactory: mockUserIDFactory,
 	})
@@ -63,7 +64,7 @@ func TestLogin(t *testing.T) {
 	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	handler := NewUserHandler(NewUserHandlerParams{
+	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   mockUserUseCase,
 		UserIDFactory: mockUserIDFactory,
 	})
@@ -102,7 +103,7 @@ func TestGetMe(t *testing.T) {
 	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	handler := NewUserHandler(NewUserHandlerParams{
+	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   mockUserUseCase,
 		UserIDFactory: mockUserIDFactory,
 	})
