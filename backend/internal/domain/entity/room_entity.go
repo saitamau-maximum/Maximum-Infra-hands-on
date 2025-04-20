@@ -22,3 +22,18 @@ func NewRoom(params RoomParams) *Room {
 		members: params.Members,
 	}
 }
+
+func (r *Room) GetPubID() RoomPublicID {
+	// 部屋の公開IDを取得
+	return r.public_id
+}
+
+func (r *Room) GetName() string {
+	// 部屋の名前を取得
+	return r.name
+}
+
+func (r *Room) GetMembers() []UserID {
+	// 部屋のメンバーを取得
+	return r.members
+}

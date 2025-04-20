@@ -39,7 +39,7 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 	}
 }
 
-func RegisterRoutes(e *echo.Echo, handler *UserHandler) {
+func RegisterUserRoutes(e *echo.Echo, handler *UserHandler) {
 	e.POST("/register", handler.RegisterUser)
 	e.POST("/login", handler.Login)
 	e.GET("/me", handler.GetMe)
