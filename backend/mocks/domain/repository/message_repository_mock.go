@@ -41,12 +41,11 @@ func (m *MockMessageRepository) EXPECT() *MockMessageRepositoryMockRecorder {
 }
 
 // CreateMessage mocks base method.
-func (m *MockMessageRepository) CreateMessage(arg0 entity.Message) (string, error) {
+func (m *MockMessageRepository) CreateMessage(arg0 *entity.Message) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMessage", arg0)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CreateMessage indicates an expected call of CreateMessage.

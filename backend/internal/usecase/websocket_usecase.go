@@ -154,6 +154,10 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 		SentAt:  time.Now(),
 	})
 
+	if err := w.msgRepo.CreateMessage(msg); err != nil {
+		return err
+	}
+
 	err = w.websocketManager.BroadcastToRoom(roomID, msg)
 	if err != nil {
 		return err

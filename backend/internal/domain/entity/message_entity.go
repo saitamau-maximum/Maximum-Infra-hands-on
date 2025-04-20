@@ -27,3 +27,14 @@ func NewMessage(params MessageParams) *Message {
 		sentAt:  params.SentAt,
 	}
 }
+
+func (m *Message) GetRoomID() RoomID {
+	return m.roomID
+}
+func (m *Message) GetUserID() UserID {
+	return m.userID
+}
+func (m *Message) GetContent() string {
+	return m.content
+}
+
