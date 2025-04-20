@@ -43,25 +43,37 @@ type NewWebsocketUseCaseParams struct {
 	MsgIDFactory     factory.MessageIDFactory
 	ClientIDFactory  factory.WebsocketClientIDFactory
 }
+func (p *NewWebsocketUseCaseParams) Validate() error {
+	if p.UserRepo == nil {
+		return fmt.Errorf("UserRepo is required")
+	}
+	if p.RoomRepo == nil {
+		return fmt.Errorf("RoomRepo is required")
+	}
+	if p.MsgRepo == nil {
+		return fmt.Errorf("MsgRepo is required")
+	}
+	if p.WsClientRepo == nil {
+		return fmt.Errorf("WsClientRepo is required")
+	}
+	if p.WebsocketManager == nil {
+		return fmt.Errorf("WebsocketManager is required")
+	}
+	if p.MsgIDFactory == nil {
+		return fmt.Errorf("MsgIDFactory is required")
+	}
+	if p.ClientIDFactory == nil {
+		return fmt.Errorf("ClientIDFactory is required")
+	}
+	return nil
+}
 
 func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInterface {
 	// Paramsのバリデーションを行う
-	required := map[string]any{
-		"UserRepo":         params.UserRepo,
-		"RoomRepo":         params.RoomRepo,
-		"MsgRepo":          params.MsgRepo,
-		"WsClientRepo":     params.WsClientRepo,
-		"WebsocketManager": params.WebsocketManager,
-		"MsgIDFactory":     params.MsgIDFactory,
-		"ClientIDFactory":  params.ClientIDFactory,
+	if err := params.Validate(); err != nil {
+		panic(fmt.Sprintf("Invalid parameters: %v", err))
 	}
-
-	for name, f := range required {
-		if f == nil {
-			panic(fmt.Sprintf("%s is required", name))
-		}
-	}
-
+	
 	return &WebsocketUseCase{
 		userRepo:         params.UserRepo,
 		roomRepo:         params.RoomRepo,
