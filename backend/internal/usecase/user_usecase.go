@@ -128,3 +128,7 @@ func (res *AuthenticateUserResponse) GetToken() string {
 	}
 	return *res.token
 }
+// 外部でのテストのためのセッター
+func (res *AuthenticateUserResponse) SetToken(token string) {
+	res.token = &token
+}

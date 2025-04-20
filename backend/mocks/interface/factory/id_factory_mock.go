@@ -93,18 +93,18 @@ func (m *MockRoomIDFactory) EXPECT() *MockRoomIDFactoryMockRecorder {
 	return m.recorder
 }
 
-// FromString mocks base method.
-func (m *MockRoomIDFactory) FromString(arg0 string) entity.RoomID {
+// FromInt mocks base method.
+func (m *MockRoomIDFactory) FromInt(arg0 int) entity.RoomID {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromString", arg0)
+	ret := m.ctrl.Call(m, "FromInt", arg0)
 	ret0, _ := ret[0].(entity.RoomID)
 	return ret0
 }
 
-// FromString indicates an expected call of FromString.
-func (mr *MockRoomIDFactoryMockRecorder) FromString(arg0 any) *gomock.Call {
+// FromInt indicates an expected call of FromInt.
+func (mr *MockRoomIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromString", reflect.TypeOf((*MockRoomIDFactory)(nil).FromString), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromInt", reflect.TypeOf((*MockRoomIDFactory)(nil).FromInt), arg0)
 }
 
 // NewRoomID mocks base method.

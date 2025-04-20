@@ -9,14 +9,15 @@ import (
 )
 
 type UserHandler struct {
-	UserUseCase usecase.UserUseCaseInterface
+	UserUseCase   usecase.UserUseCaseInterface
 	UserIDFactory factory.UserIDFactory
 }
 
 type NewUserHandlerParams struct {
-	UserUseCase    usecase.UserUseCaseInterface
-	UserIDFactory   factory.UserIDFactory
+	UserUseCase   usecase.UserUseCaseInterface
+	UserIDFactory factory.UserIDFactory
 }
+
 func (p *NewUserHandlerParams) Validate() error {
 	if p.UserUseCase == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "UserUseCase is required")
@@ -33,7 +34,7 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 	}
 
 	return &UserHandler{
-		UserUseCase: params.UserUseCase,
+		UserUseCase:   params.UserUseCase,
 		UserIDFactory: params.UserIDFactory,
 	}
 }
@@ -117,6 +118,12 @@ func (h *UserHandler) Login(c echo.Context) error {
 	})
 }
 
+type GetMeResponse struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 func (h *UserHandler) GetMe(c echo.Context) error {
 	uidRaw := c.Get("user_id")
 	if uidRaw == nil {
@@ -134,5 +141,11 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Internal server error"})
 	}
 
-	return c.JSON(http.StatusOK, user)
+	res := GetMeResponse{
+		ID:    string(user.GetID()),
+		Name:  user.GetName(),
+		Email: user.GetEmail(),
+	}
+
+	return c.JSON(http.StatusOK, res)
 }

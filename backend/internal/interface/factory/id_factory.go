@@ -9,7 +9,7 @@ type UserIDFactory interface {
 
 type RoomIDFactory interface {
 	NewRoomID() (entity.RoomID, error)
-	FromString(string) entity.RoomID
+	FromInt(int) entity.RoomID
 }
 
 type RoomPublicIDFactory interface {
