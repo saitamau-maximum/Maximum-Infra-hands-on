@@ -14,6 +14,7 @@ import (
 type UserUseCaseInterface interface {
 	SignUp(req SignUpRequest) (SignUpResponse, error)
 	AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error)
+	GetUserByID(id entity.UserID) (*entity.User, error)
 }
 
 type UserUseCase struct {
@@ -87,6 +88,14 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 	res, err := u.tokenSvc.GenerateToken(user.GetID())
 
 	return AuthenticateUserResponse{token: &res}, err
+}
+
+func (u *UserUseCase) GetUserByID(id entity.UserID) (*entity.User, error) {
+	user, err := u.userRepo.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 // DTOs
