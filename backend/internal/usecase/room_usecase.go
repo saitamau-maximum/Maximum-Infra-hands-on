@@ -50,20 +50,7 @@ type CreateRoomRequest struct {
 
 // CreateRoomResponse構造体: 部屋作成レスポンスのデータ
 type CreateRoomResponse struct {
-	RoomID *entity.RoomID `json:"room_id"` // 作成された部屋のID
-}
-
-// IsRoomIDNil: RoomIDがnilかどうかを判定
-func (CreateRoomRes *CreateRoomResponse) IsRoomIDNil() bool {
-	return CreateRoomRes.RoomID == nil
-}
-
-// GetRoomID: RoomIDを取得（nilの場合はゼロ値を返す）
-func (CreateRoomRes *CreateRoomResponse) GetRoomID() entity.RoomID {
-	if CreateRoomRes.IsRoomIDNil() {
-		return entity.RoomID(0) // 適切なゼロ値またはコンストラクタに置き換える
-	}
-	return *CreateRoomRes.RoomID
+	Room *entity.Room `json:"room"` // 作成した部屋
 }
 
 // CreateRoom: 新しい部屋を作成
@@ -90,7 +77,12 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 		return CreateRoomResponse{nil}, err
 	}
 
-	return CreateRoomResponse{RoomID: &savedRoomID}, nil
+	res, err := r.roomRepo.GetRoomByID(savedRoomID)
+	if err != nil {
+		return CreateRoomResponse{nil}, err
+	}
+
+	return CreateRoomResponse{Room: res}, nil
 }
 
 // GetRoomByPublicIDParams構造体: 公開IDで部屋を取得するためのパラメータ
@@ -165,7 +157,7 @@ func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomR
 // JoinRoomRequest構造体: 部屋に参加するリクエスト
 type JoinRoomRequest struct {
 	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	User         *entity.User        `json:"user"`    // 参加するユーザー
+	UserID       entity.UserID       `json:"user_id"` // 参加するユーザー
 }
 
 // JoinRoom: 部屋にユーザーを参加させる
@@ -179,7 +171,7 @@ func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
 		return errors.New("room not found")
 	}
 
-	err = r.roomRepo.AddMemberToRoom(id, req.User.GetID())
+	err = r.roomRepo.AddMemberToRoom(id, req.UserID)
 	if err != nil {
 		return err
 	}
