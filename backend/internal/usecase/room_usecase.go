@@ -59,7 +59,7 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 		ID:       roomID,
 		Name:     req.Name,
 		PublicID: roomPublicID,
-		Members:  []entity.UserID{req.FirstUserID},
+		Members:  []entity.UserID{},
 	})
 
 	savedRoomID, err := r.roomRepo.SaveRoom(room)
@@ -206,7 +206,6 @@ func (r *RoomUseCase) DeleteRoom(req DeleteRoomRequest) error {
 // CreateRoomRequest構造体: 部屋作成リクエストのデータ
 type CreateRoomRequest struct {
 	Name        string        `json:"name"`          // 部屋名
-	FirstUserID entity.UserID `json:"first_user_id"` // 最初のユーザーID
 }
 
 // CreateRoomResponse構造体: 部屋作成レスポンスのデータ

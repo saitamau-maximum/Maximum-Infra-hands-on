@@ -33,7 +33,6 @@ func TestCreateRoom(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		req := usecase.CreateRoomRequest{
 			Name:        "Test Room",
-			FirstUserID: entity.UserID("user_1"),
 		}
 		roomID := entity.RoomID(1)
 		roomPublicID := entity.RoomPublicID("public_room_1")
@@ -52,7 +51,6 @@ func TestCreateRoom(t *testing.T) {
 	t.Run("RoomID生成失敗時", func(t *testing.T) {
 		req := usecase.CreateRoomRequest{
 			Name:        "Test Room",
-			FirstUserID: entity.UserID("user_1"),
 		}
 		expectedErr := errors.New("failed to generate room ID")
 
@@ -68,7 +66,6 @@ func TestCreateRoom(t *testing.T) {
 	t.Run("RoomPublicID生成失敗時", func(t *testing.T) {
 		req := usecase.CreateRoomRequest{
 			Name:        "Test Room",
-			FirstUserID: entity.UserID("user_1"),
 		}
 		roomID := entity.RoomID(1)
 		expectedErr := errors.New("failed to generate room public ID")
