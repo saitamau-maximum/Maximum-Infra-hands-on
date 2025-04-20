@@ -43,6 +43,29 @@ func NewRoomUseCase(p NewRoomUseCaseParams) *RoomUseCase {
 	}
 }
 
+// CreateRoomRequest構造体: 部屋作成リクエストのデータ
+type CreateRoomRequest struct {
+	Name string `json:"name"` // 部屋名
+}
+
+// CreateRoomResponse構造体: 部屋作成レスポンスのデータ
+type CreateRoomResponse struct {
+	RoomID *entity.RoomID `json:"room_id"` // 作成された部屋のID
+}
+
+// IsRoomIDNil: RoomIDがnilかどうかを判定
+func (CreateRoomRes *CreateRoomResponse) IsRoomIDNil() bool {
+	return CreateRoomRes.RoomID == nil
+}
+
+// GetRoomID: RoomIDを取得（nilの場合はゼロ値を返す）
+func (CreateRoomRes *CreateRoomResponse) GetRoomID() entity.RoomID {
+	if CreateRoomRes.IsRoomIDNil() {
+		return entity.RoomID(0) // 適切なゼロ値またはコンストラクタに置き換える
+	}
+	return *CreateRoomRes.RoomID
+}
+
 // CreateRoom: 新しい部屋を作成
 func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error) {
 	roomID, err := r.roomIDFactory.NewRoomID()
@@ -68,6 +91,16 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 	}
 
 	return CreateRoomResponse{RoomID: &savedRoomID}, nil
+}
+
+// GetRoomByPublicIDParams構造体: 公開IDで部屋を取得するためのパラメータ
+type GetRoomByPublicIDParams struct {
+	PublicID entity.RoomPublicID `json:"public_id"` // 公開ID
+}
+
+// GetRoomByPublicIDResponse構造体: 公開IDで部屋を取得した結果
+type GetRoomByPublicIDResponse struct {
+	Room *entity.Room `json:"room"` // 取得した部屋
 }
 
 // GetRoomByPublicID: 公開IDを使用して部屋を取得
@@ -100,6 +133,16 @@ func (r *RoomUseCase) GetAllRooms() ([]*entity.Room, error) {
 	return rooms, nil
 }
 
+// GetUsersInRoomRequest構造体: 部屋内のユーザーを取得するリクエスト
+type GetUsersInRoomRequest struct {
+	PublicID entity.RoomPublicID `json:"public_id"` // 公開ID
+}
+
+// GetUsersInRoomResponse構造体: 部屋内のユーザー取得結果
+type GetUsersInRoomResponse struct {
+	Users []*entity.User `json:"users"` // 部屋内のユーザーリスト
+}
+
 // GetUsersInRoom: 部屋内のユーザーを取得
 func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomResponse, error) {
 	roomID, err := r.roomRepo.GetRoomIDByPublicID(req.PublicID)
@@ -117,6 +160,12 @@ func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomR
 	}
 
 	return GetUsersInRoomResponse{Users: users}, nil
+}
+
+// JoinRoomRequest構造体: 部屋に参加するリクエスト
+type JoinRoomRequest struct {
+	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
+	User         *entity.User        `json:"user"`    // 参加するユーザー
 }
 
 // JoinRoom: 部屋にユーザーを参加させる
@@ -138,6 +187,12 @@ func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
 	return nil
 }
 
+// LeaveRoomRequest構造体: 部屋から退出するリクエスト
+type LeaveRoomRequest struct {
+	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
+	UserID       entity.UserID       `json:"user_id"` // 退出するユーザーID
+}
+
 // LeaveRoom: 部屋からユーザーを退出させる
 func (r *RoomUseCase) LeaveRoom(req LeaveRoomRequest) error {
 	id, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
@@ -157,6 +212,16 @@ func (r *RoomUseCase) LeaveRoom(req LeaveRoomRequest) error {
 	return nil
 }
 
+// SearchRoomRequest構造体: 部屋を検索するリクエスト
+type SearchRoomRequest struct {
+	Name string `json:"name"` // 検索する部屋名
+}
+
+// SearchRoomResponse構造体: 部屋検索結果
+type SearchRoomResponse struct {
+	Rooms []*entity.Room `json:"rooms"` // 検索結果の部屋リスト
+}
+
 // SearchRoom: 部屋を名前で検索
 func (r *RoomUseCase) SearchRoom(req SearchRoomRequest) (SearchRoomResponse, error) {
 	rooms, err := r.roomRepo.GetRoomByNameLike(req.Name)
@@ -165,6 +230,12 @@ func (r *RoomUseCase) SearchRoom(req SearchRoomRequest) (SearchRoomResponse, err
 	}
 
 	return SearchRoomResponse{Rooms: rooms}, nil
+}
+
+// UpdateRoomNameRequest構造体: 部屋名を更新するリクエスト
+type UpdateRoomNameRequest struct {
+	RoomPublicID entity.RoomPublicID `json:"room_id"`  // 部屋の公開ID
+	NewName      string              `json:"new_name"` // 新しい部屋名
 }
 
 // UpdateRoomName: 部屋名を更新
@@ -184,6 +255,11 @@ func (r *RoomUseCase) UpdateRoomName(req UpdateRoomNameRequest) error {
 	return nil
 }
 
+// DeleteRoomRequest構造体: 部屋を削除するリクエスト
+type DeleteRoomRequest struct {
+	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
+}
+
 // DeleteRoom: 部屋を削除
 func (r *RoomUseCase) DeleteRoom(req DeleteRoomRequest) error {
 	roomID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
@@ -199,82 +275,4 @@ func (r *RoomUseCase) DeleteRoom(req DeleteRoomRequest) error {
 		return err
 	}
 	return nil
-}
-
-// --- DTO構造体をここにまとめる ---
-
-// CreateRoomRequest構造体: 部屋作成リクエストのデータ
-type CreateRoomRequest struct {
-	Name        string        `json:"name"`          // 部屋名
-}
-
-// CreateRoomResponse構造体: 部屋作成レスポンスのデータ
-type CreateRoomResponse struct {
-	RoomID *entity.RoomID `json:"room_id"` // 作成された部屋のID
-}
-
-// IsRoomIDNil: RoomIDがnilかどうかを判定
-func (CreateRoomRes *CreateRoomResponse) IsRoomIDNil() bool {
-	return CreateRoomRes.RoomID == nil
-}
-
-// GetRoomID: RoomIDを取得（nilの場合はゼロ値を返す）
-func (CreateRoomRes *CreateRoomResponse) GetRoomID() entity.RoomID {
-	if CreateRoomRes.IsRoomIDNil() {
-		return entity.RoomID(0) // 適切なゼロ値またはコンストラクタに置き換える
-	}
-	return *CreateRoomRes.RoomID
-}
-
-// GetRoomByPublicIDParams構造体: 公開IDで部屋を取得するためのパラメータ
-type GetRoomByPublicIDParams struct {
-	PublicID entity.RoomPublicID `json:"public_id"` // 公開ID
-}
-
-// GetRoomByPublicIDResponse構造体: 公開IDで部屋を取得した結果
-type GetRoomByPublicIDResponse struct {
-	Room *entity.Room `json:"room"` // 取得した部屋
-}
-
-// GetUsersInRoomRequest構造体: 部屋内のユーザーを取得するリクエスト
-type GetUsersInRoomRequest struct {
-	PublicID entity.RoomPublicID `json:"public_id"` // 公開ID
-}
-
-// GetUsersInRoomResponse構造体: 部屋内のユーザー取得結果
-type GetUsersInRoomResponse struct {
-	Users []*entity.User `json:"users"` // 部屋内のユーザーリスト
-}
-
-// JoinRoomRequest構造体: 部屋に参加するリクエスト
-type JoinRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	User         *entity.User        `json:"user"`    // 参加するユーザー
-}
-
-// LeaveRoomRequest構造体: 部屋から退出するリクエスト
-type LeaveRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	UserID       entity.UserID       `json:"user_id"` // 退出するユーザーID
-}
-
-// SearchRoomRequest構造体: 部屋を検索するリクエスト
-type SearchRoomRequest struct {
-	Name string `json:"name"` // 検索する部屋名
-}
-
-// SearchRoomResponse構造体: 部屋検索結果
-type SearchRoomResponse struct {
-	Rooms []*entity.Room `json:"rooms"` // 検索結果の部屋リスト
-}
-
-// UpdateRoomNameRequest構造体: 部屋名を更新するリクエスト
-type UpdateRoomNameRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"`  // 部屋の公開ID
-	NewName      string              `json:"new_name"` // 新しい部屋名
-}
-
-// DeleteRoomRequest構造体: 部屋を削除するリクエスト
-type DeleteRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
 }

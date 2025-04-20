@@ -34,6 +34,16 @@ type WebsocketUseCase struct {
 	clientIDFactory  factory.WebsocketClientIDFactory
 }
 
+type NewWebsocketUseCaseParams struct {
+	UserRepo         repository.UserRepository
+	RoomRepo         repository.RoomRepository
+	MsgRepo          repository.MessageRepository
+	WsClientRepo     repository.WebsocketClientRepository
+	WebsocketManager service.WebsocketManager
+	MsgIDFactory     factory.MessageIDFactory
+	ClientIDFactory  factory.WebsocketClientIDFactory
+}
+
 func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInterface {
 	// Paramsのバリデーションを行う
 	required := map[string]any{
@@ -61,6 +71,13 @@ func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInter
 		msgIDFactory:     params.MsgIDFactory,
 		clientIDFactory:  params.ClientIDFactory,
 	}
+}
+
+// ConnectUserToRoomRequest構造体: 接続・参加処理のリクエスト
+type ConnectUserToRoomRequest struct {
+	UserID       entity.UserID
+	PublicRoomID entity.RoomPublicID
+	Conn         service.WebSocketConnection
 }
 
 // ConnectUserToRoom 接続・参加処理
@@ -99,6 +116,14 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 	return nil
 }
 
+// SendMessageRequest構造体: メッセージ送信リクエスト
+type SendMessageRequest struct {
+	RoomPublicID entity.RoomPublicID
+	Sender       entity.UserID
+	Content      string
+}
+
+// SendMessage メッセージ送信
 func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
 	if err != nil {
@@ -125,6 +150,12 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 	return nil
 }
 
+// DisconnectUserRequest構造体: 切断処理リクエスト
+type DisconnectUserRequest struct {
+	UserID entity.UserID
+}
+
+// DisconnectUser 切断処理
 func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
 	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
 	if err != nil {
@@ -149,6 +180,17 @@ func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
 	return nil
 }
 
+// GetMessageHistoryRequest構造体: メッセージ履歴取得リクエスト
+type GetMessageHistoryRequest struct {
+	PublicRoomID entity.RoomPublicID
+}
+
+// GetMessageHistoryResponse構造体: メッセージ履歴取得レスポンス
+type GetMessageHistoryResponse struct {
+	Messages []*entity.Message
+}
+
+// GetMessageHistory メッセージ履歴取得
 func (w *WebsocketUseCase) GetMessageHistory(req GetMessageHistoryRequest) (GetMessageHistoryResponse, error) {
 	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.PublicRoomID)
 	if err != nil {
@@ -165,36 +207,4 @@ func (w *WebsocketUseCase) GetMessageHistory(req GetMessageHistoryRequest) (GetM
 	}, nil
 }
 
-type NewWebsocketUseCaseParams struct {
-	UserRepo         repository.UserRepository
-	RoomRepo         repository.RoomRepository
-	MsgRepo          repository.MessageRepository
-	WsClientRepo     repository.WebsocketClientRepository
-	WebsocketManager service.WebsocketManager
-	MsgIDFactory     factory.MessageIDFactory
-	ClientIDFactory  factory.WebsocketClientIDFactory
-}
 
-type ConnectUserToRoomRequest struct {
-	UserID       entity.UserID
-	PublicRoomID entity.RoomPublicID
-	Conn         service.WebSocketConnection
-}
-
-type SendMessageRequest struct {
-	RoomPublicID entity.RoomPublicID
-	Sender       entity.UserID
-	Content      string
-}
-
-type DisconnectUserRequest struct {
-	UserID entity.UserID
-}
-
-type GetMessageHistoryRequest struct {
-	PublicRoomID entity.RoomPublicID
-}
-
-type GetMessageHistoryResponse struct {
-	Messages []*entity.Message
-}

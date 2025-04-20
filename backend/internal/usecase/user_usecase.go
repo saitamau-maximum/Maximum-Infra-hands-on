@@ -40,6 +40,19 @@ func NewUserUseCase(p NewUserUseCaseParams) *UserUseCase {
 	}
 }
 
+// SignUpRequest構造体: サインアップリクエスト
+type SignUpRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// SignUpResponse構造体: サインアップレスポンス
+type SignUpResponse struct {
+	User *entity.User
+}
+
+// SignUp ユーザー登録
 func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 	hashedPassword, err := u.hasher.HashPassword(req.Password)
 	if err != nil {
@@ -70,6 +83,36 @@ func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 	return SignUpResponse{User: res}, nil
 }
 
+// AuthenticateUserRequest構造体: 認証リクエスト
+type AuthenticateUserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// AuthenticateUserResponse構造体: 認証レスポンス
+type AuthenticateUserResponse struct {
+	token *string
+}
+
+// IsTokenNil: トークンがnilかどうかを判定
+func (res *AuthenticateUserResponse) IsTokenNil() bool {
+	return res.token == nil
+}
+
+// GetToken: トークンを取得（nilの場合は空文字を返す）
+func (res *AuthenticateUserResponse) GetToken() string {
+	if res.token == nil {
+		return ""
+	}
+	return *res.token
+}
+
+// 外部でのテストのためのセッター
+func (res *AuthenticateUserResponse) SetToken(token string) {
+	res.token = &token
+}
+
+// AuthenticateUser ユーザー認証
 func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
 	user, err := u.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
@@ -96,39 +139,4 @@ func (u *UserUseCase) GetUserByID(id entity.UserID) (*entity.User, error) {
 		return nil, err
 	}
 	return user, nil
-}
-
-// DTOs
-type SignUpRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type SignUpResponse struct {
-	User *entity.User
-}
-
-type AuthenticateUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type AuthenticateUserResponse struct {
-	token *string 
-}
-
-func (res *AuthenticateUserResponse) IsTokenNil() bool {
-	return res.token == nil
-}
-
-func (res *AuthenticateUserResponse) GetToken() string {
-	if res.token == nil {
-		return ""
-	}
-	return *res.token
-}
-// 外部でのテストのためのセッター
-func (res *AuthenticateUserResponse) SetToken(token string) {
-	res.token = &token
 }
