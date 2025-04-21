@@ -24,14 +24,12 @@ type RoomUseCaseInterface interface {
 type RoomUseCase struct {
 	roomRepo            repository.RoomRepository
 	roomIDFactory       factory.RoomIDFactory
-	roomPublicIDFactory factory.RoomPublicIDFactory
 }
 
 // NewRoomUseCaseParams構造体: RoomUseCaseの初期化に必要なパラメータ
 type NewRoomUseCaseParams struct {
 	RoomRepo            repository.RoomRepository
 	RoomIDFactory       factory.RoomIDFactory
-	RoomPublicIDFactory factory.RoomPublicIDFactory
 }
 
 // NewRoomUseCase: RoomUseCaseのインスタンスを生成
@@ -39,7 +37,6 @@ func NewRoomUseCase(p NewRoomUseCaseParams) *RoomUseCase {
 	return &RoomUseCase{
 		roomRepo:            p.RoomRepo,
 		roomIDFactory:       p.RoomIDFactory,
-		roomPublicIDFactory: p.RoomPublicIDFactory,
 	}
 }
 
@@ -55,21 +52,16 @@ type CreateRoomResponse struct {
 
 // CreateRoom: 新しい部屋を作成
 func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error) {
-	roomID, err := r.roomIDFactory.NewRoomID()
-	if err != nil {
-		return CreateRoomResponse{nil}, err
-	}
-
-	roomPublicID, err := r.roomPublicIDFactory.NewRoomPublicID()
+	roomPublicID, err := r.roomIDFactory.NewRoomPublicID()
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
 
 	room := entity.NewRoom(entity.RoomParams{
-		ID:       roomID,
-		Name:     req.Name,
+		ID:       -1, // IDはDBに保存後に更新されるため、-1を指定
 		PublicID: roomPublicID,
-		Members:  []entity.UserID{},
+		Name:     req.Name,
+		Members:  []entity.UserPublicID{},
 	})
 
 	savedRoomID, err := r.roomRepo.SaveRoom(room)

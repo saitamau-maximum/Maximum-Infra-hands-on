@@ -31,7 +31,7 @@ type WebsocketUseCase struct {
 	wsClientRepo     repository.WebsocketClientRepository
 	websocketManager service.WebsocketManager
 	msgIDFactory     factory.MessageIDFactory
-	clientIDFactory  factory.WebsocketClientIDFactory
+	clientIDFactory  factory.WsClientIDFactory
 }
 
 type NewWebsocketUseCaseParams struct {
@@ -41,7 +41,7 @@ type NewWebsocketUseCaseParams struct {
 	WsClientRepo     repository.WebsocketClientRepository
 	WebsocketManager service.WebsocketManager
 	MsgIDFactory     factory.MessageIDFactory
-	ClientIDFactory  factory.WebsocketClientIDFactory
+	ClientIDFactory  factory.WsClientIDFactory
 }
 func (p *NewWebsocketUseCaseParams) Validate() error {
 	if p.UserRepo == nil {
@@ -104,13 +104,14 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 		return err
 	}
 
-	id, err := w.clientIDFactory.NewWebsocketClientID()
+	publicID, err := w.clientIDFactory.NewWsClientPublicID()
 	if err != nil {
 		return err
 	}
 
 	client := entity.NewWebsocketClient(entity.WebsocketClientParams{
-		ID:     id,
+		ID:     -1, // IDはDBに保存後に更新されるため、-1を指定
+		PublicID: publicID,
 		UserID: user.GetID(),
 		RoomID: roomID,
 	})
@@ -142,12 +143,13 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 		return err
 	}
 
-	msgID, err := w.msgIDFactory.NewMessageID()
+	msgPublicID, err := w.msgIDFactory.NewMessagePublicID()
 	if err != nil {
 		return err
 	}
 	msg := entity.NewMessage(entity.MessageParams{
-		ID:      msgID,
+		ID:      -1,
+		PublicID: msgPublicID,
 		RoomID:  roomID,
 		UserID:  req.Sender,
 		Content: req.Content,

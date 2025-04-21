@@ -20,7 +20,7 @@ type MessageIDFactory interface {
 	FromInt(int) entity.MessageID
 }
 
-type WebsocketIDFactory interface {
+type WsClientIDFactory interface {
 	NewWsClientPublicID() (entity.WsClientPublicID, error)
 	FromInt(int) entity.WsClientID
 	FromString(string) entity.WsClientPublicID

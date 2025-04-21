@@ -20,12 +20,10 @@ func TestCreateRoom(t *testing.T) {
 	// == Mock dependencies ==
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	mockRoomPublicIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
 
 	params := usecase.NewRoomUseCaseParams{
-		RoomRepo:            mockRoomRepo,
-		RoomIDFactory:       mockRoomIDFactory,
-		RoomPublicIDFactory: mockRoomPublicIDFactory,
+		RoomRepo:      mockRoomRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 
 	roomUseCase := usecase.NewRoomUseCase(params)
@@ -34,17 +32,15 @@ func TestCreateRoom(t *testing.T) {
 		req := usecase.CreateRoomRequest{
 			Name: "Test Room",
 		}
-		roomID := entity.RoomID(1)
 		roomPublicID := entity.RoomPublicID("public_room_1")
 
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(roomID, nil)
-		mockRoomPublicIDFactory.EXPECT().NewRoomPublicID().Return(roomPublicID, nil)
-		mockRoomRepo.EXPECT().SaveRoom(gomock.Any()).Return(roomID, nil)
-		mockRoomRepo.EXPECT().GetRoomByID(roomID).Return(entity.NewRoom(entity.RoomParams{
-			ID:       roomID,
+		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(roomPublicID, nil)
+		mockRoomRepo.EXPECT().SaveRoom(gomock.Any()).Return(entity.RoomID(1), nil)
+		mockRoomRepo.EXPECT().GetRoomByID(entity.RoomID(1)).Return(entity.NewRoom(entity.RoomParams{
+			ID:       1,
 			PublicID: roomPublicID,
 			Name:     req.Name,
-			Members:  []entity.UserID{},
+			Members:  []entity.UserPublicID{},
 		}), nil)
 
 		resp, err := roomUseCase.CreateRoom(req)
@@ -58,8 +54,9 @@ func TestCreateRoom(t *testing.T) {
 			Name: "Test Room",
 		}
 		expectedErr := errors.New("failed to generate room ID")
+		roomPublicID := entity.RoomPublicID("public_room_1")
 
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(entity.RoomID(1), expectedErr)
+		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(roomPublicID, expectedErr)
 
 		resp, err := roomUseCase.CreateRoom(req)
 
@@ -72,11 +69,10 @@ func TestCreateRoom(t *testing.T) {
 		req := usecase.CreateRoomRequest{
 			Name: "Test Room",
 		}
-		roomID := entity.RoomID(1)
+		publicID := entity.RoomPublicID("public_room_1")
 		expectedErr := errors.New("failed to generate room public ID")
 
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(roomID, nil)
-		mockRoomPublicIDFactory.EXPECT().NewRoomPublicID().Return(entity.RoomPublicID(""), expectedErr)
+		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(publicID, expectedErr)
 
 		resp, err := roomUseCase.CreateRoom(req)
 
@@ -93,12 +89,10 @@ func TestGetRoomByPublicID(t *testing.T) {
 	// == Mock dependencies ==
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	mockRoomPublicIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
 
 	params := usecase.NewRoomUseCaseParams{
-		RoomRepo:            mockRoomRepo,
-		RoomIDFactory:       mockRoomIDFactory,
-		RoomPublicIDFactory: mockRoomPublicIDFactory,
+		RoomRepo:      mockRoomRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 
 	roomUseCase := usecase.NewRoomUseCase(params)
@@ -110,7 +104,7 @@ func TestGetRoomByPublicID(t *testing.T) {
 			ID:       roomID,
 			PublicID: publicID,
 			Name:     "Test Room",
-			Members:  []entity.UserID{"user_1", "user_2"},
+			Members:  []entity.UserPublicID{"user_1", "user_2"},
 		})
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
@@ -187,7 +181,8 @@ func TestGetUsersInRoom(t *testing.T) {
 	roomID := entity.RoomID(1)
 	users := []*entity.User{
 		entity.NewUser(entity.UserParams{
-			ID:         "user_1",
+			ID:         1,
+			PublicID:   "user_1",
 			Name:       "User 1",
 			Email:      "test@test",
 			PasswdHash: "hash",
@@ -195,7 +190,8 @@ func TestGetUsersInRoom(t *testing.T) {
 			UpdatedAt:  nil,
 		}),
 		entity.NewUser(entity.UserParams{
-			ID:         "user_2",
+			ID:         2,
+			PublicID:   "user_2",
 			Name:       "User 2",
 			Email:      "test@test",
 			PasswdHash: "hash",
@@ -241,7 +237,7 @@ func TestJoinRoom(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		publicID := entity.RoomPublicID("public_room_1")
 		roomID := entity.RoomID(1)
-		userID := entity.UserID("user_1")
+		userID := entity.UserID(1)
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
 		mockRoomRepo.EXPECT().AddMemberToRoom(roomID, userID).Return(nil)
@@ -256,7 +252,7 @@ func TestJoinRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
 
-		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{RoomPublicID: publicID, UserID: entity.UserID("user_1")})
+		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{RoomPublicID: publicID, UserID: entity.UserID(1)})
 
 		assert.Error(t, err)
 		assert.Equal(t, "room not found", err.Error())
@@ -276,7 +272,7 @@ func TestLeaveRoom(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		publicID := entity.RoomPublicID("public_room_1")
 		roomID := entity.RoomID(1)
-		userID := entity.UserID("user_1")
+		userID := entity.UserID(1)
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
 		mockRoomRepo.EXPECT().RemoveMemberFromRoom(roomID, userID).Return(nil)
@@ -291,7 +287,7 @@ func TestLeaveRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
 
-		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{RoomPublicID: publicID, UserID: "user_1"})
+		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{RoomPublicID: publicID, UserID: entity.UserID(1)})
 
 		assert.Error(t, err)
 		assert.Equal(t, "room not found", err.Error())

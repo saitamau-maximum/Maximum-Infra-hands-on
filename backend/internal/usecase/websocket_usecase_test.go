@@ -19,7 +19,7 @@ type mockDeps struct {
 	MsgRepo          *mock_repository.MockMessageRepository
 	WsClientRepo     *mock_repository.MockWebsocketClientRepository
 	WebsocketManager *mock_service.MockWebsocketManager
-	ClientIDFactory  *mock_factory.MockWebsocketClientIDFactory
+	ClientIDFactory  *mock_factory.MockWsClientIDFactory
 	MsgIDFactory     *mock_factory.MockMessageIDFactory
 }
 
@@ -32,7 +32,7 @@ func newTestWebsocketUseCase(
 	mockMsgRepo := mock_repository.NewMockMessageRepository(ctrl)
 	mockWsClientRepo := mock_repository.NewMockWebsocketClientRepository(ctrl)
 	mockWebsocketManager := mock_service.NewMockWebsocketManager(ctrl)
-	mockClientIDFactory := mock_factory.NewMockWebsocketClientIDFactory(ctrl)
+	mockClientIDFactory := mock_factory.NewMockWsClientIDFactory(ctrl)
 	mockMsgIDFactory := mock_factory.NewMockMessageIDFactory(ctrl)
 
 	params := usecase.NewWebsocketUseCaseParams{
@@ -65,10 +65,10 @@ func TestConnectUserToRoom(t *testing.T) {
 	useCase, mocks := newTestWebsocketUseCase(ctrl)
 
 	// テストデータ
-	userID := entity.UserID("user123")
+	userID := entity.UserID(1)
 	publicRoomID := entity.RoomPublicID("room123")
 	roomID := entity.RoomID(123)
-	clientID := entity.WebsocketClientID("client123")
+	clientID := entity.WsClientPublicID("client123")
 	testUser := entity.NewUser(entity.UserParams{
 		ID:         userID,
 		Name:       "John Doe",
@@ -83,7 +83,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
-		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(clientID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWsClientPublicID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(nil)
 
@@ -134,7 +134,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
-		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(entity.WebsocketClientID(""), assert.AnError)
+		mocks.ClientIDFactory.EXPECT().NewWsClientPublicID().Return(entity.WsClientPublicID(""), assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
 			UserID:       userID,
@@ -151,7 +151,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
-		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(clientID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWsClientPublicID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
@@ -169,7 +169,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(publicRoomID).Return(roomID, nil)
-		mocks.ClientIDFactory.EXPECT().NewWebsocketClientID().Return(clientID, nil)
+		mocks.ClientIDFactory.EXPECT().NewWsClientPublicID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(assert.AnError)
 		// テスト実行
@@ -194,12 +194,12 @@ func TestSendMessage(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		roomPublicID := entity.RoomPublicID("room123")
 		roomID := entity.RoomID(123)
-		senderID := entity.UserID("user123")
+		senderID := entity.UserID(1)
 		content := "Hello, World!"
-		messageID := entity.MessageID("msg123")
+		messageID := entity.MessagePublicID("msg123")
 
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(roomPublicID).Return(roomID, nil)
-		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
+		mocks.MsgIDFactory.EXPECT().NewMessagePublicID().Return(messageID, nil)
 		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(nil)
 
@@ -215,7 +215,7 @@ func TestSendMessage(t *testing.T) {
 
 	t.Run("異常系：部屋取得失敗", func(t *testing.T) {
 		roomPublicID := entity.RoomPublicID("room123")
-		senderID := entity.UserID("user123")
+		senderID := entity.UserID(1)
 		content := "Hello, World!"
 
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(roomPublicID).Return(entity.RoomID(0), assert.AnError)
@@ -238,10 +238,10 @@ func TestDisconnectUser(t *testing.T) {
 	useCase, mocks := newTestWebsocketUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
-		userID := entity.UserID("user123")
+		userID := entity.UserID(1)
 		mockConn := mock_service.NewMockWebSocketConnection(ctrl)
 		mockClient := entity.NewWebsocketClient(entity.WebsocketClientParams{
-			ID:     entity.WebsocketClientID("client123"),
+			PublicID:     entity.WsClientPublicID("client123"),
 			UserID: userID,
 			RoomID: entity.RoomID(123),
 		})
@@ -258,7 +258,7 @@ func TestDisconnectUser(t *testing.T) {
 	})
 
 	t.Run("異常系：接続取得失敗", func(t *testing.T) {
-		userID := entity.UserID("user123")
+		userID := entity.UserID(1)
 
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(nil, assert.AnError)
 
@@ -280,9 +280,10 @@ func TestGetMessageHistory(t *testing.T) {
 		roomID := entity.RoomID(123)
 		messages := []*entity.Message{
 			entity.NewMessage(entity.MessageParams{
-				ID:      entity.MessageID("msg1"),
+				ID:      entity.MessageID(1),
+				PublicID: entity.MessagePublicID("msg1"),
 				RoomID:  roomID,
-				UserID:  entity.UserID("user1"),
+				UserID:  entity.UserID(1),
 				Content: "Hello",
 				SentAt:  time.Now(),
 			}),

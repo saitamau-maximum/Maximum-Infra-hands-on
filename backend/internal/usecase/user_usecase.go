@@ -59,13 +59,14 @@ func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 		return SignUpResponse{nil}, err
 	}
 
-	id, err := u.userIDFactory.NewUserID()
+	publicID, err := u.userIDFactory.NewUserPublicID()
 	if err != nil {
 		return SignUpResponse{nil}, err
 	}
 
 	userParams := entity.UserParams{
-		ID:         id,
+		ID:         -1, // IDはDBに保存後に更新されるため、-1を指定
+		PublicID:   publicID,
 		Name:       req.Name,
 		Email:      req.Email,
 		PasswdHash: hashedPassword,

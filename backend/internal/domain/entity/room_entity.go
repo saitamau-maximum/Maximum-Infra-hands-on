@@ -4,14 +4,14 @@ type Room struct {
 	id  RoomID
 	publicID RoomPublicID
 	name string
-	members []UserID
+	members []UserPublicID
 }
 
 type RoomParams struct {
 	ID 	  RoomID
 	PublicID RoomPublicID
 	Name string
-	Members []UserID
+	Members []UserPublicID
 }
 
 func NewRoom(params RoomParams) *Room {
@@ -38,7 +38,7 @@ func (r *Room) GetName() string {
 	return r.name
 }
 
-func (r *Room) GetMembers() []UserID {
+func (r *Room) GetMembers() []UserPublicID {
 	// 部屋のメンバーを取得
 	return r.members
 }
