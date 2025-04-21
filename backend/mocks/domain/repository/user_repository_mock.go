@@ -40,35 +40,6 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
-// DeleteUser mocks base method.
-func (m *MockUserRepository) DeleteUser(id entity.UserID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUser", id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteUser indicates an expected call of DeleteUser.
-func (mr *MockUserRepositoryMockRecorder) DeleteUser(id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserRepository)(nil).DeleteUser), id)
-}
-
-// GetAllUsers mocks base method.
-func (m *MockUserRepository) GetAllUsers() ([]*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllUsers")
-	ret0, _ := ret[0].([]*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAllUsers indicates an expected call of GetAllUsers.
-func (mr *MockUserRepositoryMockRecorder) GetAllUsers() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserRepository)(nil).GetAllUsers))
-}
-
 // GetUserByEmail mocks base method.
 func (m *MockUserRepository) GetUserByEmail(email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
@@ -112,19 +83,4 @@ func (m *MockUserRepository) SaveUser(arg0 *entity.User) (*entity.User, error) {
 func (mr *MockUserRepositoryMockRecorder) SaveUser(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveUser", reflect.TypeOf((*MockUserRepository)(nil).SaveUser), arg0)
-}
-
-// UpdateUser mocks base method.
-func (m *MockUserRepository) UpdateUser(user *entity.User) (*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", user)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockUserRepositoryMockRecorder) UpdateUser(user any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserRepository)(nil).UpdateUser), user)
 }

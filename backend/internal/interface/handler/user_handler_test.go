@@ -1,0 +1,124 @@
+package handler_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
+	"example.com/webrtc-practice/internal/domain/entity"
+	"example.com/webrtc-practice/internal/infrastructure/validator"
+	"example.com/webrtc-practice/internal/interface/handler"
+	"example.com/webrtc-practice/internal/usecase"
+	mock_factory "example.com/webrtc-practice/mocks/interface/factory"
+	mock_usecase "example.com/webrtc-practice/mocks/usecase"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+)
+
+func TestRegisterUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	token := "mockToken"
+	var tokenRes usecase.AuthenticateUserResponse
+	tokenRes.SetToken(token)
+
+	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
+	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
+
+	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
+		UserUseCase:   mockUserUseCase,
+		UserIDFactory: mockUserIDFactory,
+	})
+
+	e := echo.New()
+
+	// ✅ バリデーターのセット（忘れがち！）
+	e.Validator = validator.NewEchoValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/register", strings.NewReader(`{"name":"test","email":"test@example.com","password":"password123"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	mockUserUseCase.EXPECT().SignUp(gomock.Any()).Return(usecase.SignUpResponse{}, nil)
+	mockUserUseCase.EXPECT().AuthenticateUser(gomock.Any()).Return(tokenRes, nil)
+
+	if assert.NoError(t, handler.RegisterUser(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "mockToken")
+	}
+}
+
+func TestLogin(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	token := "mockToken"
+	var tokenRes usecase.AuthenticateUserResponse
+	tokenRes.SetToken(token)
+
+	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
+	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
+
+	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
+		UserUseCase:   mockUserUseCase,
+		UserIDFactory: mockUserIDFactory,
+	})
+
+	e := echo.New()
+	e.Validator = validator.NewEchoValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(`{"email":"test@example.com","password":"password123"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	mockUserUseCase.EXPECT().AuthenticateUser(gomock.Any()).Return(tokenRes, nil)
+
+	if assert.NoError(t, handler.Login(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), token)
+	}
+}
+
+func TestGetMe(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userParams := entity.UserParams{
+		ID:         "mockUserID",
+		Name:       "Test User",
+		Email:      "test",
+		PasswdHash: "hashedPassword",
+		CreatedAt:  time.Now(),
+		UpdatedAt:  nil,
+	}
+
+	user := entity.NewUser(userParams)
+
+	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
+	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
+
+	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
+		UserUseCase:   mockUserUseCase,
+		UserIDFactory: mockUserIDFactory,
+	})
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/me", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.Set("user_id", "mockUserID")
+
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserID("mockUserID"))
+	mockUserUseCase.EXPECT().GetUserByID(entity.UserID("mockUserID")).Return(user, nil)
+
+	if assert.NoError(t, handler.GetMe(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "{\"id\":\"mockUserID\",\"name\":\"Test User\",\"email\":\"test\"}")
+	}
+}

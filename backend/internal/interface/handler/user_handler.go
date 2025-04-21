@@ -3,110 +3,149 @@ package handler
 import (
 	"net/http"
 
-	"example.com/webrtc-practice/internal/domain/repository"
-	"example.com/webrtc-practice/internal/domain/service"
+	"example.com/webrtc-practice/internal/interface/factory"
 	"example.com/webrtc-practice/internal/usecase"
 	"github.com/labstack/echo/v4"
 )
 
 type UserHandler struct {
-	UserUseCase    *usecase.IUserUseCase
-	UserRepository repository.IUserRepository
+	UserUseCase   usecase.UserUseCaseInterface
+	UserIDFactory factory.UserIDFactory
 }
 
-// TODO: usecaseを受け取るようにしてより疎結合にする
-func NewUserHandler(
-	repo repository.IUserRepository,
-	hasher service.Hasher,
-	tokenService service.TokenService,
-) UserHandler {
-	return UserHandler{
-		UserUseCase: usecase.NewUserUseCase(
-			repo,
-			hasher,
-			tokenService,
-		),
-		UserRepository: repo,
+type NewUserHandlerParams struct {
+	UserUseCase   usecase.UserUseCaseInterface
+	UserIDFactory factory.UserIDFactory
+}
+
+func (p *NewUserHandlerParams) Validate() error {
+	if p.UserUseCase == nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "UserUseCase is required")
+	}
+	if p.UserIDFactory == nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "UserIDFactory is required")
+	}
+	return nil
+}
+
+func NewUserHandler(params NewUserHandlerParams) *UserHandler {
+	if err := params.Validate(); err != nil {
+		panic(err)
+	}
+
+	return &UserHandler{
+		UserUseCase:   params.UserUseCase,
+		UserIDFactory: params.UserIDFactory,
 	}
 }
 
 func (h *UserHandler) Register(g *echo.Group) {
-	g.POST("/signup", h.SignUp)
+	g.POST("/register", h.RegisterUser)
 	g.POST("/login", h.Login)
+	g.GET("/me", h.GetMe)
 }
 
-type SignUpRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type RegisterUserRequest struct {
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
-func (h *UserHandler) SignUp(c echo.Context) error {
-	var params SignUpRequest
+func (h *UserHandler) RegisterUser(c echo.Context) error {
+	var req RegisterUserRequest
 
-	if err := c.Bind(&params); err != nil {
-		return c.JSON(400, map[string]any{
-			"error": err.Error(),
-		})
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(400, echo.Map{"error": "Invalid request"})
 	}
 
-	user, err := h.UserUseCase.SignUp(params.Name, params.Email, params.Password)
+	if err := c.Validate(req); err != nil {
+		return c.JSON(400, echo.Map{"error": "Validation failed"})
+	}
+
+	signUpReq := usecase.SignUpRequest{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	_, err := h.UserUseCase.SignUp(signUpReq)
 	if err != nil {
-		return c.JSON(400, map[string]any{
-			"error": err.Error(),
-		})
+		return c.JSON(500, echo.Map{"error": "Internal server error"})
 	}
 
-	return c.JSON(200, map[string]any{
-		"user": user,
-	})
+	authReq := usecase.AuthenticateUserRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	// ログインまで済ませてしまう
+	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
+	if err != nil {
+		return c.JSON(500, echo.Map{"error": "Internal server error"})
+	}
+
+	return c.JSON(200, echo.Map{"token": authRes.GetToken()})
 }
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginUserResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-type LoginResponse struct {
-	User  LoginUserResponse `json:"user"`
-	Token string            `json:"token"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (h *UserHandler) Login(c echo.Context) error {
 	var req LoginRequest
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(400, map[string]any{
-			"error": err.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
 	}
 
-	token, err := h.UserUseCase.AuthenticateUser(req.Email, req.Password)
+	if err := c.Validate(req); err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "Validation failed"})
+	}
+
+	authReq := usecase.AuthenticateUserRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
 	if err != nil {
-		return c.JSON(400, map[string]any{
-			"error": err.Error(),
-		})
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authentication failed"})
 	}
 
-	user, err := h.UserRepository.GetUserByEmail(req.Email)
-	if err != nil {
-		return c.JSON(400, map[string]any{
-			"error": err.Error(),
-		})
-	}
-
-	return c.JSON(http.StatusOK, LoginResponse{
-		User: LoginUserResponse{
-			ID:    user.GetID(),
-			Name:  user.GetName(),
-			Email: user.GetEmail(),
-		},
-		Token: token,
+	return c.JSON(http.StatusOK, echo.Map{
+		"token": authRes.GetToken(),
 	})
+}
+
+type GetMeResponse struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func (h *UserHandler) GetMe(c echo.Context) error {
+	uidRaw := c.Get("user_id")
+	if uidRaw == nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Unauthorized"})
+	}
+	userIDStr, ok := uidRaw.(string)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
+	}
+
+	userID := h.UserIDFactory.FromString(userIDStr)
+
+	user, err := h.UserUseCase.GetUserByID(userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Internal server error"})
+	}
+
+	res := GetMeResponse{
+		ID:    string(user.GetID()),
+		Name:  user.GetName(),
+		Email: user.GetEmail(),
+	}
+
+	return c.JSON(http.StatusOK, res)
 }

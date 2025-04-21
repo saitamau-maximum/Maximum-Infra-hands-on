@@ -200,6 +200,7 @@ func TestSendMessage(t *testing.T) {
 
 		mocks.RoomRepo.EXPECT().GetRoomIDByPublicID(roomPublicID).Return(roomID, nil)
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(nil)
 
 		request := usecase.SendMessageRequest{

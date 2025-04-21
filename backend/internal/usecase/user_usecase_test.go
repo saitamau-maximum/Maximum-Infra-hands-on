@@ -161,7 +161,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		response, err := userUseCase.AuthenticateUser(req)
 		assert.Error(t, err)
-		assert.Equal(t, usecase.AuthenticateUserResponse{nil}, response)
+		assert.Equal(t, "", response.GetToken())
 	})
 
 	t.Run("パスワードが一致しない場合", func(t *testing.T) {
@@ -188,6 +188,6 @@ func TestAuthenticateUser(t *testing.T) {
 
 		response, err := userUseCase.AuthenticateUser(req)
 		assert.Error(t, err)
-		assert.Equal(t, usecase.AuthenticateUserResponse{nil}, response)
+		assert.Equal(t, "", response.GetToken())
 	})
 }

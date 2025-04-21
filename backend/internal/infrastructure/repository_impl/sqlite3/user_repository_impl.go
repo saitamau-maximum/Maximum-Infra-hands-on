@@ -1,6 +1,7 @@
 package sqlite3
 
 import (
+	"errors"
 	"time"
 
 	"example.com/webrtc-practice/internal/domain/entity"
@@ -8,16 +9,33 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type UserRepository struct {
+type UserRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-func NewUserRepository(db *sqlx.DB) repository.IUserRepository {
-	return &UserRepository{db: db}
+type NewUserRepositoryParams struct {
+	DB *sqlx.DB
+}
+
+func (p *NewUserRepositoryParams) Validate() error {
+	if p.DB == nil {
+		return errors.New("DB is required")
+	}
+	return nil
+}
+
+func NewUserRepository(params NewUserRepositoryParams) repository.UserRepository {
+	if err := params.Validate(); err != nil {
+		panic(err)
+	}
+
+	return &UserRepositoryImpl{
+		db: params.DB,
+	}
 }
 
 type UserModel struct {
-	ID         int        `db:"id"`
+	ID         string     `db:"id"`
 	Name       string     `db:"name"`
 	Email      string     `db:"email"`
 	PasswdHash string     `db:"passwd_hash"`
@@ -25,111 +43,72 @@ type UserModel struct {
 	UpdatedAt  *time.Time `db:"updated_at"`
 }
 
-func (ur *UserRepository) GetAllUsers() ([]*entity.User, error) {
-	var users []UserModel
-	err := ur.db.Select(&users, "SELECT * FROM users")
+func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
+	// Insert user into the database
+	query := `INSERT INTO users (name, email, passwd_hash) VALUES (?, ?, ?)`
+	_, err := r.db.Exec(query, user.GetName(), user.GetEmail(), user.GetPasswdHash())
 	if err != nil {
 		return nil, err
 	}
 
-	var res []*entity.User
-	for _, user := range users {
-		res = append(res, entity.NewUser(
-			user.ID,
-			user.Name,
-			user.Email,
-			user.PasswdHash,
-			user.CreatedAt,
-			user.UpdatedAt,
-		))
+	// Retrieve the inserted user
+	query = `SELECT id, name, email, passwd_hash, created_at FROM users WHERE email = ?`
+	var userModel UserModel
+	err = r.db.Get(&userModel, query, user.GetEmail())
+	if err != nil {
+		return nil, err
 	}
+
+	res := entity.NewUser(entity.UserParams{
+		ID:         entity.UserID(userModel.ID),
+		Name:       userModel.Name,
+		Email:      userModel.Email,
+		PasswdHash: userModel.PasswdHash,
+		CreatedAt:  userModel.CreatedAt,
+		UpdatedAt:  userModel.UpdatedAt,
+	})
 
 	return res, nil
 }
 
-func (ur *UserRepository) GetUserByID(id int) (*entity.User, error) {
-	var user UserModel
-	err := ur.db.Get(&user, "SELECT * FROM users WHERE id = ?", id)
+func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error) {
+	// Retrieve user by ID from the database
+	query := `SELECT id, name, email, passwd_hash, created_at, updated_at FROM users WHERE id = ?`
+	var userModel UserModel
+	err := r.db.Get(&userModel, query, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return entity.NewUser(
-		user.ID,
-		user.Name,
-		user.Email,
-		user.PasswdHash,
-		user.CreatedAt,
-		user.UpdatedAt,
-	), nil
-}
-
-func (ur *UserRepository) GetUserByEmail(email string) (*entity.User, error) {
-	var user UserModel
-	err := ur.db.Get(&user, "SELECT * FROM users WHERE email = ?", email)
-	if err != nil {
-		return nil, err
-	}
-
-	return entity.NewUser(user.ID, user.Name, user.Email, user.PasswdHash, user.CreatedAt, user.UpdatedAt), nil
-}
-
-func (ur *UserRepository) CreateUser(params repository.CreateUserParams) (*entity.User, error) {
-	created_at := time.Now()
-	_, err := ur.db.Exec("INSERT INTO users (name, email, passwd_hash, created_at) VALUES (?, ?, ?, ?)", params.Name, params.Email, params.PasswdHash, created_at)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := ur.GetUserByEmail(params.Email)
-	if err != nil {
-		return nil, err
-	}
+	res := entity.NewUser(entity.UserParams{
+		ID:         entity.UserID(userModel.ID),
+		Name:       userModel.Name,
+		Email:      userModel.Email,
+		PasswdHash: userModel.PasswdHash,
+		CreatedAt:  userModel.CreatedAt,
+		UpdatedAt:  userModel.UpdatedAt,
+	})
 
 	return res, nil
 }
 
-func (ur *UserRepository) UpdateUser(user *entity.User) (*entity.User, error) {
-	_, err := ur.db.Exec(`UPDATE users SET name = ?, email = ?, passwd_hash = ?, updated_at = ? WHERE id = ?`,
-		user.GetName(),
-		user.GetEmail(),
-		user.GetPasswdHash(),
-		time.Now(),
-		user.GetID(),
-	)
+func (r *UserRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) {
+	// Retrieve user by email from the database
+	query := `SELECT id, name, email, passwd_hash, created_at, updated_at FROM users WHERE email = ?`
+	var userModel UserModel
+	err := r.db.Get(&userModel, query, email)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := ur.GetUserByID(user.GetID())
-	if err != nil {
-		return nil, err
-	}
+	res := entity.NewUser(entity.UserParams{
+		ID:         entity.UserID(userModel.ID),
+		Name:       userModel.Name,
+		Email:      userModel.Email,
+		PasswdHash: userModel.PasswdHash,
+		CreatedAt:  userModel.CreatedAt,
+		UpdatedAt:  userModel.UpdatedAt,
+	})
 
 	return res, nil
-}
-
-func (ur *UserRepository) DeleteUser(id int) error {
-	_, err := ur.db.Exec("DELETE FROM users WHERE id = ?", id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func MigrateUser(db *sqlx.DB) error {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		email TEXT NOT NULL,
-		passwd_hash TEXT NOT NULL,
-		created_at DATETIME NOT NULL,
-		updated_at DATETIME DEFAULT NULL
-	)`)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
