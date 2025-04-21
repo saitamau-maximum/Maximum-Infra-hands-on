@@ -37,3 +37,8 @@ func (r *Room) GetMembers() []UserID {
 	// 部屋のメンバーを取得
 	return r.members
 }
+
+func (r *Room) GetPublicID() RoomPublicID {
+	// 部屋の公開IDを取得
+	return r.public_id
+}

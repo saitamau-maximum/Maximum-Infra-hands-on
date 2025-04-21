@@ -15,7 +15,6 @@ func SetupRoutes(
 	messageHandler handler.MessageHandler,
 	roomHandler handler.RoomHandler,
 ) {
-
 	userGroup := e.Group("/api/user")
 	userHandler.Register(userGroup)
 	// Websocket
