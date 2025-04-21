@@ -2,7 +2,7 @@ package entity
 
 type Room struct {
 	id  RoomID
-	public_id RoomPublicID
+	publicID RoomPublicID
 	name string
 	members []UserID
 }
@@ -17,15 +17,20 @@ type RoomParams struct {
 func NewRoom(params RoomParams) *Room {
 	return &Room{
 		id: params.ID,
-		public_id: params.PublicID,
+		publicID: params.PublicID,
 		name: params.Name,
 		members: params.Members,
 	}
 }
 
+func (r *Room) GetID() RoomID {
+	// 部屋のIDを取得
+	return r.id
+}
+
 func (r *Room) GetPubID() RoomPublicID {
 	// 部屋の公開IDを取得
-	return r.public_id
+	return r.publicID
 }
 
 func (r *Room) GetName() string {
@@ -36,9 +41,4 @@ func (r *Room) GetName() string {
 func (r *Room) GetMembers() []UserID {
 	// 部屋のメンバーを取得
 	return r.members
-}
-
-func (r *Room) GetPublicID() RoomPublicID {
-	// 部屋の公開IDを取得
-	return r.public_id
 }
