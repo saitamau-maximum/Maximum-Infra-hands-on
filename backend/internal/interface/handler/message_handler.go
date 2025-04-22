@@ -36,7 +36,12 @@ func NewMessageHandler(params MessageHandlerParams) *MessageHandler {
 
 func (h *MessageHandler) Register(g *echo.Group) {
 	g.GET("/messages/:room_public_id", h.GetMessageHistoryInRoom)
-	g.GET("/messages/:room_public_id/next", h.GetNextMessageHistoryInRoom)
+}
+
+type GetMessageHistoryInRoomRequest struct {
+	RoomPublicID entity.RoomPublicID `json:"room_public_id"`
+	Limit        int                 `json:"limit"`
+	BeforeSentAt time.Time           `json:"before_sent_at"`
 }
 
 type GetMessageHistoryInRoomResponse struct {
@@ -52,91 +57,61 @@ type MessageResponse struct {
 }
 
 func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
+	var req GetMessageHistoryInRoomRequest
 	roomPublicIDStr := c.Param("room_public_id")
 	if roomPublicIDStr == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "room_public_id is required")
 	}
+	req.RoomPublicID = entity.RoomPublicID(roomPublicIDStr)
 
-	limit := 10 // デフォルトの取得件数
+	// クエリ: limit（任意、デフォルト 10）
+	req.Limit = 10
 	if limitStr := c.QueryParam("limit"); limitStr != "" {
 		limitNum, err := strconv.Atoi(limitStr)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "limit must be an integer")
 		}
-		limit = limitNum
+		req.Limit = limitNum
 	}
 
+	// クエリ: before_sent_at（任意）
 	beforeSentAtStr := c.QueryParam("before_sent_at")
-	var beforeSentAt time.Time
 	if beforeSentAtStr != "" {
 		var err error
-		beforeSentAt, err = time.Parse(time.RFC3339, beforeSentAtStr)
+		req.BeforeSentAt, err = time.Parse(time.RFC3339, beforeSentAtStr)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "before_sent_at must be in RFC3339 format")
 		}
+	} else {
+		req.BeforeSentAt = time.Now()
 	}
 
+	// Usecase呼び出し
 	res, err := h.MsgUseCase.GetMessageHistoryInRoom(usecase.GetMessageHistoryInRoomRequest{
 		RoomPublicID: entity.RoomPublicID(roomPublicIDStr),
-		Limit:        limit,
-		BeforeSentAt: beforeSentAt,
+		Limit:        req.Limit,
+		BeforeSentAt: req.BeforeSentAt,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get message history")
 	}
 
+	// メッセージ整形
 	messages := make([]MessageResponse, len(res.Messages))
 	for i, msg := range res.Messages {
+		formatedMsg, err := h.MsgUseCase.FormatMessage(msg)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to format message")
+		}
 		messages[i] = MessageResponse{
-			ID:      string(msg.GetID()),
-			UserID:  string(msg.GetUserID()),
-			SentAt:  msg.GetSentAt().Format(time.RFC3339),
-			Content: msg.GetContent(),
+			ID:      formatedMsg.PublicID,
+			UserID:  formatedMsg.UserPublicID,
+			SentAt:  formatedMsg.SentAt.Format(time.RFC3339),
+			Content: formatedMsg.Content,
 		}
 	}
 
-	return c.JSON(http.StatusOK, GetMessageHistoryInRoomResponse{
-		Messages:         messages,
-		NextBeforeSentAt: res.NextBeforeSentAt.Format(time.RFC3339),
-		HasNext:          res.HasNext,
-	})
-}
-
-func (h *MessageHandler) GetNextMessageHistoryInRoom(c echo.Context) error {
-	roomPublicIDStr := c.Param("room_public_id")
-	if roomPublicIDStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "room_public_id is required")
-	}
-
-	beforeSentAtStr := c.QueryParam("before_sent_at")
-	if beforeSentAtStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "before_sent_at is required")
-	}
-
-	beforeSentAt, err := time.Parse(time.RFC3339, beforeSentAtStr)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "before_sent_at must be in RFC3339 format")
-	}
-
-	res, err := h.MsgUseCase.GetMessageHistoryInRoom(usecase.GetMessageHistoryInRoomRequest{
-		RoomPublicID: entity.RoomPublicID(roomPublicIDStr),
-		Limit:        30,
-		BeforeSentAt: beforeSentAt,
-	})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get message history")
-	}
-
-	messages := make([]MessageResponse, len(res.Messages))
-	for i, msg := range res.Messages {
-		messages[i] = MessageResponse{
-			ID:      string(msg.GetID()),
-			UserID:  string(msg.GetUserID()),
-			SentAt:  msg.GetSentAt().Format(time.RFC3339),
-			Content: msg.GetContent(),
-		}
-	}
-
+	// レスポンス構築
 	return c.JSON(http.StatusOK, GetMessageHistoryInRoomResponse{
 		Messages:         messages,
 		NextBeforeSentAt: res.NextBeforeSentAt.Format(time.RFC3339),

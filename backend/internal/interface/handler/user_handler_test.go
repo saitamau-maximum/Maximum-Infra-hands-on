@@ -90,7 +90,8 @@ func TestGetMe(t *testing.T) {
 	defer ctrl.Finish()
 
 	userParams := entity.UserParams{
-		ID:         "mockUserID",
+		ID:         1,
+		PublicID:   "mockUserID",
 		Name:       "Test User",
 		Email:      "test",
 		PasswdHash: "hashedPassword",
@@ -114,8 +115,8 @@ func TestGetMe(t *testing.T) {
 	c := e.NewContext(req, rec)
 	c.Set("user_id", "mockUserID")
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserID("mockUserID"))
-	mockUserUseCase.EXPECT().GetUserByID(entity.UserID("mockUserID")).Return(user, nil)
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
+	mockUserUseCase.EXPECT().GetUserByID(entity.UserPublicID("mockUserID")).Return(user, nil)
 
 	if assert.NoError(t, handler.GetMe(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)

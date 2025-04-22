@@ -23,12 +23,12 @@ func TestCreateRoom(t *testing.T) {
 
 	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	handler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
-		RoomUseCase:      mockRoomUseCase,
-		UserIDFactory:    mockUserIDFactory,
-		RoomPubIDFactory: mockRoomPubIDFactory,
+		RoomUseCase:   mockRoomUseCase,
+		UserIDFactory: mockUserIDFactory,
+		RoomIDFactory: mockRoomIDFactory,
 	})
 
 	e := echo.New()
@@ -45,10 +45,10 @@ func TestCreateRoom(t *testing.T) {
 			ID:       1,
 			PublicID: "mockRoomID",
 			Name:     "testRoom",
-			Members:  []entity.UserID{"mockUserID"},
+			Members:  []entity.UserPublicID{"mockUserID"},
 		}),
 	}, nil)
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserID("mockUserID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
 	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.CreateRoom(c)) {
@@ -63,12 +63,12 @@ func TestJoinRoom(t *testing.T) {
 
 	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	handler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
-		RoomUseCase:      mockRoomUseCase,
-		UserIDFactory:    mockUserIDFactory,
-		RoomPubIDFactory: mockRoomPubIDFactory,
+		RoomUseCase:   mockRoomUseCase,
+		UserIDFactory: mockUserIDFactory,
+		RoomIDFactory: mockRoomIDFactory,
 	})
 
 	e := echo.New()
@@ -79,8 +79,8 @@ func TestJoinRoom(t *testing.T) {
 	c.SetParamNames("public_id")
 	c.SetParamValues("mockRoomID")
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserID("mockUserID"))
-	mockRoomPubIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
+	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
 	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.JoinRoom(c)) {
@@ -95,12 +95,12 @@ func TestLeaveRoom(t *testing.T) {
 
 	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	handler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
-		RoomUseCase:      mockRoomUseCase,
-		UserIDFactory:    mockUserIDFactory,
-		RoomPubIDFactory: mockRoomPubIDFactory,
+		RoomUseCase:   mockRoomUseCase,
+		UserIDFactory: mockUserIDFactory,
+		RoomIDFactory: mockRoomIDFactory,
 	})
 
 	e := echo.New()
@@ -111,8 +111,8 @@ func TestLeaveRoom(t *testing.T) {
 	c.SetParamNames("public_id")
 	c.SetParamValues("mockRoomID")
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserID("mockUserID"))
-	mockRoomPubIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
+	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
 	mockRoomUseCase.EXPECT().LeaveRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.LeaveRoom(c)) {
@@ -127,14 +127,12 @@ func TestGetRoom(t *testing.T) {
 
 	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
-	
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	handler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
 		RoomUseCase:      mockRoomUseCase,
 		UserIDFactory:    mockUserIDFactory,
-		RoomPubIDFactory: mockRoomPubIDFactory,
-
+		RoomIDFactory: mockRoomIDFactory,
 	})
 
 	e := echo.New()
@@ -144,13 +142,13 @@ func TestGetRoom(t *testing.T) {
 	c.SetParamNames("public_id")
 	c.SetParamValues("mockRoomID")
 
-	mockRoomPubIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
+	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
 	mockRoomUseCase.EXPECT().GetRoomByPublicID(gomock.Any()).Return(usecase.GetRoomByPublicIDResponse{
 		Room: entity.NewRoom(entity.RoomParams{
 			ID:       1,
 			PublicID: "mockRoomID",
 			Name:     "testRoom",
-			Members:  []entity.UserID{"user1", "user2"},
+			Members:  []entity.UserPublicID{"user1", "user2"},
 		}),
 	}, nil)
 
@@ -167,12 +165,12 @@ func TestGetRooms(t *testing.T) {
 
 	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	handler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
-		RoomUseCase: mockRoomUseCase,
+		RoomUseCase:      mockRoomUseCase,
 		UserIDFactory:    mockUserIDFactory,
-		RoomPubIDFactory: mockRoomPubIDFactory,
+		RoomIDFactory: mockRoomIDFactory,
 	})
 
 	e := echo.New()
@@ -182,16 +180,16 @@ func TestGetRooms(t *testing.T) {
 
 	mockRoomUseCase.EXPECT().GetAllRooms().Return([]*entity.Room{
 		entity.NewRoom(entity.RoomParams{
-			ID:		1,
+			ID:       1,
 			PublicID: "room1",
-			Name:  "Room 1",
-			Members: []entity.UserID{"user1", "user2"},
+			Name:     "Room 1",
+			Members:  []entity.UserPublicID{"user1", "user2"},
 		}),
 		entity.NewRoom(entity.RoomParams{
-			ID:		2,
+			ID:       2,
 			PublicID: "room2",
-			Name:  "Room 2",
-			Members: []entity.UserID{"user3", "user4"},
+			Name:     "Room 2",
+			Members:  []entity.UserPublicID{"user3", "user4"},
 		}),
 	}, nil)
 

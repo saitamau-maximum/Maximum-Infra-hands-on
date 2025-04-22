@@ -22,24 +22,40 @@ type RoomUseCaseInterface interface {
 
 // RoomUseCase構造体: 部屋に関するユースケースを管理
 type RoomUseCase struct {
-	roomRepo            repository.RoomRepository
-	roomIDFactory       factory.RoomIDFactory
-	roomPublicIDFactory factory.RoomPublicIDFactory
+	roomRepo      repository.RoomRepository
+	userRepo      repository.UserRepository
+	roomIDFactory factory.RoomIDFactory
 }
 
 // NewRoomUseCaseParams構造体: RoomUseCaseの初期化に必要なパラメータ
 type NewRoomUseCaseParams struct {
-	RoomRepo            repository.RoomRepository
-	RoomIDFactory       factory.RoomIDFactory
-	RoomPublicIDFactory factory.RoomPublicIDFactory
+	RoomRepo      repository.RoomRepository
+	UserRepo      repository.UserRepository
+	RoomIDFactory factory.RoomIDFactory
+}
+func (p NewRoomUseCaseParams) Validate() error {
+	if p.RoomRepo == nil {
+		return errors.New("RoomRepo is required")
+	}
+	if p.UserRepo == nil {
+		return errors.New("UserRepo is required")
+	}
+	if p.RoomIDFactory == nil {
+		return errors.New("RoomIDFactory is required")
+	}
+	return nil
 }
 
 // NewRoomUseCase: RoomUseCaseのインスタンスを生成
 func NewRoomUseCase(p NewRoomUseCaseParams) *RoomUseCase {
+	if err := p.Validate(); err != nil {
+		panic(err)
+	}
+	
 	return &RoomUseCase{
-		roomRepo:            p.RoomRepo,
-		roomIDFactory:       p.RoomIDFactory,
-		roomPublicIDFactory: p.RoomPublicIDFactory,
+		roomRepo:      p.RoomRepo,
+		userRepo:      p.UserRepo,
+		roomIDFactory: p.RoomIDFactory,
 	}
 }
 
@@ -55,21 +71,16 @@ type CreateRoomResponse struct {
 
 // CreateRoom: 新しい部屋を作成
 func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error) {
-	roomID, err := r.roomIDFactory.NewRoomID()
-	if err != nil {
-		return CreateRoomResponse{nil}, err
-	}
-
-	roomPublicID, err := r.roomPublicIDFactory.NewRoomPublicID()
+	roomPublicID, err := r.roomIDFactory.NewRoomPublicID()
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
 
 	room := entity.NewRoom(entity.RoomParams{
-		ID:       roomID,
-		Name:     req.Name,
+		ID:       -1, // IDはDBに保存後に更新されるため、-1を指定
 		PublicID: roomPublicID,
-		Members:  []entity.UserID{},
+		Name:     req.Name,
+		Members:  []entity.UserPublicID{},
 	})
 
 	savedRoomID, err := r.roomRepo.SaveRoom(room)
@@ -157,21 +168,29 @@ func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomR
 // JoinRoomRequest構造体: 部屋に参加するリクエスト
 type JoinRoomRequest struct {
 	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	UserID       entity.UserID       `json:"user_id"` // 参加するユーザー
+	UserPublicID entity.UserPublicID `json:"user_id"` // 参加するユーザー
 }
 
 // JoinRoom: 部屋にユーザーを参加させる
 func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
-	id, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
+	roomPublicID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
 	if err != nil {
 		return err
 	}
 
-	if id <= 0 {
-		return errors.New("room not found")
+	userPublicID, err := r.userRepo.GetIDByPublicID(req.UserPublicID)
+	if err != nil {
+		return err
 	}
 
-	err = r.roomRepo.AddMemberToRoom(id, req.UserID)
+	if roomPublicID <= 0 {
+		return errors.New("room not found")
+	}
+	if userPublicID <= 0 {
+		return errors.New("user not found")
+	}
+
+	err = r.roomRepo.AddMemberToRoom(roomPublicID, userPublicID)
 	if err != nil {
 		return err
 	}
@@ -182,21 +201,30 @@ func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
 // LeaveRoomRequest構造体: 部屋から退出するリクエスト
 type LeaveRoomRequest struct {
 	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	UserID       entity.UserID       `json:"user_id"` // 退出するユーザーID
+	UserPublicID entity.UserPublicID `json:"user_id"` // 退出するユーザーID
 }
 
 // LeaveRoom: 部屋からユーザーを退出させる
 func (r *RoomUseCase) LeaveRoom(req LeaveRoomRequest) error {
-	id, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
+	roomPublicID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
 	if err != nil {
 		return err
 	}
 
-	if id <= 0 {
+	userPublicID, err := r.userRepo.GetIDByPublicID(req.UserPublicID)
+	if err != nil {
+		return err
+	}
+
+	if userPublicID <= 0 {
 		return errors.New("room not found")
 	}
 
-	err = r.roomRepo.RemoveMemberFromRoom(id, req.UserID)
+	if roomPublicID <= 0 {
+		return errors.New("user not found")
+	}
+
+	err = r.roomRepo.RemoveMemberFromRoom(roomPublicID, userPublicID)
 	if err != nil {
 		return err
 	}

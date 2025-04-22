@@ -19,10 +19,12 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	// == Mock dependencies ==
 	mockMsgRepo := mock_repository.NewMockMessageRepository(ctrl)
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 
 	params := usecase.NewMessageUseCaseParams{
 		MsgRepo:  mockMsgRepo,
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
 	}
 
 	messageUseCase := usecase.NewMessageUseCase(params)
@@ -34,13 +36,15 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		limit := 10
 		messages := []*entity.Message{
 			entity.NewMessage(entity.MessageParams{
-				ID:      "1",
+				ID:      1,
+				PublicID: "msg1",
 				RoomID:  roomID,
 				Content: "Hello",
 				SentAt:  beforeSentAt.Add(-1 * time.Minute),
 			}),
 			entity.NewMessage(entity.MessageParams{
-				ID:      "2",
+				ID:      2,
+				PublicID: "msg2",
 				RoomID:  roomID,
 				Content: "World",
 				SentAt:  beforeSentAt.Add(-2 * time.Minute),

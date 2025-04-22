@@ -31,7 +31,7 @@ type WebsocketUseCase struct {
 	wsClientRepo     repository.WebsocketClientRepository
 	websocketManager service.WebsocketManager
 	msgIDFactory     factory.MessageIDFactory
-	clientIDFactory  factory.WebsocketClientIDFactory
+	clientIDFactory  factory.WsClientIDFactory
 }
 
 type NewWebsocketUseCaseParams struct {
@@ -41,8 +41,9 @@ type NewWebsocketUseCaseParams struct {
 	WsClientRepo     repository.WebsocketClientRepository
 	WebsocketManager service.WebsocketManager
 	MsgIDFactory     factory.MessageIDFactory
-	ClientIDFactory  factory.WebsocketClientIDFactory
+	ClientIDFactory  factory.WsClientIDFactory
 }
+
 func (p *NewWebsocketUseCaseParams) Validate() error {
 	if p.UserRepo == nil {
 		return fmt.Errorf("UserRepo is required")
@@ -73,7 +74,7 @@ func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInter
 	if err := params.Validate(); err != nil {
 		panic(fmt.Sprintf("Invalid parameters: %v", err))
 	}
-	
+
 	return &WebsocketUseCase{
 		userRepo:         params.UserRepo,
 		roomRepo:         params.RoomRepo,
@@ -87,32 +88,38 @@ func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInter
 
 // ConnectUserToRoomRequest構造体: 接続・参加処理のリクエスト
 type ConnectUserToRoomRequest struct {
-	UserID       entity.UserID
-	PublicRoomID entity.RoomPublicID
+	UserPublicID entity.UserPublicID
+	RoomPublicID entity.RoomPublicID
 	Conn         service.WebSocketConnection
 }
 
 // ConnectUserToRoom 接続・参加処理
 func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error {
-	user, err := w.userRepo.GetUserByID(req.UserID)
+	userID, err := w.userRepo.GetIDByPublicID(req.UserPublicID)
 	if err != nil {
 		return err
 	}
 
-	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.PublicRoomID)
+	user, err := w.userRepo.GetUserByID(userID)
 	if err != nil {
 		return err
 	}
 
-	id, err := w.clientIDFactory.NewWebsocketClientID()
+	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
+	if err != nil {
+		return err
+	}
+
+	publicID, err := w.clientIDFactory.NewWsClientPublicID()
 	if err != nil {
 		return err
 	}
 
 	client := entity.NewWebsocketClient(entity.WebsocketClientParams{
-		ID:     id,
-		UserID: user.GetID(),
-		RoomID: roomID,
+		ID:       -1, // IDはDBに保存後に更新されるため、-1を指定
+		PublicID: publicID,
+		UserID:   user.GetID(),
+		RoomID:   roomID,
 	})
 
 	err = w.wsClientRepo.CreateClient(client)
@@ -120,7 +127,7 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 		return err
 	}
 
-	err = w.websocketManager.Register(req.Conn, req.UserID, roomID)
+	err = w.websocketManager.Register(req.Conn, userID, roomID)
 	if err != nil {
 		return err
 	}
@@ -131,7 +138,7 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 // SendMessageRequest構造体: メッセージ送信リクエスト
 type SendMessageRequest struct {
 	RoomPublicID entity.RoomPublicID
-	Sender       entity.UserID
+	Sender       entity.UserPublicID
 	Content      string
 }
 
@@ -142,16 +149,22 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 		return err
 	}
 
-	msgID, err := w.msgIDFactory.NewMessageID()
+	msgPublicID, err := w.msgIDFactory.NewMessagePublicID()
 	if err != nil {
 		return err
 	}
+	senderID, err := w.userRepo.GetIDByPublicID(req.Sender)
+	if err != nil {
+		return err
+	}
+
 	msg := entity.NewMessage(entity.MessageParams{
-		ID:      msgID,
-		RoomID:  roomID,
-		UserID:  req.Sender,
-		Content: req.Content,
-		SentAt:  time.Now(),
+		ID:       -1,
+		PublicID: msgPublicID,
+		RoomID:   roomID,
+		UserID:   senderID,
+		Content:  req.Content,
+		SentAt:   time.Now(),
 	})
 
 	if err := w.msgRepo.CreateMessage(msg); err != nil {
@@ -168,17 +181,22 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 
 // DisconnectUserRequest構造体: 切断処理リクエスト
 type DisconnectUserRequest struct {
-	UserID entity.UserID
+	UserID entity.UserPublicID
 }
 
 // DisconnectUser 切断処理
 func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
-	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
+	userID, err := w.userRepo.GetIDByPublicID(req.UserID)
 	if err != nil {
 		return err
 	}
 
-	user, err := w.wsClientRepo.GetClientsByUserID(req.UserID)
+	conn, err := w.websocketManager.GetConnectionByUserID(userID)
+	if err != nil {
+		return err
+	}
+
+	user, err := w.wsClientRepo.GetClientsByUserID(userID)
 	if err != nil {
 		return err
 	}
@@ -222,5 +240,3 @@ func (w *WebsocketUseCase) GetMessageHistory(req GetMessageHistoryRequest) (GetM
 		Messages: messages,
 	}, nil
 }
-
-

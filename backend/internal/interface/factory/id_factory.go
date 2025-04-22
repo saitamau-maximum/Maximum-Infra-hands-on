@@ -3,26 +3,25 @@ package factory
 import "example.com/webrtc-practice/internal/domain/entity"
 
 type UserIDFactory interface {
-	NewUserID() (entity.UserID, error)
-	FromString(string) entity.UserID
+	NewUserPublicID() (entity.UserPublicID, error)
+	FromInt(int) (entity.UserID, error)
+	FromString(string) (entity.UserPublicID, error)
 }
 
 type RoomIDFactory interface {
-	NewRoomID() (entity.RoomID, error)
-	FromInt(int) entity.RoomID
-}
-
-type RoomPublicIDFactory interface {
 	NewRoomPublicID() (entity.RoomPublicID, error)
-	FromString(string) entity.RoomPublicID
+	FromInt(int) (entity.RoomID, error)
+	FromString(string) (entity.RoomPublicID, error)
 }
 
 type MessageIDFactory interface {
-	NewMessageID() (entity.MessageID, error)
-	FromString(string) entity.MessageID
+	NewMessagePublicID() (entity.MessagePublicID, error)
+	FromString(string) (entity.MessagePublicID, error)
+	FromInt(int) (entity.MessagePublicID, error)
 }
 
-type WebsocketClientIDFactory interface {
-	NewWebsocketClientID() (entity.WebsocketClientID, error)
-	FromString(string) entity.WebsocketClientID
+type WsClientIDFactory interface {
+	NewWsClientPublicID() (entity.WsClientPublicID, error)
+	FromInt(int) (entity.WsClientPublicID, error)
+	FromString(string) (entity.WsClientPublicID, error)
 }

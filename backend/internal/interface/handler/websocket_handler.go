@@ -10,11 +10,11 @@ import (
 )
 
 type WebSocketHandler struct {
-	WsUseCase  usecase.WebsocketUseCaseInterface
-	WsUpgrader adapter.WebSocketUpgraderAdapter
+	WsUseCase        usecase.WebsocketUseCaseInterface
+	WsUpgrader       adapter.WebSocketUpgraderAdapter
 	WsConnFactory    factory.WebSocketConnectionFactory
-	UserIDFactory     factory.UserIDFactory
-	RoomPubIDFactory  factory.RoomPublicIDFactory
+	UserIDFactory    factory.UserIDFactory
+	RoomPubIDFactory factory.RoomIDFactory
 }
 
 type WebSocketHandlerParams struct {
@@ -22,7 +22,7 @@ type WebSocketHandlerParams struct {
 	WsUpgrader       adapter.WebSocketUpgraderAdapter
 	WsConnFactory    factory.WebSocketConnectionFactory
 	UserIDFactory    factory.UserIDFactory
-	RoomPubIDFactory factory.RoomPublicIDFactory
+	RoomPubIDFactory factory.RoomIDFactory
 }
 
 func (p *WebSocketHandlerParams) Validate() error {
@@ -49,11 +49,11 @@ func NewWebSocketHandler(params WebSocketHandlerParams) *WebSocketHandler {
 		panic(err)
 	}
 	return &WebSocketHandler{
-		WsUseCase:  params.WsUseCase,
-		WsUpgrader: params.WsUpgrader,
-		WsConnFactory:     params.WsConnFactory,
-		UserIDFactory:     params.UserIDFactory,
-		RoomPubIDFactory:  params.RoomPubIDFactory,
+		WsUseCase:        params.WsUseCase,
+		WsUpgrader:       params.WsUpgrader,
+		WsConnFactory:    params.WsConnFactory,
+		UserIDFactory:    params.UserIDFactory,
+		RoomPubIDFactory: params.RoomPubIDFactory,
 	}
 }
 
@@ -62,14 +62,22 @@ func (h *WebSocketHandler) Register(g *echo.Group) {
 }
 
 func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
-	userID, ok := c.Get("user_id").(string)
-	if !ok || userID == "" {
+	userPublicIDStr, ok := c.Get("user_id").(string)
+	if !ok || userPublicIDStr == "" {
 		return echo.NewHTTPError(http.StatusUnauthorized, "User ID is required")
 	}
+	userPublicID, err := h.UserIDFactory.FromString(userPublicIDStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid User ID")
+	}
 
-	roomPublicID := c.Param("room_public_id")
-	if roomPublicID == "" {
+	roomPublicIDStr := c.Param("room_public_id")
+	if roomPublicIDStr == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "Room public ID is required")
+	}
+	roomPublicID, err := h.RoomPubIDFactory.FromString(roomPublicIDStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Room public ID")
 	}
 
 	connRaw, err := h.WsUpgrader.Upgrade(c.Response().Writer, c.Request())
@@ -83,9 +91,9 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 	}
 
 	if err := h.WsUseCase.ConnectUserToRoom(usecase.ConnectUserToRoomRequest{
-		UserID:     h.UserIDFactory.FromString(userID),
-		PublicRoomID:  h.RoomPubIDFactory.FromString(roomPublicID),
-		Conn:     conn,
+		UserPublicID: userPublicID,
+		RoomPublicID: roomPublicID,
+		Conn:         conn,
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to connect user to room")
 	}
@@ -97,14 +105,14 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
 				_ = h.WsUseCase.DisconnectUser(usecase.DisconnectUserRequest{
-					UserID:     h.UserIDFactory.FromString(userID),
+					UserID: userPublicID,
 				})
 				return
 			}
-			
+
 			h.WsUseCase.SendMessage(usecase.SendMessageRequest{
-				RoomPublicID: h.RoomPubIDFactory.FromString(roomPublicID),
-				Sender:       message.GetUserID(),
+				RoomPublicID: roomPublicID,
+				Sender:       userPublicID,
 				Content:      message.GetContent(),
 			})
 		}
