@@ -55,3 +55,7 @@ func (u User) GetEmail() string {
 func (u User) GetPasswdHash() string {
 	return u.passwdhash
 }
+
+func (u User) GetCreatedAt() time.Time {
+	return u.createdAt
+}
