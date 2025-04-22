@@ -28,7 +28,7 @@ func TestConnectToChatRoom(t *testing.T) {
 	mockWsUpGrader := mock_adapter.NewMockWebSocketUpgraderAdapter(ctrl)
 	mockWsConnFactory := mock_factory.NewMockWebSocketConnectionFactory(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomPublicIDFactory(ctrl)
+	mockRoomPubIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	WsHandler := handler.NewWebSocketHandler(handler.WebSocketHandlerParams{
 		WsUseCase:        mockWsUseCase,
@@ -56,8 +56,9 @@ func TestConnectToChatRoom(t *testing.T) {
 
 		// メッセージのモック
 		testMessage := entity.NewMessage(entity.MessageParams{
-			ID:      "test-message-id",
-			UserID:  entity.UserID("test-user"),
+			ID:      1,
+			PublicID: entity.MessagePublicID("test-message"),
+			UserID:  1,
 			RoomID:  1,
 			Content: "testcontent",
 			SentAt:  time.Now(),
@@ -67,7 +68,7 @@ func TestConnectToChatRoom(t *testing.T) {
 
 		mockWsUpGrader.EXPECT().Upgrade(gomock.Any(), gomock.Any()).Return(mockConnRaw, nil)
 		mockWsConnFactory.EXPECT().CreateWebSocketConnection(mockConnRaw).Return(mockConn, nil)
-		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserID("test-user"))
+		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"))
 		mockRoomPubIDFactory.EXPECT().FromString("test-room").Return(entity.RoomPublicID("test-room"))
 		mockWsUseCase.EXPECT().ConnectUserToRoom(gomock.Any()).Return(nil)
 		time.Sleep(100 * time.Millisecond) // goroutine内の処理を待つためのスリープ
@@ -79,7 +80,7 @@ func TestConnectToChatRoom(t *testing.T) {
 		// 少し待つ
 		time.Sleep(100 * time.Millisecond)
 		mockConn.EXPECT().ReadMessage().Return(0, nil, assert.AnError)
-		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserID("test-user"))
+		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"))
 		mockWsUseCase.EXPECT().DisconnectUser(gomock.Any()).DoAndReturn(func(req usecase.DisconnectUserRequest) error {
 			wg.Done() // goroutine終了の合図
 			return nil

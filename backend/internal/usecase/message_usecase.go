@@ -11,16 +11,20 @@ import (
 type MessageUseCaseInterface interface {
 	// メッセージ取得
 	GetMessageHistoryInRoom(req GetMessageHistoryInRoomRequest) (GetMessageHistoryInRoomResponse, error)
+	// 内部のMessageを外部用に整形
+	FormatMessage(msg *entity.Message) (FormatMessageResponse, error)
 }
 
 type MessageUseCase struct {
 	msgRepo  repository.MessageRepository
 	roomRepo repository.RoomRepository
+	userRepo repository.UserRepository
 }
 
 type NewMessageUseCaseParams struct {
 	MsgRepo  repository.MessageRepository
 	RoomRepo repository.RoomRepository
+	UserRepo repository.UserRepository
 }
 
 func (p *NewMessageUseCaseParams) Validate() error {
@@ -29,6 +33,9 @@ func (p *NewMessageUseCaseParams) Validate() error {
 	}
 	if p.RoomRepo == nil {
 		return errors.New("RoomRepo is required")
+	}
+	if p.UserRepo == nil {
+		return errors.New("UserRepo is required")
 	}
 	return nil
 }
@@ -40,6 +47,7 @@ func NewMessageUseCase(params NewMessageUseCaseParams) *MessageUseCase {
 	return &MessageUseCase{
 		msgRepo:  params.MsgRepo,
 		roomRepo: params.RoomRepo,
+		userRepo: params.UserRepo,
 	}
 }
 
@@ -75,5 +83,37 @@ func (uc *MessageUseCase) GetMessageHistoryInRoom(req GetMessageHistoryInRoomReq
 		Messages:         messages,
 		NextBeforeSentAt: nextBeforeSentAt,
 		HasNext:          hasNext,
+	}, nil
+}
+
+type FormatMessageResponse struct {
+	PublicID     string    `json:"id"`
+	RoomPublicID string    `json:"room_id"`
+	UserPublicID string    `json:"user_id"`
+	Content      string    `json:"content"`
+	SentAt       time.Time `json:"sent_at"`
+}
+
+func (uc *MessageUseCase) FormatMessage(msg *entity.Message) (FormatMessageResponse, error) {
+	if msg == nil {
+		return FormatMessageResponse{}, errors.New("message is nil")
+	}
+
+	roomPublicID, err := uc.roomRepo.GetPublicIDByRoomID(msg.GetRoomID())
+	if err != nil {
+		return FormatMessageResponse{}, err
+	}
+
+	userPublicID, err := uc.userRepo.GetPublicIDByID(msg.GetUserID())
+	if err != nil {
+		return FormatMessageResponse{}, err
+	}
+
+	return FormatMessageResponse{
+		PublicID:     string(msg.GetPublicID()),
+		RoomPublicID: string(roomPublicID),
+		UserPublicID: string(userPublicID),
+		Content:      msg.GetContent(),
+		SentAt:       msg.GetSentAt(),
 	}, nil
 }

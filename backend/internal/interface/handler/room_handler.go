@@ -9,15 +9,14 @@ import (
 )
 
 type RoomHandler struct {
-	RoomUseCase      usecase.RoomUseCaseInterface
-	UserUseCase 		usecase.UserUseCaseInterface
-	UserIDFactory    factory.UserIDFactory
+	RoomUseCase   usecase.RoomUseCaseInterface
+	UserIDFactory factory.UserIDFactory
 	RoomIDFactory factory.RoomIDFactory
 }
 
 type NewRoomHandlerParams struct {
-	RoomUseCase      usecase.RoomUseCaseInterface
-	UserIDFactory    factory.UserIDFactory
+	RoomUseCase   usecase.RoomUseCaseInterface
+	UserIDFactory factory.UserIDFactory
 	RoomIDFactory factory.RoomIDFactory
 }
 
@@ -40,8 +39,8 @@ func NewRoomHandler(params NewRoomHandlerParams) *RoomHandler {
 	}
 
 	return &RoomHandler{
-		RoomUseCase:      params.RoomUseCase,
-		UserIDFactory:    params.UserIDFactory,
+		RoomUseCase:   params.RoomUseCase,
+		UserIDFactory: params.UserIDFactory,
 		RoomIDFactory: params.RoomIDFactory,
 	}
 }
@@ -81,14 +80,14 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 	if !ok || userIDStr == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
 	}
-	userPublicID := h.UserIDFactory.FromString(userIDStr)
+	userPublicID, err := h.UserIDFactory.FromString(userIDStr)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get user by public ID"})
 	}
 
 	if err = h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
 		RoomPublicID: room.GetPubID(),
-		UserID:       userID,
+		UserPublicID: userPublicID,
 	}); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to add user to room"})
 	}
@@ -103,10 +102,14 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 }
 
 func (h *RoomHandler) JoinRoom(c echo.Context) error {
-	userIDStr, ok := c.Get("user_id").(string)
-	if !ok || userIDStr == "" {
+	userPublicIDStr, ok := c.Get("user_id").(string)
+	if !ok || userPublicIDStr == "" {
 		// user_id が存在しない、もしくは型アサーションに失敗した場合
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
+	}
+	userPublicID, err := h.UserIDFactory.FromString(userPublicIDStr)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get user by public ID"})
 	}
 
 	roomPublicIDStr := c.Param("public_id")
@@ -114,11 +117,16 @@ func (h *RoomHandler) JoinRoom(c echo.Context) error {
 		// public_id がリクエストパラメータに含まれていない場合
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
 	}
+	roomPublicID, err := h.RoomIDFactory.FromString(roomPublicIDStr)
+	if err != nil {
+		// public_id が不正な形式の場合
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid room public ID"})
+	}
 
 	// 部屋に参加
-	err := h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
-		RoomPublicID: h.RoomIDFactory.FromString(roomPublicIDStr),
-		UserID:       h.UserIDFactory.FromString(userIDStr),
+	err = h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
+		RoomPublicID: roomPublicID,
+		UserPublicID: userPublicID,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to join room"})
@@ -130,20 +138,28 @@ func (h *RoomHandler) JoinRoom(c echo.Context) error {
 }
 
 func (h *RoomHandler) LeaveRoom(c echo.Context) error {
-	userIDStr, ok := c.Get("user_id").(string)
-	if !ok || userIDStr == "" {
+	userPublicIDStr, ok := c.Get("user_id").(string)
+	if !ok || userPublicIDStr == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
+	}
+	userPublicID, err := h.UserIDFactory.FromString(userPublicIDStr)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get user by public ID"})
 	}
 
 	roomPublicIDStr := c.Param("public_id")
 	if roomPublicIDStr == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
 	}
+	roomPublicID, err := h.RoomIDFactory.FromString(roomPublicIDStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid room public ID"})
+	}
 
 	// 部屋から退出
 	if err := h.RoomUseCase.LeaveRoom(usecase.LeaveRoomRequest{
-		RoomPublicID: h.RoomPubIDFactory.FromString(roomPublicIDStr),
-		UserID:       h.UserIDFactory.FromString(userIDStr),
+		RoomPublicID: roomPublicID,
+		UserPublicID: userPublicID,
 	}); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to leave room"})
 	}
@@ -167,9 +183,13 @@ func (h *RoomHandler) GetRoom(c echo.Context) error {
 	if roomPublicIDStr == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
 	}
+	roomPublicID, err := h.RoomIDFactory.FromString(roomPublicIDStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid room public ID"})
+	}
 
 	GetRoomRes, err := h.RoomUseCase.GetRoomByPublicID(usecase.GetRoomByPublicIDParams{
-		PublicID: h.RoomPubIDFactory.FromString(roomPublicIDStr),
+		PublicID: roomPublicID,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get room"})

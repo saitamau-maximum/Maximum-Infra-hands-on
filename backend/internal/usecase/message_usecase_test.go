@@ -19,10 +19,12 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	// == Mock dependencies ==
 	mockMsgRepo := mock_repository.NewMockMessageRepository(ctrl)
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 
 	params := usecase.NewMessageUseCaseParams{
 		MsgRepo:  mockMsgRepo,
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
 	}
 
 	messageUseCase := usecase.NewMessageUseCase(params)

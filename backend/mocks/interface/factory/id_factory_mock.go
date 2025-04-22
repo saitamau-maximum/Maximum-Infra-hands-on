@@ -41,11 +41,12 @@ func (m *MockUserIDFactory) EXPECT() *MockUserIDFactoryMockRecorder {
 }
 
 // FromInt mocks base method.
-func (m *MockUserIDFactory) FromInt(arg0 int) entity.UserID {
+func (m *MockUserIDFactory) FromInt(arg0 int) (entity.UserID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromInt", arg0)
 	ret0, _ := ret[0].(entity.UserID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromInt indicates an expected call of FromInt.
@@ -55,11 +56,12 @@ func (mr *MockUserIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
 }
 
 // FromString mocks base method.
-func (m *MockUserIDFactory) FromString(arg0 string) entity.UserPublicID {
+func (m *MockUserIDFactory) FromString(arg0 string) (entity.UserPublicID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromString", arg0)
 	ret0, _ := ret[0].(entity.UserPublicID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromString indicates an expected call of FromString.
@@ -108,11 +110,12 @@ func (m *MockRoomIDFactory) EXPECT() *MockRoomIDFactoryMockRecorder {
 }
 
 // FromInt mocks base method.
-func (m *MockRoomIDFactory) FromInt(arg0 int) entity.RoomID {
+func (m *MockRoomIDFactory) FromInt(arg0 int) (entity.RoomID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromInt", arg0)
 	ret0, _ := ret[0].(entity.RoomID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromInt indicates an expected call of FromInt.
@@ -122,11 +125,12 @@ func (mr *MockRoomIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
 }
 
 // FromString mocks base method.
-func (m *MockRoomIDFactory) FromString(arg0 string) entity.RoomPublicID {
+func (m *MockRoomIDFactory) FromString(arg0 string) (entity.RoomPublicID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromString", arg0)
 	ret0, _ := ret[0].(entity.RoomPublicID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromString indicates an expected call of FromString.
@@ -175,11 +179,12 @@ func (m *MockMessageIDFactory) EXPECT() *MockMessageIDFactoryMockRecorder {
 }
 
 // FromInt mocks base method.
-func (m *MockMessageIDFactory) FromInt(arg0 int) entity.MessageID {
+func (m *MockMessageIDFactory) FromInt(arg0 int) (entity.MessagePublicID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromInt", arg0)
-	ret0, _ := ret[0].(entity.MessageID)
-	return ret0
+	ret0, _ := ret[0].(entity.MessagePublicID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromInt indicates an expected call of FromInt.
@@ -189,11 +194,12 @@ func (mr *MockMessageIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
 }
 
 // FromString mocks base method.
-func (m *MockMessageIDFactory) FromString(arg0 string) entity.MessagePublicID {
+func (m *MockMessageIDFactory) FromString(arg0 string) (entity.MessagePublicID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromString", arg0)
 	ret0, _ := ret[0].(entity.MessagePublicID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromString indicates an expected call of FromString.
@@ -242,11 +248,12 @@ func (m *MockWsClientIDFactory) EXPECT() *MockWsClientIDFactoryMockRecorder {
 }
 
 // FromInt mocks base method.
-func (m *MockWsClientIDFactory) FromInt(arg0 int) entity.WsClientID {
+func (m *MockWsClientIDFactory) FromInt(arg0 int) (entity.WsClientPublicID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromInt", arg0)
-	ret0, _ := ret[0].(entity.WsClientID)
-	return ret0
+	ret0, _ := ret[0].(entity.WsClientPublicID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromInt indicates an expected call of FromInt.
@@ -256,11 +263,12 @@ func (mr *MockWsClientIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
 }
 
 // FromString mocks base method.
-func (m *MockWsClientIDFactory) FromString(arg0 string) entity.WsClientPublicID {
+func (m *MockWsClientIDFactory) FromString(arg0 string) (entity.WsClientPublicID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromString", arg0)
 	ret0, _ := ret[0].(entity.WsClientPublicID)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromString indicates an expected call of FromString.

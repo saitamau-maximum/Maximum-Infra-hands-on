@@ -134,7 +134,10 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
 	}
 
-	userID := h.UserIDFactory.FromString(userIDStr)
+	userID, err := h.UserIDFactory.FromString(userIDStr)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get user ID"})
+	}
 
 	user, err := h.UserUseCase.GetUserByID(userID)
 	if err != nil {
@@ -142,7 +145,7 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 	}
 
 	res := GetMeResponse{
-		ID:    string(user.GetID()),
+		ID:    string(user.GetPublicID()),
 		Name:  user.GetName(),
 		Email: user.GetEmail(),
 	}
