@@ -2,7 +2,7 @@
 
 test: test-usecase test-handler
 
-test-usecase: test-user-usecase test-room-usecase test-websocket-usecase
+test-usecase: test-user-usecase test-room-usecase test-websocket-usecase test-message-usecase
 
 test-user-usecase:
 	go test -v /home/nakamuraitsuki/program/Maximum/Infra/Maximum-Infra-hands-on/backend/internal/usecase/user_usecase_test.go
@@ -12,6 +12,9 @@ test-room-usecase:
 
 test-websocket-usecase:
 	go test -v /home/nakamuraitsuki/program/Maximum/Infra/Maximum-Infra-hands-on/backend/internal/usecase/websocket_usecase_test.go
+
+test-message-usecase:
+	go test -v /home/nakamuraitsuki/program/Maximum/Infra/Maximum-Infra-hands-on/backend/internal/usecase/message_usecase_test.go
 
 test-handler: test-user-handler test-room-handler test-websocket-handler
 

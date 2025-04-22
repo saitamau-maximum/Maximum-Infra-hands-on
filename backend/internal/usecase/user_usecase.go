@@ -14,7 +14,7 @@ import (
 type UserUseCaseInterface interface {
 	SignUp(req SignUpRequest) (SignUpResponse, error)
 	AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error)
-	GetUserByID(id entity.UserID) (*entity.User, error)
+	GetUserByID(id entity.UserPublicID) (*entity.User, error)
 }
 
 type UserUseCase struct {
@@ -134,8 +134,12 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 	return AuthenticateUserResponse{token: &res}, err
 }
 
-func (u *UserUseCase) GetUserByID(id entity.UserID) (*entity.User, error) {
-	user, err := u.userRepo.GetUserByID(id)
+func (u *UserUseCase) GetUserByID(id entity.UserPublicID) (*entity.User, error) {
+	userID, err := u.userRepo.GetIDByPublicID(id)
+	if err != nil {
+		return nil, err
+	}
+	user, err := u.userRepo.GetUserByID(userID)
 	if err != nil {
 		return nil, err
 	}

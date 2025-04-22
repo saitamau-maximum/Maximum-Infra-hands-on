@@ -57,7 +57,7 @@ func TestSignUp(t *testing.T) {
 		assert.Equal(t, signUpRequest.Name, response.User.GetName())
 		assert.Equal(t, signUpRequest.Email, response.User.GetEmail())
 		assert.Equal(t, hashedPassword, response.User.GetPasswdHash())
-		assert.Equal(t, userID, response.User.GetID())
+		assert.Equal(t, userID, response.User.GetPublicID())
 	})
 
 	t.Run("ハッシュ化失敗時", func(t *testing.T) {

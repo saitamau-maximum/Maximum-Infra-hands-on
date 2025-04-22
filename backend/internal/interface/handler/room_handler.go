@@ -10,14 +10,15 @@ import (
 
 type RoomHandler struct {
 	RoomUseCase      usecase.RoomUseCaseInterface
+	UserUseCase 		usecase.UserUseCaseInterface
 	UserIDFactory    factory.UserIDFactory
-	RoomPubIDFactory factory.RoomPublicIDFactory
+	RoomIDFactory factory.RoomIDFactory
 }
 
 type NewRoomHandlerParams struct {
 	RoomUseCase      usecase.RoomUseCaseInterface
 	UserIDFactory    factory.UserIDFactory
-	RoomPubIDFactory factory.RoomPublicIDFactory
+	RoomIDFactory factory.RoomIDFactory
 }
 
 func (p *NewRoomHandlerParams) Validate() error {
@@ -27,7 +28,7 @@ func (p *NewRoomHandlerParams) Validate() error {
 	if p.UserIDFactory == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "UserIDFactory is required")
 	}
-	if p.RoomPubIDFactory == nil {
+	if p.RoomIDFactory == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "RoomPubIDFactory is required")
 	}
 	return nil
@@ -41,7 +42,7 @@ func NewRoomHandler(params NewRoomHandlerParams) *RoomHandler {
 	return &RoomHandler{
 		RoomUseCase:      params.RoomUseCase,
 		UserIDFactory:    params.UserIDFactory,
-		RoomPubIDFactory: params.RoomPubIDFactory,
+		RoomIDFactory: params.RoomIDFactory,
 	}
 }
 
@@ -80,7 +81,10 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 	if !ok || userIDStr == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
 	}
-	userID := h.UserIDFactory.FromString(userIDStr)
+	userPublicID := h.UserIDFactory.FromString(userIDStr)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get user by public ID"})
+	}
 
 	if err = h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
 		RoomPublicID: room.GetPubID(),
@@ -113,7 +117,7 @@ func (h *RoomHandler) JoinRoom(c echo.Context) error {
 
 	// 部屋に参加
 	err := h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
-		RoomPublicID: h.RoomPubIDFactory.FromString(roomPublicIDStr),
+		RoomPublicID: h.RoomIDFactory.FromString(roomPublicIDStr),
 		UserID:       h.UserIDFactory.FromString(userIDStr),
 	})
 	if err != nil {

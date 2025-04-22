@@ -19,10 +19,12 @@ func TestCreateRoom(t *testing.T) {
 
 	// == Mock dependencies ==
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
 		RoomIDFactory: mockRoomIDFactory,
 	}
 
@@ -33,11 +35,12 @@ func TestCreateRoom(t *testing.T) {
 			Name: "Test Room",
 		}
 		roomPublicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
 
 		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(roomPublicID, nil)
-		mockRoomRepo.EXPECT().SaveRoom(gomock.Any()).Return(entity.RoomID(1), nil)
+		mockRoomRepo.EXPECT().SaveRoom(gomock.Any()).Return(roomID, nil)
 		mockRoomRepo.EXPECT().GetRoomByID(entity.RoomID(1)).Return(entity.NewRoom(entity.RoomParams{
-			ID:       1,
+			ID:       roomID,
 			PublicID: roomPublicID,
 			Name:     req.Name,
 			Members:  []entity.UserPublicID{},
@@ -88,10 +91,12 @@ func TestGetRoomByPublicID(t *testing.T) {
 
 	// == Mock dependencies ==
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
 		RoomIDFactory: mockRoomIDFactory,
 	}
 
@@ -135,8 +140,12 @@ func TestGetAllRooms(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 	roomUseCase := usecase.NewRoomUseCase(params)
 
@@ -172,8 +181,12 @@ func TestGetUsersInRoom(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 	roomUseCase := usecase.NewRoomUseCase(params)
 	// == Data ==
@@ -229,8 +242,12 @@ func TestJoinRoom(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 	roomUseCase := usecase.NewRoomUseCase(params)
 
@@ -238,24 +255,33 @@ func TestJoinRoom(t *testing.T) {
 		publicID := entity.RoomPublicID("public_room_1")
 		roomID := entity.RoomID(1)
 		userID := entity.UserID(1)
+		userPublicID := entity.UserPublicID("test_user")
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockUserRepo.EXPECT().GetIDByPublicID(userPublicID).Return(userID, nil)
 		mockRoomRepo.EXPECT().AddMemberToRoom(roomID, userID).Return(nil)
 
-		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{RoomPublicID: publicID, UserID: userID})
+		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{
+			RoomPublicID: publicID, 
+			UserPublicID: userPublicID,
+		})
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("部屋が見つからない場合", func(t *testing.T) {
 		publicID := entity.RoomPublicID("nonexistent_room")
+		userPublicID := entity.UserPublicID("test_user")
 
-		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), assert.AnError)
 
-		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{RoomPublicID: publicID, UserID: entity.UserID(1)})
+		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{
+			RoomPublicID: publicID, 
+			UserPublicID: userPublicID,
+		})
 
 		assert.Error(t, err)
-		assert.Equal(t, "room not found", err.Error())
+		assert.Equal(t, assert.AnError.Error(), err.Error())
 	})
 }
 
@@ -264,8 +290,12 @@ func TestLeaveRoom(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 	roomUseCase := usecase.NewRoomUseCase(params)
 
@@ -273,11 +303,16 @@ func TestLeaveRoom(t *testing.T) {
 		publicID := entity.RoomPublicID("public_room_1")
 		roomID := entity.RoomID(1)
 		userID := entity.UserID(1)
+		userPublicID := entity.UserPublicID("test_user")
 
 		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockUserRepo.EXPECT().GetIDByPublicID(userPublicID).Return(userID, nil)
 		mockRoomRepo.EXPECT().RemoveMemberFromRoom(roomID, userID).Return(nil)
 
-		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{RoomPublicID: publicID, UserID: userID})
+		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{
+			RoomPublicID: publicID,
+			UserPublicID: userPublicID,
+		})
 
 		assert.NoError(t, err)
 	})
@@ -285,12 +320,12 @@ func TestLeaveRoom(t *testing.T) {
 	t.Run("部屋が見つからない場合", func(t *testing.T) {
 		publicID := entity.RoomPublicID("nonexistent_room")
 
-		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), assert.AnError)
 
-		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{RoomPublicID: publicID, UserID: entity.UserID(1)})
+		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{RoomPublicID: publicID, UserPublicID: entity.UserPublicID("test_user")})
 
 		assert.Error(t, err)
-		assert.Equal(t, "room not found", err.Error())
+		assert.Equal(t, assert.AnError.Error(), err.Error())
 	})
 }
 
@@ -299,8 +334,12 @@ func TestUpdateRoomName(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 	roomUseCase := usecase.NewRoomUseCase(params)
 
@@ -334,8 +373,12 @@ func TestDeleteRoom(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	params := usecase.NewRoomUseCaseParams{
 		RoomRepo: mockRoomRepo,
+		UserRepo: mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
 	}
 	roomUseCase := usecase.NewRoomUseCase(params)
 

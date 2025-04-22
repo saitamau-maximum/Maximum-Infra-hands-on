@@ -40,6 +40,21 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// GetIDByPublicID mocks base method.
+func (m *MockUserRepository) GetIDByPublicID(publicID entity.UserPublicID) (entity.UserID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIDByPublicID", publicID)
+	ret0, _ := ret[0].(entity.UserID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIDByPublicID indicates an expected call of GetIDByPublicID.
+func (mr *MockUserRepositoryMockRecorder) GetIDByPublicID(publicID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDByPublicID", reflect.TypeOf((*MockUserRepository)(nil).GetIDByPublicID), publicID)
+}
+
 // GetUserByEmail mocks base method.
 func (m *MockUserRepository) GetUserByEmail(email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
