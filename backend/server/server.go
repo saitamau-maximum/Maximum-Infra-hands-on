@@ -24,22 +24,5 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	// tokenService := jwt.NewJWTService(cfg.SecretKey, cfg.TokenExpiry)
 	// userHandler := handler.NewUserHandler(userRepository, hasher, tokenService)
 
-	// // WebSocketハンドラの初期化
-	// websocketRepository := repository_impl.NewWebsocketRepository()
-	// websocketManager := websocketmanager.NewWebsocketManager()
-	// websocketBroadcast := websocketbroadcast.NewBroadcast()
-	// websocketOfferService := offerservice.NewOfferService()
-	// websocketUseCase := usecase.NewWebsocketUseCase(
-	// 	websocketRepository,
-	// 	websocketManager,
-	// 	websocketBroadcast,
-	// 	websocketOfferService,
-	// )
-	// websocketUpgrader := websocketupgrader.NewWebsocketUpgrader()
-	// websocketConnectionFactory := factory_impl.NewWebsocketConnectionFactoryImpl(websocketUpgrader)
-	// websocketHandler := handler.NewWebsocketHandler(websocketUseCase, websocketConnectionFactory)
-
-	// routes.SetupRoutes(e, cfg, userHandler, websocketHandler)
-
 	e.Logger.Fatal(e.Start(":" + cfg.Port))
 }
