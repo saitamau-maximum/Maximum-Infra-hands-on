@@ -48,7 +48,7 @@ func TestCreateRoom(t *testing.T) {
 			Members:  []entity.UserPublicID{"mockUserID"},
 		}),
 	}, nil)
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
 	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.CreateRoom(c)) {
@@ -79,8 +79,8 @@ func TestJoinRoom(t *testing.T) {
 	c.SetParamNames("public_id")
 	c.SetParamValues("mockRoomID")
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
-	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
+	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"), nil)
 	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.JoinRoom(c)) {
@@ -111,8 +111,8 @@ func TestLeaveRoom(t *testing.T) {
 	c.SetParamNames("public_id")
 	c.SetParamValues("mockRoomID")
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
-	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
+	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"), nil)
 	mockRoomUseCase.EXPECT().LeaveRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.LeaveRoom(c)) {
@@ -142,7 +142,7 @@ func TestGetRoom(t *testing.T) {
 	c.SetParamNames("public_id")
 	c.SetParamValues("mockRoomID")
 
-	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"))
+	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"), nil)
 	mockRoomUseCase.EXPECT().GetRoomByPublicID(gomock.Any()).Return(usecase.GetRoomByPublicIDResponse{
 		Room: entity.NewRoom(entity.RoomParams{
 			ID:       1,

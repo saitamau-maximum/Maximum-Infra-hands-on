@@ -68,19 +68,18 @@ func TestConnectToChatRoom(t *testing.T) {
 
 		mockWsUpGrader.EXPECT().Upgrade(gomock.Any(), gomock.Any()).Return(mockConnRaw, nil)
 		mockWsConnFactory.EXPECT().CreateWebSocketConnection(mockConnRaw).Return(mockConn, nil)
-		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"))
-		mockRoomPubIDFactory.EXPECT().FromString("test-room").Return(entity.RoomPublicID("test-room"))
+		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"), nil)
+		mockRoomPubIDFactory.EXPECT().FromString("test-room").Return(entity.RoomPublicID("test-room"), nil)
 		mockWsUseCase.EXPECT().ConnectUserToRoom(gomock.Any()).Return(nil)
 		time.Sleep(100 * time.Millisecond) // goroutine内の処理を待つためのスリープ
 		// ここからゴルーチン内の処理
 		mockConn.EXPECT().ReadMessage().Return(1, testMessage, nil)
 		mockWsUseCase.EXPECT().SendMessage(gomock.Any()).Return(nil)
-		mockRoomPubIDFactory.EXPECT().FromString("test-room").Return(entity.RoomPublicID("test-room"))
 
 		// 少し待つ
 		time.Sleep(100 * time.Millisecond)
 		mockConn.EXPECT().ReadMessage().Return(0, nil, assert.AnError)
-		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"))
+		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"), nil)
 		mockWsUseCase.EXPECT().DisconnectUser(gomock.Any()).DoAndReturn(func(req usecase.DisconnectUserRequest) error {
 			wg.Done() // goroutine終了の合図
 			return nil
