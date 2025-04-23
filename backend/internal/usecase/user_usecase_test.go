@@ -141,7 +141,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		mockUserRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(true, nil)
-		mockTokenSvc.EXPECT().GenerateToken(user.GetID()).Return(token, nil)
+		mockTokenSvc.EXPECT().GenerateToken(user.GetPublicID()).Return(token, nil)
 
 		response, err := userUseCase.AuthenticateUser(req)
 		assert.NoError(t, err)

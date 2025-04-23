@@ -257,6 +257,7 @@ func TestDisconnectUser(t *testing.T) {
 			RoomID:   entity.RoomID(123),
 		})
 
+		mocks.UserRepo.EXPECT().GetIDByPublicID(userPublicID).Return(userID, nil)
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(mockConn, nil)
 		mocks.WsClientRepo.EXPECT().GetClientsByUserID(userID).Return(mockClient, nil)
 		mocks.WebsocketManager.EXPECT().Unregister(mockConn).Return(nil)
@@ -269,11 +270,13 @@ func TestDisconnectUser(t *testing.T) {
 	})
 
 	t.Run("異常系：接続取得失敗", func(t *testing.T) {
-		userID := entity.UserPublicID("user123")
+		userPublicID := entity.UserPublicID("user123")
+		userID := entity.UserID(1)
 
+		mocks.UserRepo.EXPECT().GetIDByPublicID(userPublicID).Return(userID, nil)
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(nil, assert.AnError)
 
-		request := usecase.DisconnectUserRequest{UserID: userID}
+		request := usecase.DisconnectUserRequest{UserID: userPublicID}
 		err := useCase.DisconnectUser(request)
 
 		assert.Error(t, err)

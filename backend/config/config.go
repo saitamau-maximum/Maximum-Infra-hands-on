@@ -2,19 +2,24 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"time"
 )
 
 type Config struct {
-	Port string
-	SecretKey string
+	Port        string
+	DBPath      string
+	SecretKey   string
+	HashCost    int
 	TokenExpiry time.Duration
 }
 
 func LoadConfig() *Config {
 	return &Config{
-		Port: getEnv("PORT", "8080"),
-		SecretKey: getEnv("SECRET_KEY", "secret"),
+		Port:        getEnv("PORT", "8080"),
+		DBPath:      getEnv("DB_PATH", "database.db"),
+		SecretKey:   getEnv("SECRET_KEY", "secret"),
+		HashCost:    parseInt(getEnv("HASH_COST", "10")),
 		TokenExpiry: paraseDuration(getEnv("TOKEN_EXPIRY", "24h")),
 	}
 }
@@ -26,6 +31,15 @@ func getEnv(key, fallback string) string {
 	}
 
 	return fallback
+}
+
+func parseInt(value string) int {
+	i, err := strconv.Atoi(value)
+	if err != nil {
+		panic(err)
+	}
+
+	return i
 }
 
 func paraseDuration(duration string) time.Duration {

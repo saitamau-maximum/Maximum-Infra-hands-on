@@ -129,7 +129,7 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 		return AuthenticateUserResponse{token: nil}, errors.New("password mismatch")
 	}
 
-	res, err := u.tokenSvc.GenerateToken(user.GetID())
+	res, err := u.tokenSvc.GenerateToken(user.GetPublicID())
 
 	return AuthenticateUserResponse{token: &res}, err
 }

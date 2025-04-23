@@ -115,7 +115,7 @@ func TestGetMe(t *testing.T) {
 	c := e.NewContext(req, rec)
 	c.Set("user_id", "mockUserID")
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"))
+	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
 	mockUserUseCase.EXPECT().GetUserByID(entity.UserPublicID("mockUserID")).Return(user, nil)
 
 	if assert.NoError(t, handler.GetMe(c)) {
