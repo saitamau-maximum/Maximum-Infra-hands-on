@@ -56,10 +56,10 @@ func (mr *MockTokenServiceAdapterMockRecorder) GenerateToken(userPublicID any) *
 }
 
 // ValidateToken mocks base method.
-func (m *MockTokenServiceAdapter) ValidateToken(token string) (int, error) {
+func (m *MockTokenServiceAdapter) ValidateToken(token string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidateToken", token)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
