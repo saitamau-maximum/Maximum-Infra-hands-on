@@ -10,7 +10,6 @@
     "moduleResolution": "Bundler",
     "moduleDetection": "force",
     "esModuleInterop": true,
-    "allowImportingTsExtensions": true
   },
   "ts-node": {
     "esm": true

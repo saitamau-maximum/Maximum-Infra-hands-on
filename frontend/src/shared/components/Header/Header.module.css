@@ -1,0 +1,11 @@
+.hero {
+  margin: 0;
+  font-weight: bold;
+  font-size: 2rem;
+  color: var(--primary-600);
+}
+
+.header {
+  background-color: var(--primary-50);
+  border-bottom: 1px solid var(--primary-100);
+}
