@@ -67,10 +67,15 @@ func (s *TokenServiceAdapterImpl) ValidateToken(tokenStr string) (int, error) {
 		return 0, errors.New("invalid token claims")
 	}
 
-	userIDFloat, ok := claims["user_id"].(float64)
+	userIDStr, ok := claims["user_id"].(string)
 	if !ok {
-		return 0, errors.New("user_id not found in token")
+		return 0, errors.New("user_id not found in token or is not a string")
 	}
 
-	return int(userIDFloat), nil
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		return 0, errors.New("user_id is not a valid integer")
+	}
+
+	return userID, nil
 }
