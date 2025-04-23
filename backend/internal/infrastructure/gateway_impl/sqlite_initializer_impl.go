@@ -30,3 +30,19 @@ func (i *SQLiteInitializerImpl) Init() (*sqlx.DB, error) {
 	log.Printf("SQLite connected at %s\n", i.Path)
 	return db, nil
 }
+
+func (i *SQLiteInitializerImpl) InitSchema(db *sqlx.DB) error {
+	schema := `
+CREATE TABLE IF NOT EXISTS users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	public_id TEXT NOT NULL UNIQUE,
+	name TEXT NOT NULL,
+	email TEXT NOT NULL UNIQUE,
+	password_hash TEXT NOT NULL,
+	created_at TEXT NOT NULL,
+	updated_at TEXT
+);`
+
+	_, err := db.Exec(schema)
+	return err
+}
