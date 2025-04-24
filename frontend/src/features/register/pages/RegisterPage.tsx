@@ -31,6 +31,9 @@ export const RegisterPage = () => {
             required
             placeholder="Password"
           />
+          <Form.Button type="submit" >
+            Register
+          </Form.Button>
         </Form.Field>
       </form>
     </div>
