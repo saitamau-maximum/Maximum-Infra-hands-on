@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/hooks/useAuth'
 import styles from './Header.module.css'
 
@@ -15,7 +15,7 @@ export const Header = () => {
   }
   return (
     <header className={styles.header}>
-      <p className={styles.title}>Chat-INFRA</p>
+      <Link to='/' className={styles.title}>Chat-INFRA</Link>
       {user && (
         <div>
           <p>{user.name}</p>
