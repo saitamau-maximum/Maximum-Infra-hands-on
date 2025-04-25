@@ -1,35 +1,42 @@
 import { Form } from "../../../shared/Form";
+import { useForm } from "react-hook-form";
+import { RegisterFormData } from "../types/RegisterFormData";
+import { registerUser } from "../api/register";
 import styles from "./RegisterPage.module.css";
 
 export const RegisterPage = () => {
+  const {
+    register,
+    handleSubmit,
+  } = useForm<RegisterFormData>()
   return (
     <div className={styles.container}>
       <h1>Register</h1>
-      <form className={styles.form}>
+      <form className={styles.form} onSubmit={handleSubmit(registerUser)}>
         <Form.Field>
-          <Form.Label label="Username" />
+          <Form.Label label="Name" />
           <Form.Input
             type="text"
-            id="username"
-            name="username"
+            id="name"
             required
-            placeholder="Username"
+            placeholder="Name"
+            {...register("name")}
           />
           <Form.Label label="Email" />
           <Form.Input
             type="email"
             id="email"
-            name="email"
             required
             placeholder="Email"
+            {...register("email")}
           />
           <Form.Label label="Password" />
           <Form.Input
             type="password"
             id="password"
-            name="password"
             required
             placeholder="Password"
+            {...register("password")}
           />
           <Form.Button type="submit" >
             Register

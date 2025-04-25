@@ -5,6 +5,7 @@ import (
 	"example.com/webrtc-practice/internal/infrastructure/adapter_impl"
 	"example.com/webrtc-practice/internal/infrastructure/factory_impl"
 	sqlite3 "example.com/webrtc-practice/internal/infrastructure/repository_impl/sqlite"
+	"example.com/webrtc-practice/internal/infrastructure/validator"
 	"example.com/webrtc-practice/internal/interface/handler"
 	"example.com/webrtc-practice/internal/usecase"
 	"example.com/webrtc-practice/routes"
@@ -16,6 +17,7 @@ import (
 
 func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	e := echo.New()
+	e.Validator = validator.NewEchoValidator()
 
 	tokenService := adapter_impl.NewTokenServiceAdapter(adapter_impl.NewTokenServiceAdapterParams{
 		SecretKey:     cfg.SecretKey,

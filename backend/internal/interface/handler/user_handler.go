@@ -47,8 +47,8 @@ func (h *UserHandler) Register(g *echo.Group) {
 
 type RegisterUserRequest struct {
 	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (h *UserHandler) RegisterUser(c echo.Context) error {

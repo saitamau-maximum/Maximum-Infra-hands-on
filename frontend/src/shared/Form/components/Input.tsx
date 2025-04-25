@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import styles from './Input.module.css';
 
 type InputType = 'text' | 'email' | 'password' | 'number';
@@ -8,29 +9,39 @@ type InputProps = {
   name?: string;
   required?: boolean;
   placeholder?: string;
-  minlength?: number;
-  maxlength?: number;
-}
+  minLength?: number;
+  maxLength?: number;
+} & React.InputHTMLAttributes<HTMLInputElement>;
 
-export const Input = ({
-  type,
-  id,
-  name,
-  required,
-  placeholder,
-  minlength,
-  maxlength,
-}: InputProps) => {
-  return (
-    <input
-      className={styles.input}
-      type={type}
-      id={id}
-      name={name}
-      required={required}
-      placeholder={placeholder}
-      minLength={minlength}
-      maxLength={maxlength}
-    />
-  );
-}
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  (
+    {
+      type = "text",
+      id,
+      name,
+      required,
+      placeholder,
+      minLength,
+      maxLength,
+      ...rest
+    },
+    ref
+  ) => {
+    return (
+      <input
+        ref={ref}
+        className={styles.input}
+        type={type}
+        id={id}
+        name={name}
+        required={required}
+        placeholder={placeholder}
+        minLength={minLength}
+        maxLength={maxLength}
+        {...rest} // register()から渡されるonChangeやonBlurなどを渡す
+      />
+    );
+  }
+);
+
+Input.displayName = "Input";
