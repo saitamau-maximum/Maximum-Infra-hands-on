@@ -42,6 +42,7 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/register", h.RegisterUser)
 	g.POST("/login", h.Login)
+	g.POST("/logout", h.Logout)
 	g.GET("/me", h.GetMe)
 }
 
@@ -98,7 +99,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -134,6 +135,19 @@ func (h *UserHandler) Login(c echo.Context) error {
 	})
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "Login successful"})
+}
+
+func (h *UserHandler) Logout(c echo.Context) error {
+	c.SetCookie(&http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Logout successful"})
 }
 
 type GetMeResponse struct {

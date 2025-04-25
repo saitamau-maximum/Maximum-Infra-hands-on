@@ -1,5 +1,5 @@
-// src/shared/auth/AuthProvider.tsx
 import { createContext, useEffect, useState, ReactNode } from "react";
+import { Logout } from "../api/logout";
 
 type User = {
   id: string;
@@ -10,6 +10,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   refetch: () => void;
+  logout: () => void; 
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,12 +39,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const logout = () => {
+    // クッキーを削除するために、期限切れのクッキーをセット
+    document.cookie = "token=; Max-Age=0; path=/; SameSite=None; Secure"; 
+    Logout();
+    setUser(null); // ユーザー情報のリセット
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, refetch: fetchUser }}>
+    <AuthContext.Provider value={{ user, loading, refetch: fetchUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

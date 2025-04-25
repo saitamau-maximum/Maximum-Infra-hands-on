@@ -1,9 +1,7 @@
 import { RegisterFormData } from "../types/RegisterFormData";
-import { useNavigate } from "react-router-dom";
 
-export const registerUser = async (data: RegisterFormData): Promise<void> => {
-  const navigate = useNavigate();
-  const res = await fetch("http://localhost:8080/api/user/register", {
+export const Register = async (data: RegisterFormData): Promise<void> => {
+  const res = await fetch("http://localhost:8080/api/user/register", {// TODO: 環境変数化
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -16,5 +14,4 @@ export const registerUser = async (data: RegisterFormData): Promise<void> => {
     const error = await res.json();
     throw new Error(error.message || "登録に失敗しました");
   }
-  navigate("/");
 };

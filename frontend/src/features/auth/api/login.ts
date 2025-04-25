@@ -1,20 +1,14 @@
 import { LoginFormData } from "../types/LoginFormDate";
-import { useNavigate } from "react-router-dom";
+import apiClient from "../../utils/apiClient";
 
-export const loginUser = async (data: LoginFormData): Promise<void> => {
-  const navigate = useNavigate();
-  const res = await fetch("http://localhost:8080/api/user/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-    credentials: "include",
-  });
+export const Login = async (data: LoginFormData): Promise<void> => {
+  const res = await apiClient.post(
+    "/api/user/login",
+    data,
+  );
 
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.message || "登録に失敗しました");
   }
-  navigate("/");
 };
