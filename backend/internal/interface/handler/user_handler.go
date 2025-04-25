@@ -71,7 +71,8 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 
 	_, err := h.UserUseCase.SignUp(signUpReq)
 	if err != nil {
-		return c.JSON(500, echo.Map{"error": err.Error()})
+		c.Logger().Error("SignUp error: ", err)
+		return c.JSON(500, echo.Map{"error": "Internal server error"})
 	}
 
 	authReq := usecase.AuthenticateUserRequest{
