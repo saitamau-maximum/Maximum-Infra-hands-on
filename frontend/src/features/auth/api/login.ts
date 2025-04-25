@@ -9,6 +9,6 @@ export const Login = async (data: LoginFormData): Promise<void> => {
 
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "登録に失敗しました");
+    throw new Error(error.message || "ログインに失敗しました");
   }
 };
