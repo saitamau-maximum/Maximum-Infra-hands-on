@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../../shared/auth/hooks/useAuth';
+import { useAuth } from '../../auth/hooks/useAuth';
 import styles from './HomePage.module.css';
 
 export const HomePage = () => {

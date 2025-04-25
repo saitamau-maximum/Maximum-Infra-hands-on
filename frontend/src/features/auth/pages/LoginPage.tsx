@@ -1,30 +1,22 @@
-import { Form } from "../../../shared/Form";
+import { Form } from "../../ui/Form";
 import { useForm } from "react-hook-form";
-import { RegisterFormData } from "../types/RegisterFormData";
-import { registerUser } from "../api/register";
-import styles from "./RegisterPage.module.css";
-import { useAuth } from "../../../shared/auth/hooks/useAuth";
+import { LoginFormData } from "../types/LoginFormDate";
+import { loginUser } from "../api/login";
+import styles from "./LoginPage.module.css";
+import { useAuth } from "../hooks/useAuth";
 
-export const RegisterPage = () => {
+export const LoginPage = () => {
   const {
     register,
     handleSubmit,
-  } = useForm<RegisterFormData>()
+  } = useForm<LoginFormData>()
   const {user, loading} = useAuth();
   if (loading) return <div>Loading...</div>;
   return (
     <div className={styles.container}>
-      <h1>Register</h1>
-      <form className={styles.form} onSubmit={handleSubmit(registerUser)}>
+      <h1>Login</h1>
+      <form className={styles.form} onSubmit={handleSubmit(loginUser)}>
         <Form.Field>
-          <Form.Label label="Name" />
-          <Form.Input
-            type="text"
-            id="name"
-            required
-            placeholder="Name"
-            {...register("name")}
-          />
           <Form.Label label="Email" />
           <Form.Input
             type="email"
@@ -43,7 +35,7 @@ export const RegisterPage = () => {
           />
           {!user && (
             <Form.Button type="submit" >
-              Register
+              Login
             </Form.Button>
           )}
         </Form.Field>
