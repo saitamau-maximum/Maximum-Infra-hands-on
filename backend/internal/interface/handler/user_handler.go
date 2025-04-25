@@ -42,13 +42,14 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/register", h.RegisterUser)
 	g.POST("/login", h.Login)
+	g.POST("/logout", h.Logout)
 	g.GET("/me", h.GetMe)
 }
 
 type RegisterUserRequest struct {
 	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (h *UserHandler) RegisterUser(c echo.Context) error {
@@ -70,6 +71,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 
 	_, err := h.UserUseCase.SignUp(signUpReq)
 	if err != nil {
+		c.Logger().Error("SignUp error: ", err)
 		return c.JSON(500, echo.Map{"error": "Internal server error"})
 	}
 
@@ -81,14 +83,24 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	// ログインまで済ませてしまう
 	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
 	if err != nil {
-		return c.JSON(500, echo.Map{"error": "Internal server error"})
+		return c.JSON(500, echo.Map{"error": err.Error()})
 	}
 
-	return c.JSON(200, echo.Map{"token": authRes.GetToken()})
+	c.SetCookie(&http.Cookie{
+		Name:     "token",
+		Value:    authRes.GetToken(),
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   authRes.GetExp(),
+	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Login successful"})
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -113,9 +125,30 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authentication failed"})
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"token": authRes.GetToken(),
+	c.SetCookie(&http.Cookie{
+		Name:     "token",
+		Value:    authRes.GetToken(),
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   authRes.GetExp(),
 	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Login successful"})
+}
+
+func (h *UserHandler) Logout(c echo.Context) error {
+	c.SetCookie(&http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Logout successful"})
 }
 
 type GetMeResponse struct {

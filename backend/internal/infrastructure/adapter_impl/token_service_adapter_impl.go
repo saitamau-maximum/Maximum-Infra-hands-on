@@ -50,7 +50,7 @@ func (s *TokenServiceAdapterImpl) GenerateToken(userPublicID entity.UserPublicID
 }
 
 func (s *TokenServiceAdapterImpl) ValidateToken(tokenStr string) (string, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		// Ensure the signing method is HMAC
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -72,7 +72,29 @@ func (s *TokenServiceAdapterImpl) ValidateToken(tokenStr string) (string, error)
 		return "", errors.New("user_id not found in token or is not a string")
 	}
 
-
-
 	return userIDStr, nil
 }
+
+func (s *TokenServiceAdapterImpl) GetExpireAt(tokenStr string) (int, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(s.secretKey), nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		exp, ok := claims["exp"].(float64)
+		if !ok {
+			return 0, errors.New("expiration time not found in token")
+		}
+		return int(exp), nil
+	}
+
+	return 0, errors.New("invalid token")
+}
+

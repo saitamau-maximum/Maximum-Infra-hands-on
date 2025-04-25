@@ -93,6 +93,7 @@ type AuthenticateUserRequest struct {
 // AuthenticateUserResponse構造体: 認証レスポンス
 type AuthenticateUserResponse struct {
 	token *string
+	exp   *int
 }
 
 // IsTokenNil: トークンがnilかどうかを判定
@@ -106,6 +107,13 @@ func (res *AuthenticateUserResponse) GetToken() string {
 		return ""
 	}
 	return *res.token
+}
+
+func (res *AuthenticateUserResponse) GetExp() int {
+	if res.exp == nil {
+		return 0
+	}
+	return *res.exp
 }
 
 // 外部でのテストのためのセッター
@@ -130,8 +138,19 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 	}
 
 	res, err := u.tokenSvc.GenerateToken(user.GetPublicID())
+	if err != nil {
+		return AuthenticateUserResponse{token: nil}, err
+	}
 
-	return AuthenticateUserResponse{token: &res}, err
+	exp, err := u.tokenSvc.GetExpireAt(res)
+	if err != nil {
+		return AuthenticateUserResponse{token: nil}, err
+	}
+
+	return AuthenticateUserResponse{
+		token: &res,
+		exp:	 &exp,
+	}, nil
 }
 
 func (u *UserUseCase) GetUserByID(id entity.UserPublicID) (*entity.User, error) {
