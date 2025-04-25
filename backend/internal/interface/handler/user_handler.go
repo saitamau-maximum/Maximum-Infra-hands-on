@@ -70,7 +70,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 
 	_, err := h.UserUseCase.SignUp(signUpReq)
 	if err != nil {
-		return c.JSON(500, echo.Map{"error": "Internal server error"})
+		return c.JSON(500, echo.Map{"error": err.Error()})
 	}
 
 	authReq := usecase.AuthenticateUserRequest{
@@ -81,10 +81,20 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	// ログインまで済ませてしまう
 	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
 	if err != nil {
-		return c.JSON(500, echo.Map{"error": "Internal server error"})
+		return c.JSON(500, echo.Map{"error": err.Error()})
 	}
 
-	return c.JSON(200, echo.Map{"token": authRes.GetToken()})
+	c.SetCookie(&http.Cookie{
+		Name:     "token",
+		Value:    authRes.GetToken(),
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   authRes.GetExp(),
+	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Login successful"})
 }
 
 type LoginRequest struct {
@@ -113,9 +123,17 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authentication failed"})
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"token": authRes.GetToken(),
+	c.SetCookie(&http.Cookie{
+		Name:     "token",
+		Value:    authRes.GetToken(),
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   authRes.GetExp(),
 	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Login successful"})
 }
 
 type GetMeResponse struct {

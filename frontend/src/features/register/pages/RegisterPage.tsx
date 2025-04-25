@@ -3,12 +3,15 @@ import { useForm } from "react-hook-form";
 import { RegisterFormData } from "../types/RegisterFormData";
 import { registerUser } from "../api/register";
 import styles from "./RegisterPage.module.css";
+import { useAuth } from "../../../shared/auth/hooks/useAuth";
 
 export const RegisterPage = () => {
   const {
     register,
     handleSubmit,
   } = useForm<RegisterFormData>()
+  const {user, loading} = useAuth();
+  if (loading) return <div>Loading...</div>;
   return (
     <div className={styles.container}>
       <h1>Register</h1>
@@ -38,9 +41,11 @@ export const RegisterPage = () => {
             placeholder="Password"
             {...register("password")}
           />
-          <Form.Button type="submit" >
-            Register
-          </Form.Button>
+          {!user && (
+            <Form.Button type="submit" >
+              Register
+            </Form.Button>
+          )}
         </Form.Field>
       </form>
     </div>

@@ -43,6 +43,7 @@ func TestSaveUser(t *testing.T) {
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
+		ID: entity.UserID(-1),
 		PublicID:   "test-public-id",
 		Name:       "John Doe",
 		Email:      "johndoe@example.com",

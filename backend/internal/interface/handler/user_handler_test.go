@@ -36,7 +36,7 @@ func TestRegisterUser(t *testing.T) {
 
 	e := echo.New()
 
-	// ✅ バリデーターのセット（忘れがち！）
+	// バリデーターのセット
 	e.Validator = validator.NewEchoValidator()
 
 	req := httptest.NewRequest(http.MethodPost, "/register", strings.NewReader(`{"name":"test","email":"test@example.com","password":"password123"}`))
