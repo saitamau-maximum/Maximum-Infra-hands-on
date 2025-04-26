@@ -37,15 +37,28 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	})
 
 	userIDFactory := factory_impl.NewUserIDFactory()
-	userUsecase := usecase.NewUserUseCase(usecase.NewUserUseCaseParams{
+	userUseCase := usecase.NewUserUseCase(usecase.NewUserUseCaseParams{
 		UserRepo:      userRepository,
 		Hasher:        hasher,
 		TokenSvc:      tokenService,
 		UserIDFactory: userIDFactory,
 	})
 	userHandler := handler.NewUserHandler(handler.NewUserHandlerParams{
-		UserUseCase:   userUsecase,
+		UserUseCase:   userUseCase,
 		UserIDFactory: userIDFactory,
+	})
+
+	roomIDFactory := factory_impl.NewRoomIDFactory()
+	roomRepository := sqlite3.
+	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
+		RoomRepo: roomRepository,
+		UserRepo: userRepository,
+		RoomIDFactory: roomIDFactory,
+	})
+	roomHandler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
+		RoomUseCase: roomUseCase,
+		UserIDFactory: userIDFactory,
+		RoomIDFactory: roomIDFactory,
 	})
 
 	// ルーティングの設定
