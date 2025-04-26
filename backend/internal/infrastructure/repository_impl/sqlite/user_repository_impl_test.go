@@ -27,6 +27,17 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 		password_hash TEXT NOT NULL,
 		created_at TEXT NOT NULL,
 		updated_at TEXT
+	);
+	CREATE TABLE rooms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL
+	);
+	CREATE TABLE room_members (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		room_id INTEGER NOT NULL,
+		user_id TEXT NOT NULL,
+		FOREIGN KEY (room_id) REFERENCES rooms(id)
 	);`)
 	require.NoError(t, err)
 
