@@ -41,6 +41,18 @@ CREATE TABLE IF NOT EXISTS users (
 	password_hash TEXT NOT NULL,
 	created_at TEXT NOT NULL,
 	updated_at TEXT
+);
+CREATE TABLE rooms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL
+);
+
+CREATE TABLE room_members (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  room_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  FOREIGN KEY (room_id) REFERENCES rooms(id)
 );`
 
 	_, err := db.Exec(schema)
