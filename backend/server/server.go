@@ -49,7 +49,10 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	})
 
 	roomIDFactory := factory_impl.NewRoomIDFactory()
-	roomRepository := sqlite3.
+	// roomRepositoryimpl実装
+	roomRepository := sqlite3.NewRoomRepositoryImpl(&sqlite3.NewRoomRepositoryImplParams{
+		DB: db,
+	})
 	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
 		RoomRepo: roomRepository,
 		UserRepo: userRepository,
@@ -62,7 +65,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	})
 
 	// ルーティングの設定
-	routes.SetupRoutes(e, cfg, *userHandler)
+	routes.SetupRoutes(e, cfg, *userHandler, *roomHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.Port))
 }
