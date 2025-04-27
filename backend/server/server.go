@@ -4,7 +4,8 @@ import (
 	"example.com/webrtc-practice/config"
 	"example.com/webrtc-practice/internal/infrastructure/adapter_impl"
 	"example.com/webrtc-practice/internal/infrastructure/factory_impl"
-	sqlite3 "example.com/webrtc-practice/internal/infrastructure/repository_impl/sqlite"
+	sqliteroomrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/room_repository_impl/sqlite"
+	sqliteuserrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/user_repository_impl/sqlite"
 	"example.com/webrtc-practice/internal/infrastructure/validator"
 	"example.com/webrtc-practice/internal/interface/handler"
 	"example.com/webrtc-practice/internal/usecase"
@@ -29,7 +30,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	e.Use(middleware.AuthMiddleware(tokenService))
 
 	// ユーザーハンドラの初期化
-	userRepository := sqlite3.NewUserRepositoryImpl(&sqlite3.NewUserRepositoryImplParams{
+	userRepository := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{
 		DB: db,
 	})
 	hasher := adapter_impl.NewHasherAdapter(adapter_impl.NewHasherAddapterParams{
@@ -50,7 +51,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 
 	roomIDFactory := factory_impl.NewRoomIDFactory()
 	// roomRepositoryimpl実装
-	roomRepository := sqlite3.NewRoomRepositoryImpl(&sqlite3.NewRoomRepositoryImplParams{
+	roomRepository := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
 		DB: db,
 	})
 	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{

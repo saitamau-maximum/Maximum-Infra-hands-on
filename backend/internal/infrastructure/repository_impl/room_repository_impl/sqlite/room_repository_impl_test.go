@@ -1,20 +1,54 @@
-package sqlite3_test
+package sqliteroomrepoimpl_test
 
 import (
 	"testing"
 	"time"
 
 	"example.com/webrtc-practice/internal/domain/entity"
-	sqlite3 "example.com/webrtc-practice/internal/infrastructure/repository_impl/sqlite"
+	"example.com/webrtc-practice/internal/infrastructure/gateway_impl"
+	sqliteroomrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/room_repository_impl/sqlite"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
+
+func setupTestDB(t *testing.T) *sqlx.DB {
+	// SQLiteインメモリDBをセットアップ
+	initializer := gateway_impl.NewSQLiteInitializer(":memory:")
+	db, err := initializer.Init()
+	require.NoError(t, err)
+
+	// テスト用スキーマを作成
+	_, err = db.Exec(`CREATE TABLE users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		public_id TEXT NOT NULL,
+		name TEXT NOT NULL,
+		email TEXT NOT NULL,
+		password_hash TEXT NOT NULL,
+		created_at TEXT NOT NULL,
+		updated_at TEXT
+	);
+	CREATE TABLE rooms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL
+	);
+	CREATE TABLE room_members (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		room_id INTEGER NOT NULL,
+		user_id TEXT NOT NULL,
+		FOREIGN KEY (room_id) REFERENCES rooms(id)
+	);`)
+	require.NoError(t, err)
+
+	return db
+}
 
 func TestRoomRepositoryImpl_GetUsersInRoom(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	repo := sqlite3.NewRoomRepositoryImpl(&sqlite3.NewRoomRepositoryImplParams{
+	repo := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
 		DB: db,
 	})
 

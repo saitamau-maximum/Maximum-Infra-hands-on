@@ -1,4 +1,4 @@
-package sqlite3_test
+package sqliteuserrepoimpl_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/infrastructure/gateway_impl"
-	sqlite3 "example.com/webrtc-practice/internal/infrastructure/repository_impl/sqlite"
+	sqliteuserrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/user_repository_impl/sqlite"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,11 +50,11 @@ func TestSaveUser(t *testing.T) {
 	defer db.Close()
 
 	// UserRepositoryをインスタンス化
-	userRepo := sqlite3.NewUserRepositoryImpl(&sqlite3.NewUserRepositoryImplParams{DB: db})
+	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
-		ID: entity.UserID(-1),
+		ID:         entity.UserID(-1),
 		PublicID:   "test-public-id",
 		Name:       "John Doe",
 		Email:      "johndoe@example.com",
@@ -82,7 +82,7 @@ func TestGetUserByEmail(t *testing.T) {
 	defer db.Close()
 
 	// UserRepositoryをインスタンス化
-	userRepo := sqlite3.NewUserRepositoryImpl(&sqlite3.NewUserRepositoryImplParams{DB: db})
+	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
@@ -112,7 +112,7 @@ func TestGetIDByPublicID(t *testing.T) {
 	defer db.Close()
 
 	// UserRepositoryをインスタンス化
-	userRepo := sqlite3.NewUserRepositoryImpl(&sqlite3.NewUserRepositoryImplParams{DB: db})
+	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
@@ -141,7 +141,7 @@ func TestGetPublicIDByID(t *testing.T) {
 	defer db.Close()
 
 	// UserRepositoryをインスタンス化
-	userRepo := sqlite3.NewUserRepositoryImpl(&sqlite3.NewUserRepositoryImplParams{DB: db})
+	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{

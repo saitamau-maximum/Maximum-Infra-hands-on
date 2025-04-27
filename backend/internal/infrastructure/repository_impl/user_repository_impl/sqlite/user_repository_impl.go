@@ -1,4 +1,4 @@
-package sqlite3
+package sqliteuserrepoimpl
 
 import (
 	"errors"
@@ -6,18 +6,9 @@ import (
 
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/domain/repository"
+	"example.com/webrtc-practice/internal/infrastructure/repository_impl/model"
 	"github.com/jmoiron/sqlx"
 )
-
-type UserModel struct {
-	ID           int     `db:"id"`
-	PublicID     string  `db:"public_id"`
-	Name         string  `db:"name"`
-	Email        string  `db:"email"`
-	PasswordHash string  `db:"password_hash"`
-	CreatedAt    string  `db:"created_at"`
-	UpdatedAt    *string `db:"updated_at"`
-}
 
 type UserRepositoryImpl struct {
 	db *sqlx.DB
@@ -62,11 +53,11 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 
 	// publicIDを使ってユーザーを取得
 	row := r.db.QueryRowx(`SELECT id, public_id, name, email, password_hash, created_at, updated_at FROM users WHERE public_id = ?`, string(user.GetPublicID()))
-	var userModel UserModel
+	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
 		return nil, err
 	}
-	// UserModelからUserを生成
+	// model.UserModelからUserを生成
 	// userModel.CreatedAtをtime.Timeに変換
 	createdAt, err := time.Parse("2006-01-02 15:04:05", userModel.CreatedAt)
 	if err != nil {
@@ -101,11 +92,11 @@ func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error)
 	}
 
 	row := r.db.QueryRowx(`SELECT id, public_id, name, email, password_hash, created_at, updated_at FROM users WHERE id = ?`, id)
-	var userModel UserModel
+	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
 		return nil, err
 	}
-	// UserModelからUserを生成
+	// model.UserModelからUserを生成
 	// userModel.CreatedAtをtime.Timeに変換
 	createdAt, err := time.Parse("2006-01-02 15:04:05", userModel.CreatedAt)
 	if err != nil {
@@ -140,11 +131,11 @@ func (r *UserRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) 
 	}
 
 	row := r.db.QueryRowx(`SELECT id, public_id, name, email, password_hash, created_at, updated_at FROM users WHERE email = ?`, email)
-	var userModel UserModel
+	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
 		return nil, err
 	}
-	// UserModelからUserを生成
+	// model.UserModelからUserを生成
 	// userModel.CreatedAtをtime.Timeに変換
 	createdAt, err := time.Parse("2006-01-02 15:04:05", userModel.CreatedAt)
 	if err != nil {
@@ -179,7 +170,7 @@ func (r *UserRepositoryImpl) GetIDByPublicID(publicID entity.UserPublicID) (enti
 	}
 
 	row := r.db.QueryRowx(`SELECT id FROM users WHERE public_id = ?`, string(publicID))
-	var userModel UserModel
+	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
 		return 0, err
 	}
@@ -193,7 +184,7 @@ func (r *UserRepositoryImpl) GetPublicIDByID(id entity.UserID) (entity.UserPubli
 	}
 
 	row := r.db.QueryRowx(`SELECT public_id FROM users WHERE id = ?`, id)
-	var userModel UserModel
+	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
 		return "", err
 	}

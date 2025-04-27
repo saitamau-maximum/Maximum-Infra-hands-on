@@ -1,4 +1,4 @@
-package sqlite3
+package sqliteroomrepoimpl
 
 import (
 	"errors"
@@ -7,20 +7,9 @@ import (
 
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/domain/repository"
+	"example.com/webrtc-practice/internal/infrastructure/repository_impl/model"
 	"github.com/jmoiron/sqlx"
 )
-
-type RoomModel struct {
-	ID       int    `db:"id"`
-	PublicID string `db:"public_id"`
-	Name     string `db:"name"`
-}
-
-type RoomMemberModel struct {
-	ID     int    `db:"id"`
-	RoomID int    `db:"room_id"`
-	UserID string `db:"user_id"`
-}
 
 type RoomRepositoryImpl struct {
 	db *sqlx.DB
@@ -63,14 +52,14 @@ func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) 
 }
 
 func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error) {
-	roomModel := RoomModel{}
+	roomModel := model.RoomModel{}
 	err := r.db.Get(&roomModel, `SELECT public_id, name FROM rooms WHERE id = ?`, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// ルームに所属しているユーザーを取得
-	roomMembers := []RoomMemberModel{}
+	roomMembers := []model.RoomMemberModel{}
 	err = r.db.Select(&roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, id)
 	if err != nil {
 		return nil, err
@@ -86,7 +75,7 @@ func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error)
 }
 
 func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
-	roomModels := []RoomModel{}
+	roomModels := []model.RoomModel{}
 	err := r.db.Select(&roomModels, `SELECT id, public_id, name FROM rooms`)
 	if err != nil {
 		return nil, err
@@ -107,7 +96,7 @@ func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 
 func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.User, error) {
 	// まず中間テーブルから対象のuser_id一覧を取得
-	var roomMembers []RoomMemberModel
+	var roomMembers []model.RoomMemberModel
 	err := r.db.Select(&roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, roomID)
 	if err != nil {
 		return nil, err
@@ -135,7 +124,7 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	}
 	query = r.db.Rebind(query)
 
-	var userModels []UserModel
+	var userModels []model.UserModel
 	err = r.db.Select(&userModels, query, args...)
 	if err != nil {
 		return nil, err
@@ -187,7 +176,7 @@ func (r *RoomRepositoryImpl) RemoveMemberFromRoom(roomID entity.RoomID, userID e
 }
 
 func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, error) {
-	roomModels := []RoomModel{}
+	roomModels := []model.RoomModel{}
 	err := r.db.Select(&roomModels, `SELECT id, public_id, name FROM rooms WHERE name LIKE ?`, "%"+name+"%")
 	if err != nil {
 		return nil, err
