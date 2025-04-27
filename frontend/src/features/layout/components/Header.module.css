@@ -1,7 +1,32 @@
 .header {
+  display: flex;
+  justify-content: space-between;
   margin: 0;
   background-color: var(--primary-50);
   border-bottom: 1px solid var(--primary-100);
+}
+
+.user {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.user_name {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--primary-900);
+}
+
+.logout_button {
+  margin: 0;
+  background-color: var(--primary-200);
+  border: none;
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
 }
 
 .title {

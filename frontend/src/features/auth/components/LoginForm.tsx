@@ -6,6 +6,7 @@ import { Form } from "../../ui/Form";
 import { useNavigate } from "react-router-dom";
 
 import styles from "./LoginForm.module.css";
+import { LoginParams } from "../types/LoginParams";
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -13,16 +14,16 @@ export const LoginForm = () => {
     register,
     handleSubmit,
   } = useForm<LoginFormData>()
-  const { user, loading } = useAuth();
+  const { user, loading, refetch } = useAuth();
   if (loading) return <div>Loading...</div>;
 
   const handleLogin = async (data: LoginFormData) => {
     try {
-      await Login(data);
+      await Login({data, refetch} as LoginParams);
+      navigate('/');
     } catch (error) {
       console.error("Login failed:", error);
     }
-    navigate('/');
   };
   return (
     <form className={styles.form} onSubmit={handleSubmit(handleLogin)}>

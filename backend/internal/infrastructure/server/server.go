@@ -24,10 +24,9 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 		ExpireMinutes: int(cfg.TokenExpiry),
 	})
 	e.Use(middleware.CORS())
-	e.Use(middleware.AuthMiddleware(tokenService))
 
 	// ルーティングの設定
-	routes.SetupRoutes(e, cfg, *dependencies.UserHandler, *dependencies.RoomHandler)
+	routes.SetupRoutes(e, cfg, middleware.AuthMiddleware(tokenService), *dependencies.UserHandler, *dependencies.RoomHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.Port))
 }

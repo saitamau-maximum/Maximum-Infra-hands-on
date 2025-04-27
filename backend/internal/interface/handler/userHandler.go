@@ -46,13 +46,6 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 	}
 }
 
-func (h *UserHandler) Register(g *echo.Group) {
-	g.POST("/register", h.RegisterUser)
-	g.POST("/login", h.Login)
-	g.POST("/logout", h.Logout)
-	g.GET("/me", h.GetMe)
-}
-
 type RegisterUserRequest struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required"`

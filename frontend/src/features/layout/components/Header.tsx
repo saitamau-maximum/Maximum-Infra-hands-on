@@ -17,9 +17,9 @@ export const Header = () => {
     <header className={styles.header}>
       <Link to='/' className={styles.title}>Chat-INFRA</Link>
       {user && (
-        <div>
-          <p>{user.name}</p>
-          <button className={styles.logout} onClick={handleLogout}>
+        <div className={styles.user}>
+          <p className={styles.user_name}>{user.name}</p>
+          <button className={styles.logout_button} onClick={handleLogout}>
             Logout
           </button>
         </div>

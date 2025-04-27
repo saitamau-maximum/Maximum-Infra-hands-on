@@ -9,11 +9,20 @@ import (
 func SetupRoutes(
 	e *echo.Echo,
 	cfg *config.Config,
+	AuthMiddleware echo.MiddlewareFunc,
 	userHandler handler.UserHandler,
 	roomHandler handler.RoomHandler,
 ) {
 	userGroup := e.Group("/api/user")
-	userHandler.Register(userGroup)
+	RegisterUserRoutes(userGroup, &userHandler, AuthMiddleware)
 	roomGroup := e.Group("/api/room")
 	roomHandler.Register(roomGroup)
+}
+
+// routes/user_routes.go
+func RegisterUserRoutes(g *echo.Group, h *handler.UserHandler, authMiddleware echo.MiddlewareFunc) {
+	g.POST("/register", h.RegisterUser)
+	g.POST("/login", h.Login)
+	g.POST("/logout", h.Logout, authMiddleware)
+	g.GET("/me", h.GetMe, authMiddleware)
 }

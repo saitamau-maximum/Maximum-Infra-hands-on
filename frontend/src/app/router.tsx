@@ -3,7 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "../features/home";
 import { Layout } from "../features/layout";
 import { LoginPage, RegisterPage } from "../features/auth";
-import { CreateRoomPage } from "../features/room";
+import { CreateRoomPage, RoomListPage } from "../features/room";
 
 
 export const appRouter = createBrowserRouter([
@@ -31,6 +31,10 @@ export const appRouter = createBrowserRouter([
       {
         path: "room",
         children: [
+          {
+            index: true,
+            element: <RoomListPage />,
+          },
           {
             path: "create",
             element: <CreateRoomPage />,
