@@ -3,6 +3,7 @@ import { Form } from "../../../ui/Form";
 import { CreateRoomFormData } from "../../types/CreateRoomFormDate";
 
 import styles from "./CreateRoomForm.module.css";
+import { CreateRoomApi } from "../../api";
 
 export const CreateRoomForm = () => {
   const {
@@ -11,7 +12,7 @@ export const CreateRoomForm = () => {
   } = useForm<CreateRoomFormData>();
   const handleCreateRoom = async (data: CreateRoomFormData) => {
     try {
-      // TODO: 部屋作成APIを呼び出す
+      await CreateRoomApi(data);
       console.log("Room created:", data);
     } catch (error) {
       console.error("Room creation failed:", error);

@@ -15,8 +15,8 @@ func SetupRoutes(
 ) {
 	userGroup := e.Group("/api/user")
 	RegisterUserRoutes(userGroup, &userHandler, AuthMiddleware)
-	roomGroup := e.Group("/api/room")
-	roomHandler.Register(roomGroup)
+	roomGroup := e.Group("/api/room", AuthMiddleware)
+	RegisterRoomRoutes(roomGroup, &roomHandler)
 }
 
 // routes/user_routes.go
@@ -25,4 +25,12 @@ func RegisterUserRoutes(g *echo.Group, h *handler.UserHandler, authMiddleware ec
 	g.POST("/login", h.Login)
 	g.POST("/logout", h.Logout, authMiddleware)
 	g.GET("/me", h.GetMe, authMiddleware)
+}
+
+func RegisterRoomRoutes(g *echo.Group, h *handler.RoomHandler) {
+	g.POST("", h.CreateRoom)
+	g.POST("/:room_public_id/join", h.JoinRoom)
+	g.POST("/:room_public_id/leave", h.LeaveRoom)
+	g.GET("/:room_public_id", h.GetRoom)
+	g.GET("", h.GetRooms)
 }

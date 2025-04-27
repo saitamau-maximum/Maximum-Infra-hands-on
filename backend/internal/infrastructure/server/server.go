@@ -23,6 +23,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 		SecretKey:     cfg.SecretKey,
 		ExpireMinutes: int(cfg.TokenExpiry),
 	})
+	
 	e.Use(middleware.CORS())
 
 	// ルーティングの設定

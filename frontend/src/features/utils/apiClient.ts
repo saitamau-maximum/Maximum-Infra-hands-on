@@ -23,6 +23,7 @@ const apiClient = {
 
   // POSTリクエスト専用
   post: async (endpoint: string, body: any) => {
+    console.log(body);
     if (body == null) {
       return apiClient.request(endpoint, {
         method: "POST",

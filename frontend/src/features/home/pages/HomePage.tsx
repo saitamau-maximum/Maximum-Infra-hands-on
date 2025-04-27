@@ -22,7 +22,7 @@ export const HomePage = () => {
           </Link>
         </div>
       ) : (
-        <p>チャットを開始する</p>
+        <Link to='/room'>チャットを開始する</Link>
       )}
     </div>
   );

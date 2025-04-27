@@ -69,13 +69,19 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 	var req CreateRoomRequest
 
 	if err := c.Bind(&req); err != nil {
-		h.Logger.Error("Failed to bind request", err)
+		h.Logger.Error("Failed to bind request", err, req)
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
 	}
 
 	if err := c.Validate(req); err != nil {
 		h.Logger.Error("Validation failed", err)
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Validation failed"})
+	}
+
+	userIDStr, ok := c.Get("user_id").(string)
+	if !ok || userIDStr == "" {
+		h.Logger.Error("User ID is missing or invalid")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
 	}
 
 	// 部屋作成
@@ -87,11 +93,7 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 	room := createRoomRes.Room
 
 	// 部屋に作成者を追加
-	userIDStr, ok := c.Get("user_id").(string)
-	if !ok || userIDStr == "" {
-		h.Logger.Error("User ID is missing or invalid")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
-	}
+
 	userPublicID, err := h.UserIDFactory.FromString(userIDStr)
 	if err != nil {
 		h.Logger.Error("Failed to get user by public ID", err)
@@ -260,11 +262,6 @@ func (h *RoomHandler) GetRoom(c echo.Context) error {
 }
 
 type GetRoomsResponse struct {
-	PubID string `json:"public_id"`
-	Name  string `json:"name"`
-}
-
-type RoomInfo struct {
 	PubID string `json:"public_id"`
 	Name  string `json:"name"`
 }
