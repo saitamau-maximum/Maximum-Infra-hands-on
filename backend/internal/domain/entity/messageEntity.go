@@ -22,12 +22,12 @@ type MessageParams struct {
 
 func NewMessage(params MessageParams) *Message {
 	return &Message{
-		id:      params.ID,
+		id:       params.ID,
 		publicID: params.PublicID,
-		roomID:  params.RoomID,
-		userID:  params.UserID,
-		content: params.Content,
-		sentAt:  params.SentAt,
+		roomID:   params.RoomID,
+		userID:   params.UserID,
+		content:  params.Content,
+		sentAt:   params.SentAt,
 	}
 }
 

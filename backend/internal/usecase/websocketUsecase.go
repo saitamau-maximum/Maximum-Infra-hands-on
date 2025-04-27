@@ -20,8 +20,6 @@ type WebsocketUseCaseInterface interface {
 	// 切断処理
 	DisconnectUser(req DisconnectUserRequest) error
 
-	// メッセージ履歴取得
-	GetMessageHistory(req GetMessageHistoryRequest) (GetMessageHistoryResponse, error)
 }
 
 type WebsocketUseCase struct {
@@ -224,19 +222,3 @@ type GetMessageHistoryResponse struct {
 	Messages []*entity.Message
 }
 
-// GetMessageHistory メッセージ履歴取得
-func (w *WebsocketUseCase) GetMessageHistory(req GetMessageHistoryRequest) (GetMessageHistoryResponse, error) {
-	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.PublicRoomID)
-	if err != nil {
-		return GetMessageHistoryResponse{nil}, err
-	}
-
-	messages, err := w.msgRepo.GetMessagesByRoomID(roomID)
-	if err != nil {
-		return GetMessageHistoryResponse{nil}, err
-	}
-
-	return GetMessageHistoryResponse{
-		Messages: messages,
-	}, nil
-}

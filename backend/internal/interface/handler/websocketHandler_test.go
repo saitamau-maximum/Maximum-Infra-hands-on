@@ -28,15 +28,15 @@ func TestConnectToChatRoom(t *testing.T) {
 	mockWsUpGrader := mock_adapter.NewMockWebSocketUpgraderAdapter(ctrl)
 	mockWsConnFactory := mock_factory.NewMockWebSocketConnectionFactory(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-	mockRoomPubIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
-	WsHandler := handler.NewWebSocketHandler(handler.WebSocketHandlerParams{
+	WsHandler := handler.NewWebSocketHandler(handler.NewWebSocketHandlerParams{
 		WsUseCase:        mockWsUseCase,
 		WsUpgrader:       mockWsUpGrader,
 		WsConnFactory:    mockWsConnFactory,
 		UserIDFactory:    mockUserIDFactory,
-		RoomPubIDFactory: mockRoomPubIDFactory,
+		RoomIDFactory: mockRoomIDFactory,
 		Logger:           mockLogger,
 	})
 
@@ -73,7 +73,7 @@ func TestConnectToChatRoom(t *testing.T) {
 		mockWsUpGrader.EXPECT().Upgrade(gomock.Any(), gomock.Any()).Return(mockConnRaw, nil)
 		mockWsConnFactory.EXPECT().CreateWebSocketConnection(mockConnRaw).Return(mockConn, nil)
 		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"), nil)
-		mockRoomPubIDFactory.EXPECT().FromString("test-room").Return(entity.RoomPublicID("test-room"), nil)
+		mockRoomIDFactory.EXPECT().FromString("test-room").Return(entity.RoomPublicID("test-room"), nil)
 		mockWsUseCase.EXPECT().ConnectUserToRoom(gomock.Any()).Return(nil)
 		time.Sleep(100 * time.Millisecond) // goroutine内の処理を待つためのスリープ
 		// ここからゴルーチン内の処理

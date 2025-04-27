@@ -14,20 +14,20 @@ type WebSocketHandler struct {
 	WsUpgrader       adapter.WebSocketUpgraderAdapter
 	WsConnFactory    factory.WebSocketConnectionFactory
 	UserIDFactory    factory.UserIDFactory
-	RoomPubIDFactory factory.RoomIDFactory
+	RoomIDFactory factory.RoomIDFactory
 	Logger           adapter.LoggerAdapter
 }
 
-type WebSocketHandlerParams struct {
+type NewWebSocketHandlerParams struct {
 	WsUseCase        usecase.WebsocketUseCaseInterface
 	WsUpgrader       adapter.WebSocketUpgraderAdapter
 	WsConnFactory    factory.WebSocketConnectionFactory
 	UserIDFactory    factory.UserIDFactory
-	RoomPubIDFactory factory.RoomIDFactory
+	RoomIDFactory factory.RoomIDFactory
 	Logger           adapter.LoggerAdapter
 }
 
-func (p *WebSocketHandlerParams) Validate() error {
+func (p *NewWebSocketHandlerParams) Validate() error {
 	if p.WsUseCase == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "WebsocketUseCase is required")
 	}
@@ -40,8 +40,8 @@ func (p *WebSocketHandlerParams) Validate() error {
 	if p.UserIDFactory == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "UserIDFactory is required")
 	}
-	if p.RoomPubIDFactory == nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "RoomPubIDFactory is required")
+	if p.RoomIDFactory == nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "RoomIDFactory is required")
 	}
 	if p.Logger == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Logger is required")
@@ -49,7 +49,7 @@ func (p *WebSocketHandlerParams) Validate() error {
 	return nil
 }
 
-func NewWebSocketHandler(params WebSocketHandlerParams) *WebSocketHandler {
+func NewWebSocketHandler(params NewWebSocketHandlerParams) *WebSocketHandler {
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func NewWebSocketHandler(params WebSocketHandlerParams) *WebSocketHandler {
 		WsUpgrader:       params.WsUpgrader,
 		WsConnFactory:    params.WsConnFactory,
 		UserIDFactory:    params.UserIDFactory,
-		RoomPubIDFactory: params.RoomPubIDFactory,
+		RoomIDFactory: params.RoomIDFactory,
 		Logger:           params.Logger,
 	}
 }
@@ -86,7 +86,7 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 		h.Logger.Warn("Room public ID is missing")
 		return echo.NewHTTPError(http.StatusBadRequest, "Room public ID is required")
 	}
-	roomPublicID, err := h.RoomPubIDFactory.FromString(roomPublicIDStr)
+	roomPublicID, err := h.RoomIDFactory.FromString(roomPublicIDStr)
 	if err != nil {
 		h.Logger.Warn("Invalid Room public ID", "room_public_id", roomPublicIDStr)
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Room public ID")

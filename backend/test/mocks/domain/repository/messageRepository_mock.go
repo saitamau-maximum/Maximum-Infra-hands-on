@@ -71,18 +71,3 @@ func (mr *MockMessageRepositoryMockRecorder) GetMessageHistoryInRoom(roomID, lim
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageHistoryInRoom", reflect.TypeOf((*MockMessageRepository)(nil).GetMessageHistoryInRoom), roomID, limit, beforeSentAt)
 }
-
-// GetMessagesByRoomID mocks base method.
-func (m *MockMessageRepository) GetMessagesByRoomID(roomID entity.RoomID) ([]*entity.Message, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMessagesByRoomID", roomID)
-	ret0, _ := ret[0].([]*entity.Message)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMessagesByRoomID indicates an expected call of GetMessagesByRoomID.
-func (mr *MockMessageRepositoryMockRecorder) GetMessagesByRoomID(roomID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessagesByRoomID", reflect.TypeOf((*MockMessageRepository)(nil).GetMessagesByRoomID), roomID)
-}
