@@ -6,21 +6,27 @@ import (
 	"time"
 
 	"example.com/webrtc-practice/internal/domain/entity"
+	"example.com/webrtc-practice/internal/interface/adapter"
 	"example.com/webrtc-practice/internal/usecase"
 	"github.com/labstack/echo/v4"
 )
 
 type MessageHandler struct {
 	MsgUseCase usecase.MessageUseCaseInterface
+	Logger     adapter.LoggerAdapter
 }
 
 type MessageHandlerParams struct {
 	MsgUseCase usecase.MessageUseCaseInterface
+	Logger     adapter.LoggerAdapter
 }
 
 func (p *MessageHandlerParams) Validate() error {
 	if p.MsgUseCase == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "MessageUseCase is required")
+	}
+	if p.Logger == nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Logger is required")
 	}
 	return nil
 }
@@ -31,6 +37,7 @@ func NewMessageHandler(params MessageHandlerParams) *MessageHandler {
 	}
 	return &MessageHandler{
 		MsgUseCase: params.MsgUseCase,
+		Logger:     params.Logger,
 	}
 }
 
@@ -60,6 +67,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	var req GetMessageHistoryInRoomRequest
 	roomPublicIDStr := c.Param("room_public_id")
 	if roomPublicIDStr == "" {
+		h.Logger.Error("room_public_id is required")
 		return echo.NewHTTPError(http.StatusBadRequest, "room_public_id is required")
 	}
 	req.RoomPublicID = entity.RoomPublicID(roomPublicIDStr)
@@ -69,6 +77,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	if limitStr := c.QueryParam("limit"); limitStr != "" {
 		limitNum, err := strconv.Atoi(limitStr)
 		if err != nil {
+			h.Logger.Error("limit must be an integer")
 			return echo.NewHTTPError(http.StatusBadRequest, "limit must be an integer")
 		}
 		req.Limit = limitNum
@@ -80,6 +89,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 		var err error
 		req.BeforeSentAt, err = time.Parse(time.RFC3339, beforeSentAtStr)
 		if err != nil {
+			h.Logger.Error("before_sent_at must be in RFC3339 format")
 			return echo.NewHTTPError(http.StatusBadRequest, "before_sent_at must be in RFC3339 format")
 		}
 	} else {
@@ -88,11 +98,12 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 
 	// Usecase呼び出し
 	res, err := h.MsgUseCase.GetMessageHistoryInRoom(usecase.GetMessageHistoryInRoomRequest{
-		RoomPublicID: entity.RoomPublicID(roomPublicIDStr),
+		RoomPublicID: req.RoomPublicID,
 		Limit:        req.Limit,
 		BeforeSentAt: req.BeforeSentAt,
 	})
 	if err != nil {
+		h.Logger.Error("failed to get message history: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get message history")
 	}
 
@@ -101,6 +112,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	for i, msg := range res.Messages {
 		formatedMsg, err := h.MsgUseCase.FormatMessage(msg)
 		if err != nil {
+			h.Logger.Error("failed to format message: %v", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to format message")
 		}
 		messages[i] = MessageResponse{

@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"example.com/webrtc-practice/internal/interface/adapter"
 	"example.com/webrtc-practice/internal/interface/factory"
 	"example.com/webrtc-practice/internal/usecase"
 	"github.com/labstack/echo/v4"
@@ -11,11 +12,13 @@ import (
 type UserHandler struct {
 	UserUseCase   usecase.UserUseCaseInterface
 	UserIDFactory factory.UserIDFactory
+	Logger        adapter.LoggerAdapter
 }
 
 type NewUserHandlerParams struct {
 	UserUseCase   usecase.UserUseCaseInterface
 	UserIDFactory factory.UserIDFactory
+	Logger        adapter.LoggerAdapter
 }
 
 func (p *NewUserHandlerParams) Validate() error {
@@ -24,6 +27,9 @@ func (p *NewUserHandlerParams) Validate() error {
 	}
 	if p.UserIDFactory == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "UserIDFactory is required")
+	}
+	if p.Logger == nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Logger is required")
 	}
 	return nil
 }
@@ -36,6 +42,7 @@ func NewUserHandler(params NewUserHandlerParams) *UserHandler {
 	return &UserHandler{
 		UserUseCase:   params.UserUseCase,
 		UserIDFactory: params.UserIDFactory,
+		Logger:        params.Logger,
 	}
 }
 
@@ -56,10 +63,12 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	var req RegisterUserRequest
 
 	if err := c.Bind(&req); err != nil {
+		h.Logger.Error("Failed to bind request: ", err)
 		return c.JSON(400, echo.Map{"error": "Invalid request"})
 	}
 
 	if err := c.Validate(req); err != nil {
+		h.Logger.Error("Validation failed: ", err)
 		return c.JSON(400, echo.Map{"error": "Validation failed"})
 	}
 
@@ -71,7 +80,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 
 	_, err := h.UserUseCase.SignUp(signUpReq)
 	if err != nil {
-		c.Logger().Error("SignUp error: ", err)
+		h.Logger.Error("SignUp error: ", err)
 		return c.JSON(500, echo.Map{"error": "Internal server error"})
 	}
 
@@ -83,6 +92,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	// ログインまで済ませてしまう
 	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
 	if err != nil {
+		h.Logger.Error("Authentication error: ", err)
 		return c.JSON(500, echo.Map{"error": err.Error()})
 	}
 

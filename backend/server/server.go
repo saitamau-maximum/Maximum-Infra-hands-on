@@ -3,6 +3,7 @@ package server
 import (
 	"example.com/webrtc-practice/config"
 	"example.com/webrtc-practice/internal/infrastructure/adapter_impl"
+	fmtloggerimpl "example.com/webrtc-practice/internal/infrastructure/adapter_impl/logger_adapter_impl/fmt_logger"
 	"example.com/webrtc-practice/internal/infrastructure/factory_impl"
 	sqliteroomrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/room_repository_impl/sqlite"
 	sqliteuserrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/user_repository_impl/sqlite"
@@ -20,7 +21,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	e := echo.New()
 	e.Validator = validator.NewEchoValidator()
 
-	tokenService := adapter_impl.NewTokenServiceAdapter(adapter_impl.NewTokenServiceAdapterParams{
+	tokenService := adapterimpl.NewTokenServiceAdapter(adapterimpl.NewTokenServiceAdapterParams{
 		SecretKey:     cfg.SecretKey,
 		ExpireMinutes: int(cfg.TokenExpiry),
 	})
@@ -29,15 +30,18 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	e.Use(middleware.CORS())
 	e.Use(middleware.AuthMiddleware(tokenService))
 
+	// Loggerの設定
+	logger := fmtloggerimpl.NewFmtLogger()
+
 	// ユーザーハンドラの初期化
 	userRepository := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{
 		DB: db,
 	})
-	hasher := adapter_impl.NewHasherAdapter(adapter_impl.NewHasherAddapterParams{
+	hasher := adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{
 		Cost: cfg.HashCost,
 	})
 
-	userIDFactory := factory_impl.NewUserIDFactory()
+	userIDFactory := factoryimpl.NewUserIDFactory()
 	userUseCase := usecase.NewUserUseCase(usecase.NewUserUseCaseParams{
 		UserRepo:      userRepository,
 		Hasher:        hasher,
@@ -47,22 +51,24 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	userHandler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   userUseCase,
 		UserIDFactory: userIDFactory,
+		Logger:        logger,
 	})
 
-	roomIDFactory := factory_impl.NewRoomIDFactory()
+	roomIDFactory := factoryimpl.NewRoomIDFactory()
 	// roomRepositoryimpl実装
 	roomRepository := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
 		DB: db,
 	})
 	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
-		RoomRepo: roomRepository,
-		UserRepo: userRepository,
+		RoomRepo:      roomRepository,
+		UserRepo:      userRepository,
 		RoomIDFactory: roomIDFactory,
 	})
 	roomHandler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
-		RoomUseCase: roomUseCase,
+		RoomUseCase:   roomUseCase,
 		UserIDFactory: userIDFactory,
 		RoomIDFactory: roomIDFactory,
+		Logger:        logger,
 	})
 
 	// ルーティングの設定
