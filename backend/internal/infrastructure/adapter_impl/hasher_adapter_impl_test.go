@@ -1,14 +1,14 @@
-package adapter_impl_test
+package adapterimpl_test
 
 import (
 	"testing"
 
-	"example.com/webrtc-practice/internal/infrastructure/adapter_impl"
+	adapterimpl "example.com/webrtc-practice/internal/infrastructure/adapter_impl"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHasherAdapterImpl_HashAndComparePassword(t *testing.T) {
-	adapter := adapter_impl.NewHasherAdapter(adapter_impl.NewHasherAddapterParams{Cost: 10})
+	adapter := adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{Cost: 10})
 
 	password := "securePassword123"
 
@@ -35,13 +35,13 @@ func TestHasherAdapterImpl_HashAndComparePassword(t *testing.T) {
 func TestNewHasherAdapter_InvalidCost(t *testing.T) {
 	t.Run("costが0以下だとpanic", func(t *testing.T) {
 		assert.Panics(t, func() {
-			_ = adapter_impl.NewHasherAdapter(adapter_impl.NewHasherAddapterParams{Cost: 0})
+			_ = adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{Cost: 0})
 		})
 	})
 
 	t.Run("costが31を超えるとpanic", func(t *testing.T) {
 		assert.Panics(t, func() {
-			_ = adapter_impl.NewHasherAdapter(adapter_impl.NewHasherAddapterParams{Cost: 32})
+			_ = adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{Cost: 32})
 		})
 	})
 }

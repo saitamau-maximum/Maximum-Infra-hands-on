@@ -1,19 +1,19 @@
-package adapter_impl_test
+package adapterimpl_test
 
 import (
 	"testing"
 
 	"example.com/webrtc-practice/internal/domain/entity"
-	"example.com/webrtc-practice/internal/infrastructure/adapter_impl"
+	adapterimpl "example.com/webrtc-practice/internal/infrastructure/adapter_impl"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenServiceAdapter(t *testing.T) {
-	params := adapter_impl.NewTokenServiceAdapterParams{
+	params := adapterimpl.NewTokenServiceAdapterParams{
 		SecretKey:     "test-secret-key",
 		ExpireMinutes: 1, // 1分で期限切れになる設定
 	}
-	tokenService := adapter_impl.NewTokenServiceAdapter(params)
+	tokenService := adapterimpl.NewTokenServiceAdapter(params)
 
 	t.Run("Generate and Validate valid token", func(t *testing.T) {
 		userID := entity.UserPublicID("abc123")

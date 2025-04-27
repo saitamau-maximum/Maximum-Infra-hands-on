@@ -1,4 +1,4 @@
-package factory_impl
+package factoryimpl
 
 import (
 	"errors"

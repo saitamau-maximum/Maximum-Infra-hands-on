@@ -1,4 +1,4 @@
-package adapter_impl
+package adapterimpl
 
 import (
 	"errors"
