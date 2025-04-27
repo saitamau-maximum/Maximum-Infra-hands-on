@@ -6,7 +6,7 @@ export const RegisterPage = () => {
   return (
     <div className={styles.container}>
       <h1>Register</h1>
-      <RegisterForm/>
+      <RegisterForm />
     </div>
   );
 }

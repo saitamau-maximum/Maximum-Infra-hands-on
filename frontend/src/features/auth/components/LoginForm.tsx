@@ -9,21 +9,21 @@ import styles from "./LoginForm.module.css";
 
 export const LoginForm = () => {
   const navigate = useNavigate();
-    const {
-      register,
-      handleSubmit,
-    } = useForm<LoginFormData>()
-    const {user, loading} = useAuth();
-    if (loading) return <div>Loading...</div>;
-  
-    const handleLogin = async (data: LoginFormData) => {
-      try {
-        await Login(data);
-      } catch (error) {
-        console.error("Login failed:", error);
-      }
-      navigate('/');
-    };
+  const {
+    register,
+    handleSubmit,
+  } = useForm<LoginFormData>()
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading...</div>;
+
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      await Login(data);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+    navigate('/');
+  };
   return (
     <form className={styles.form} onSubmit={handleSubmit(handleLogin)}>
       <Form.Field>
