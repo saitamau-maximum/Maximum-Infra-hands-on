@@ -2,8 +2,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "../features/home";
 import { Layout } from "../features/layout";
-import { LoginPage, RegisterPage } from "../features/auth/pages";
-import { CreateRoomPage } from "../features/room/pages/CreateRoomPage";
+import { LoginPage, RegisterPage } from "../features/auth";
+import { CreateRoomPage } from "../features/room";
 
 
 export const appRouter = createBrowserRouter([
