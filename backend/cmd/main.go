@@ -1,16 +1,16 @@
 package main
 
 import (
-	"example.com/webrtc-practice/config"
-	"example.com/webrtc-practice/internal/infrastructure/gateway_impl"
-	"example.com/webrtc-practice/internal/server"
+	"example.com/infrahandson/config"
+	gatewayImpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
+	"example.com/infrahandson/internal/infrastructure/server"
 )
 
 func main() {
 	// 設定の読み込み
 	cfg := config.LoadConfig()
-	
-	initializer := gateway_impl.NewSQLiteInitializer(cfg.DBPath)
+
+	initializer := gatewayImpl.NewSQLiteInitializer(cfg.DBPath)
 	// データベースの初期化
 	db, err := initializer.Init()
 	if err != nil {

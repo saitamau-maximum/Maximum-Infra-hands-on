@@ -1,4 +1,4 @@
-module example.com/webrtc-practice
+module example.com/infrahandson
 
 go 1.23.2
 
