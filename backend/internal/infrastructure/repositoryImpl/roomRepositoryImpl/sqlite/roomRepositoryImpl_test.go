@@ -26,8 +26,8 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 		name TEXT NOT NULL,
 		email TEXT NOT NULL,
 		password_hash TEXT NOT NULL,
-		created_at TEXT NOT NULL,
-		updated_at TEXT
+		created_at DATETIME NOT NULL,
+		updated_at DATETIME
 	);
 	CREATE TABLE rooms (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

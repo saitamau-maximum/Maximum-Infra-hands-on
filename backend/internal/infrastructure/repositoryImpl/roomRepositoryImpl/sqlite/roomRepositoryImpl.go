@@ -3,7 +3,6 @@ package sqliteroomrepoimpl
 import (
 	"errors"
 	"strconv"
-	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/repository"
@@ -130,7 +129,6 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 		return nil, err
 	}
 
-	// entity.User に変換
 	users := make([]*entity.User, 0, len(userModels))
 	for _, um := range userModels {
 		users = append(users, entity.NewUser(entity.UserParams{
@@ -139,20 +137,8 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 			Name:       um.Name,
 			Email:      um.Email,
 			PasswdHash: um.PasswordHash,
-			CreatedAt: func() time.Time {
-				parsedTime, _ := time.Parse(time.RFC3339, um.CreatedAt)
-				return parsedTime
-			}(),
-			UpdatedAt: func() *time.Time {
-				if um.UpdatedAt == nil {
-					return nil
-				}
-				parsedTime, err := time.Parse(time.RFC3339, *um.UpdatedAt)
-				if err != nil {
-					return nil
-				}
-				return &parsedTime
-			}(),
+			CreatedAt:  um.CreatedAt,
+			UpdatedAt:  um.UpdatedAt,
 		}))
 	}
 
