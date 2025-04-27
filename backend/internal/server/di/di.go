@@ -1,68 +1,66 @@
-package server
+package di
 
 import (
 	"example.com/webrtc-practice/config"
-	"example.com/webrtc-practice/internal/infrastructure/adapter_impl"
+	adapterimpl "example.com/webrtc-practice/internal/infrastructure/adapter_impl"
 	fmtloggerimpl "example.com/webrtc-practice/internal/infrastructure/adapter_impl/logger_adapter_impl/fmt_logger"
-	"example.com/webrtc-practice/internal/infrastructure/factory_impl"
+	factoryimpl "example.com/webrtc-practice/internal/infrastructure/factory_impl"
 	sqliteroomrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/room_repository_impl/sqlite"
 	sqliteuserrepoimpl "example.com/webrtc-practice/internal/infrastructure/repository_impl/user_repository_impl/sqlite"
-	"example.com/webrtc-practice/internal/infrastructure/validator"
 	"example.com/webrtc-practice/internal/interface/handler"
 	"example.com/webrtc-practice/internal/usecase"
-	"example.com/webrtc-practice/routes"
-	"example.com/webrtc-practice/server/middleware"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 )
 
-func ServerStart(cfg *config.Config, db *sqlx.DB) {
-	e := echo.New()
-	e.Validator = validator.NewEchoValidator()
+type Dependencies struct {
+	UserHandler *handler.UserHandler
+	RoomHandler *handler.RoomHandler
+}
 
+func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
+	// Loggerの設定
+	logger := fmtloggerimpl.NewFmtLogger()
+
+	// IDFactoryの初期化
+	userIDFactory := factoryimpl.NewUserIDFactory()
+	roomIDFactory := factoryimpl.NewRoomIDFactory()
+
+	// Repositoryの初期化
+	userRepository := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{
+		DB: db,
+	})
+	roomRepository := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
+		DB: db,
+	})
+
+	// AdapterとServiceの初期化
+	hasher := adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{
+		Cost: cfg.HashCost,
+	})
 	tokenService := adapterimpl.NewTokenServiceAdapter(adapterimpl.NewTokenServiceAdapterParams{
 		SecretKey:     cfg.SecretKey,
 		ExpireMinutes: int(cfg.TokenExpiry),
 	})
 
-	// ミドルウェアの設定
-	e.Use(middleware.CORS())
-	e.Use(middleware.AuthMiddleware(tokenService))
-
-	// Loggerの設定
-	logger := fmtloggerimpl.NewFmtLogger()
-
-	// ユーザーハンドラの初期化
-	userRepository := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{
-		DB: db,
-	})
-	hasher := adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{
-		Cost: cfg.HashCost,
-	})
-
-	userIDFactory := factoryimpl.NewUserIDFactory()
+	// UseCaseの初期化
 	userUseCase := usecase.NewUserUseCase(usecase.NewUserUseCaseParams{
 		UserRepo:      userRepository,
 		Hasher:        hasher,
 		TokenSvc:      tokenService,
 		UserIDFactory: userIDFactory,
 	})
-	userHandler := handler.NewUserHandler(handler.NewUserHandlerParams{
-		UserUseCase:   userUseCase,
-		UserIDFactory: userIDFactory,
-		Logger:        logger,
-	})
-
-	roomIDFactory := factoryimpl.NewRoomIDFactory()
-	// roomRepositoryimpl実装
-	roomRepository := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
-		DB: db,
-	})
 	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
 		RoomRepo:      roomRepository,
 		UserRepo:      userRepository,
 		RoomIDFactory: roomIDFactory,
+	})
+
+	// Handlerの初期化
+	userHandler := handler.NewUserHandler(handler.NewUserHandlerParams{
+		UserUseCase:   userUseCase,
+		UserIDFactory: userIDFactory,
+		Logger:        logger,
 	})
 	roomHandler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
 		RoomUseCase:   roomUseCase,
@@ -71,8 +69,8 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 		Logger:        logger,
 	})
 
-	// ルーティングの設定
-	routes.SetupRoutes(e, cfg, *userHandler, *roomHandler)
-
-	e.Logger.Fatal(e.Start(":" + cfg.Port))
+	return &Dependencies{
+		UserHandler: userHandler,
+		RoomHandler: roomHandler,
+	}
 }

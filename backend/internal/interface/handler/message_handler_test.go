@@ -10,8 +10,9 @@ import (
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/interface/handler"
 	"example.com/webrtc-practice/internal/usecase"
-	mock_adapter "example.com/webrtc-practice/mocks/interface/adapter"
-	mock_usecase "example.com/webrtc-practice/mocks/usecase"
+	mock_adapter "example.com/webrtc-practice/test/mocks/interface/adapter"
+	mock_usecase "example.com/webrtc-practice/test/mocks/usecase"
+
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -24,15 +25,15 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	e := echo.New()
 	mockUseCase := mock_usecase.NewMockMessageUseCaseInterface(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
-	
+
 	handler := handler.NewMessageHandler(handler.MessageHandlerParams{
 		MsgUseCase: mockUseCase,
 		Logger:     mockLogger,
 	})
 
 	mockLogger.EXPECT().
-    Info(gomock.Any(), gomock.Any()).
-    AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
+		Info(gomock.Any(), gomock.Any()).
+		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
 	roomPublicID := "test-room"
 	mockMessages := []*entity.Message{
@@ -71,21 +72,21 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 
 	mockUseCase.EXPECT().FormatMessage(mockMessages[0]).Return(
 		usecase.FormatMessageResponse{
-			PublicID:  string(mockMessages[0].GetPublicID()),
+			PublicID:     string(mockMessages[0].GetPublicID()),
 			RoomPublicID: "test-room",
 			UserPublicID: "user1",
-			Content: mockMessages[0].GetContent(),
-			SentAt:   mockMessages[0].GetSentAt(),
-		},		nil,
+			Content:      mockMessages[0].GetContent(),
+			SentAt:       mockMessages[0].GetSentAt(),
+		}, nil,
 	)
 	mockUseCase.EXPECT().FormatMessage(mockMessages[1]).Return(
 		usecase.FormatMessageResponse{
-			PublicID:  string(mockMessages[1].GetPublicID()),
+			PublicID:     string(mockMessages[1].GetPublicID()),
 			RoomPublicID: "test-room",
 			UserPublicID: "user2",
-			Content: mockMessages[1].GetContent(),
-			SentAt:   mockMessages[1].GetSentAt(),
-		},		nil,
+			Content:      mockMessages[1].GetContent(),
+			SentAt:       mockMessages[1].GetSentAt(),
+		}, nil,
 	)
 
 	err := handler.GetMessageHistoryInRoom(c)

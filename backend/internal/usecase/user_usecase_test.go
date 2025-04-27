@@ -7,9 +7,9 @@ import (
 
 	"example.com/webrtc-practice/internal/domain/entity"
 	"example.com/webrtc-practice/internal/usecase"
-	mock_repository "example.com/webrtc-practice/mocks/domain/repository"
-	mock_adapter "example.com/webrtc-practice/mocks/interface/adapter"
-	mock_factory "example.com/webrtc-practice/mocks/interface/factory"
+	mock_repository "example.com/webrtc-practice/test/mocks/domain/repository"
+	mock_adapter "example.com/webrtc-practice/test/mocks/interface/adapter"
+	mock_factory "example.com/webrtc-practice/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

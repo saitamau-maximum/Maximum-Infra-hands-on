@@ -3,7 +3,7 @@ package main
 import (
 	"example.com/webrtc-practice/config"
 	"example.com/webrtc-practice/internal/infrastructure/gateway_impl"
-	"example.com/webrtc-practice/server"
+	"example.com/webrtc-practice/internal/server"
 )
 
 func main() {
