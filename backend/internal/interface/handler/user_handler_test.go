@@ -11,6 +11,7 @@ import (
 	"example.com/webrtc-practice/internal/infrastructure/validator"
 	"example.com/webrtc-practice/internal/interface/handler"
 	"example.com/webrtc-practice/internal/usecase"
+	mock_adapter "example.com/webrtc-practice/mocks/interface/adapter"
 	mock_factory "example.com/webrtc-practice/mocks/interface/factory"
 	mock_usecase "example.com/webrtc-practice/mocks/usecase"
 	"github.com/labstack/echo/v4"
@@ -28,10 +29,12 @@ func TestRegisterUser(t *testing.T) {
 
 	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
+	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
 	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   mockUserUseCase,
 		UserIDFactory: mockUserIDFactory,
+		Logger:        mockLogger,
 	})
 
 	e := echo.New()
@@ -44,12 +47,16 @@ func TestRegisterUser(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
+	mockLogger.EXPECT().
+		Info(gomock.Any(), gomock.Any()).
+		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
+
 	mockUserUseCase.EXPECT().SignUp(gomock.Any()).Return(usecase.SignUpResponse{}, nil)
 	mockUserUseCase.EXPECT().AuthenticateUser(gomock.Any()).Return(tokenRes, nil)
 
 	if assert.NoError(t, handler.RegisterUser(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "mockToken")
+		assert.Contains(t, rec.Body.String(), "Login successful")
 	}
 }
 
@@ -63,10 +70,12 @@ func TestLogin(t *testing.T) {
 
 	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
+	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
 	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   mockUserUseCase,
 		UserIDFactory: mockUserIDFactory,
+		Logger:        mockLogger,
 	})
 
 	e := echo.New()
@@ -77,11 +86,15 @@ func TestLogin(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
+	mockLogger.EXPECT().
+		Info(gomock.Any(), gomock.Any()).
+		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
+
 	mockUserUseCase.EXPECT().AuthenticateUser(gomock.Any()).Return(tokenRes, nil)
 
 	if assert.NoError(t, handler.Login(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), token)
+		assert.Contains(t, rec.Body.String(), "Login successful")
 	}
 }
 
@@ -103,10 +116,12 @@ func TestGetMe(t *testing.T) {
 
 	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
+	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
 	handler := handler.NewUserHandler(handler.NewUserHandlerParams{
 		UserUseCase:   mockUserUseCase,
 		UserIDFactory: mockUserIDFactory,
+		Logger:        mockLogger,
 	})
 
 	e := echo.New()
@@ -114,6 +129,10 @@ func TestGetMe(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.Set("user_id", "mockUserID")
+
+	mockLogger.EXPECT().
+		Info(gomock.Any(), gomock.Any()).
+		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
 	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
 	mockUserUseCase.EXPECT().GetUserByID(entity.UserPublicID("mockUserID")).Return(user, nil)

@@ -29,6 +29,7 @@ func TestConnectToChatRoom(t *testing.T) {
 	mockWsConnFactory := mock_factory.NewMockWebSocketConnectionFactory(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockRoomPubIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
 	WsHandler := handler.NewWebSocketHandler(handler.WebSocketHandlerParams{
 		WsUseCase:        mockWsUseCase,
@@ -36,6 +37,7 @@ func TestConnectToChatRoom(t *testing.T) {
 		WsConnFactory:    mockWsConnFactory,
 		UserIDFactory:    mockUserIDFactory,
 		RoomPubIDFactory: mockRoomPubIDFactory,
+		Logger:           mockLogger,
 	})
 
 	t.Run("Successful connection and message handling", func(t *testing.T) {
@@ -56,15 +58,17 @@ func TestConnectToChatRoom(t *testing.T) {
 
 		// メッセージのモック
 		testMessage := entity.NewMessage(entity.MessageParams{
-			ID:      1,
+			ID:       1,
 			PublicID: entity.MessagePublicID("test-message"),
-			UserID:  1,
-			RoomID:  1,
-			Content: "testcontent",
-			SentAt:  time.Now(),
+			UserID:   1,
+			RoomID:   1,
+			Content:  "testcontent",
+			SentAt:   time.Now(),
 		})
 
-
+		mockLogger.EXPECT().
+			Info(gomock.Any(), gomock.Any()).
+			AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
 		mockWsUpGrader.EXPECT().Upgrade(gomock.Any(), gomock.Any()).Return(mockConnRaw, nil)
 		mockWsConnFactory.EXPECT().CreateWebSocketConnection(mockConnRaw).Return(mockConn, nil)
@@ -79,13 +83,13 @@ func TestConnectToChatRoom(t *testing.T) {
 		// 少し待つ
 		time.Sleep(100 * time.Millisecond)
 		mockConn.EXPECT().ReadMessage().Return(0, nil, assert.AnError)
+		mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any())
 		mockUserIDFactory.EXPECT().FromString("test-user").Return(entity.UserPublicID("test-user"), nil)
 		mockWsUseCase.EXPECT().DisconnectUser(gomock.Any()).DoAndReturn(func(req usecase.DisconnectUserRequest) error {
 			wg.Done() // goroutine終了の合図
 			return nil
 		})
 		mockConn.EXPECT().Close().Return(nil)
-		
 
 		go func() {
 			err := WsHandler.ConnectToChatRoom(c)
@@ -111,10 +115,12 @@ func TestConnectToChatRoom(t *testing.T) {
 
 	t.Run("Missing user ID", func(t *testing.T) {
 		e := echo.New()
+	
 		req := httptest.NewRequest(http.MethodGet, "/ws/test-room", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 
+		mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any())
 		err := WsHandler.ConnectToChatRoom(c)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusUnauthorized, err.(*echo.HTTPError).Code)
@@ -126,6 +132,8 @@ func TestConnectToChatRoom(t *testing.T) {
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.Set("user_id", "test-user")
+
+		mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any())
 
 		err := WsHandler.ConnectToChatRoom(c)
 		assert.Error(t, err)

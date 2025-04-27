@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"example.com/webrtc-practice/internal/interface/gateway"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
-	"example.com/webrtc-practice/internal/interface/gateway"
 )
 
 type SQLiteInitializerImpl struct {
@@ -42,13 +42,13 @@ CREATE TABLE IF NOT EXISTS users (
 	created_at TEXT NOT NULL,
 	updated_at TEXT
 );
-CREATE TABLE rooms (
+CREATE TABLE IF NOT EXISTS rooms (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   public_id TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL
 );
 
-CREATE TABLE room_members (
+CREATE TABLE IF NOT EXISTS room_members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room_id INTEGER NOT NULL,
   user_id TEXT NOT NULL,
