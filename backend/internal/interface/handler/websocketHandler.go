@@ -63,10 +63,6 @@ func NewWebSocketHandler(params NewWebSocketHandlerParams) *WebSocketHandler {
 	}
 }
 
-func (h *WebSocketHandler) Register(g *echo.Group) {
-	g.GET("/ws/:room_public_id", h.ConnectToChatRoom)
-}
-
 func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 	h.Logger.Info("ConnectToChatRoom called")
 

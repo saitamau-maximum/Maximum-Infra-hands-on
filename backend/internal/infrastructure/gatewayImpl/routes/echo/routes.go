@@ -12,11 +12,14 @@ func SetupRoutes(
 	AuthMiddleware echo.MiddlewareFunc,
 	userHandler handler.UserHandler,
 	roomHandler handler.RoomHandler,
+	wsHandler handler.WebSocketHandler,
 ) {
 	userGroup := e.Group("/api/user")
 	RegisterUserRoutes(userGroup, &userHandler, AuthMiddleware)
 	roomGroup := e.Group("/api/room", AuthMiddleware)
 	RegisterRoomRoutes(roomGroup, &roomHandler)
+	wsGroup := e.Group("/api/ws", AuthMiddleware)
+	RegisterWsRoutes(wsGroup, &wsHandler)
 }
 
 // routes/user_routes.go
@@ -33,4 +36,8 @@ func RegisterRoomRoutes(g *echo.Group, h *handler.RoomHandler) {
 	g.POST("/:room_public_id/leave", h.LeaveRoom)
 	g.GET("/:room_public_id", h.GetRoom)
 	g.GET("", h.GetRooms)
+}
+
+func RegisterWsRoutes(g *echo.Group, h *handler.WebSocketHandler) {
+	g.GET("/ws/:room_public_id", h.ConnectToChatRoom)
 }

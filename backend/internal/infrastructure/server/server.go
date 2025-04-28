@@ -27,7 +27,14 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	e.Use(middleware.CORS())
 
 	// ルーティングの設定
-	routes.SetupRoutes(e, cfg, middleware.AuthMiddleware(tokenService), *dependencies.UserHandler, *dependencies.RoomHandler)
+	routes.SetupRoutes(
+		e, 
+		cfg,
+		middleware.AuthMiddleware(tokenService), 
+		*dependencies.UserHandler, 
+		*dependencies.RoomHandler,
+		*dependencies.WsHandler,
+		)
 
 	e.Logger.Fatal(e.Start(":" + cfg.Port))
 }
