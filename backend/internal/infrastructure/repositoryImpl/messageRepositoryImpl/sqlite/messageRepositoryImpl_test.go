@@ -36,7 +36,7 @@ CREATE TABLE messages (
 
 func TestMessageRepositoryImpl_CreateAndGetMessageHistoryInRoom(t *testing.T) {
 	db := setupTestDB(t)
-	repo := sqlitemsgrepoimpl.NewMessageRepositoryImpl(sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
+	repo := sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
 
 	// メッセージを作成
 	now := time.Now().UTC()

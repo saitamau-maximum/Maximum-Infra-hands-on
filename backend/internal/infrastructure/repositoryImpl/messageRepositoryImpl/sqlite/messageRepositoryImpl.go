@@ -1,7 +1,7 @@
 package sqlitemsgrepoimpl
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -19,7 +19,7 @@ type NewMessageRepositoryImplParams struct {
 
 func (p *NewMessageRepositoryImplParams) Validate() error {
 	if p.DB == nil {
-		return fmt.Errorf("DB is required")
+		return errors.New("DB is nil")
 	}
 	return nil
 }
