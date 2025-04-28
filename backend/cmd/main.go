@@ -21,7 +21,7 @@ func main() {
 	if err := initializer.InitSchema(db); err != nil {
 		panic("failed to initialize schema: " + err.Error())
 	}
-
+	// TODO:E2Eテストを書く
 	// サーバーの起動
 	e := server.ServerStart(cfg, db)        // Echoインスタンスを取得
 	e.Logger.Fatal(e.Start(":" + cfg.Port)) // サーバーを起動
