@@ -26,3 +26,11 @@ func NewWebsocketClient(params WebsocketClientParams) *WebsocketClient {
 func (w *WebsocketClient) GetID() WsClientID {
 	return w.id
 }
+
+func (w *WebsocketClient) GetRoomID() RoomID {
+	return w.roomID
+}
+
+func (w *WebsocketClient) GetUserID() UserID {
+	return w.userID
+}
