@@ -1,0 +1,408 @@
+package usecase_test
+
+import (
+	"errors"
+	"testing"
+	"time"
+
+	"example.com/infrahandson/internal/domain/entity"
+	"example.com/infrahandson/internal/usecase"
+	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
+	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+)
+
+func TestCreateRoom(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// == Mock dependencies ==
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		req := usecase.CreateRoomRequest{
+			Name: "Test Room",
+		}
+		roomPublicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
+
+		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(roomPublicID, nil)
+		mockRoomRepo.EXPECT().SaveRoom(gomock.Any()).Return(roomID, nil)
+		mockRoomRepo.EXPECT().GetRoomByID(entity.RoomID(1)).Return(entity.NewRoom(entity.RoomParams{
+			ID:       roomID,
+			PublicID: roomPublicID,
+			Name:     req.Name,
+			Members:  []entity.UserPublicID{},
+		}), nil)
+
+		resp, err := roomUseCase.CreateRoom(req)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, resp.Room)
+	})
+
+	t.Run("RoomID生成失敗時", func(t *testing.T) {
+		req := usecase.CreateRoomRequest{
+			Name: "Test Room",
+		}
+		expectedErr := errors.New("failed to generate room ID")
+		roomPublicID := entity.RoomPublicID("public_room_1")
+
+		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(roomPublicID, expectedErr)
+
+		resp, err := roomUseCase.CreateRoom(req)
+
+		assert.Error(t, err)
+		assert.Nil(t, resp.Room)
+		assert.Equal(t, expectedErr, err)
+	})
+
+	t.Run("RoomPublicID生成失敗時", func(t *testing.T) {
+		req := usecase.CreateRoomRequest{
+			Name: "Test Room",
+		}
+		publicID := entity.RoomPublicID("public_room_1")
+		expectedErr := errors.New("failed to generate room public ID")
+
+		mockRoomIDFactory.EXPECT().NewRoomPublicID().Return(publicID, expectedErr)
+
+		resp, err := roomUseCase.CreateRoom(req)
+
+		assert.Error(t, err)
+		assert.Nil(t, resp.Room)
+		assert.Equal(t, expectedErr, err)
+	})
+}
+
+func TestGetRoomByPublicID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// == Mock dependencies ==
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		publicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
+		room := entity.NewRoom(entity.RoomParams{
+			ID:       roomID,
+			PublicID: publicID,
+			Name:     "Test Room",
+			Members:  []entity.UserPublicID{"user_1", "user_2"},
+		})
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockRoomRepo.EXPECT().GetRoomByID(roomID).Return(room, nil)
+
+		resp, err := roomUseCase.GetRoomByPublicID(usecase.GetRoomByPublicIDParams{PublicID: publicID})
+
+		assert.NoError(t, err)
+		assert.NotNil(t, resp.Room)
+		assert.Equal(t, room, resp.Room)
+	})
+
+	t.Run("部屋が見つからない場合", func(t *testing.T) {
+		publicID := entity.RoomPublicID("nonexistent_room")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
+
+		resp, err := roomUseCase.GetRoomByPublicID(usecase.GetRoomByPublicIDParams{PublicID: publicID})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp.Room)
+		assert.Equal(t, "room not found", err.Error())
+	})
+}
+
+func TestGetAllRooms(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		rooms := []*entity.Room{
+			entity.NewRoom(entity.RoomParams{ID: 1, Name: "Room1"}),
+			entity.NewRoom(entity.RoomParams{ID: 2, Name: "Room2"}),
+		}
+
+		mockRoomRepo.EXPECT().GetAllRooms().Return(rooms, nil)
+
+		result, err := roomUseCase.GetAllRooms()
+
+		assert.NoError(t, err)
+		assert.Equal(t, rooms, result)
+	})
+
+	t.Run("エラー発生時", func(t *testing.T) {
+		expectedErr := errors.New("failed to fetch rooms")
+
+		mockRoomRepo.EXPECT().GetAllRooms().Return(nil, expectedErr)
+
+		result, err := roomUseCase.GetAllRooms()
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, expectedErr, err)
+	})
+}
+
+func TestGetUsersInRoom(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+	roomUseCase := usecase.NewRoomUseCase(params)
+	// == Data ==
+	publicID := entity.RoomPublicID("public_room_1")
+	roomID := entity.RoomID(1)
+	users := []*entity.User{
+		entity.NewUser(entity.UserParams{
+			ID:         1,
+			PublicID:   "user_1",
+			Name:       "User 1",
+			Email:      "test@test",
+			PasswdHash: "hash",
+			CreatedAt:  time.Now(),
+			UpdatedAt:  nil,
+		}),
+		entity.NewUser(entity.UserParams{
+			ID:         2,
+			PublicID:   "user_2",
+			Name:       "User 2",
+			Email:      "test@test",
+			PasswdHash: "hash",
+			CreatedAt:  time.Now(),
+			UpdatedAt:  nil,
+		}),
+	}
+
+	t.Run("正常系", func(t *testing.T) {
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockRoomRepo.EXPECT().GetUsersInRoom(roomID).Return(users, nil)
+
+		resp, err := roomUseCase.GetUsersInRoom(usecase.GetUsersInRoomRequest{PublicID: publicID})
+
+		assert.NoError(t, err)
+		assert.Equal(t, users, resp.Users)
+	})
+
+	t.Run("部屋が見つからない場合", func(t *testing.T) {
+		publicID := entity.RoomPublicID("nonexistent_room")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
+
+		resp, err := roomUseCase.GetUsersInRoom(usecase.GetUsersInRoomRequest{PublicID: publicID})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp.Users)
+		assert.Equal(t, "room not found", err.Error())
+	})
+}
+
+func TestJoinRoom(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		publicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
+		userID := entity.UserID(1)
+		userPublicID := entity.UserPublicID("test_user")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockUserRepo.EXPECT().GetIDByPublicID(userPublicID).Return(userID, nil)
+		mockRoomRepo.EXPECT().AddMemberToRoom(roomID, userID).Return(nil)
+
+		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{
+			RoomPublicID: publicID,
+			UserPublicID: userPublicID,
+		})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("部屋が見つからない場合", func(t *testing.T) {
+		publicID := entity.RoomPublicID("nonexistent_room")
+		userPublicID := entity.UserPublicID("test_user")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), assert.AnError)
+
+		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{
+			RoomPublicID: publicID,
+			UserPublicID: userPublicID,
+		})
+
+		assert.Error(t, err)
+		assert.Equal(t, assert.AnError.Error(), err.Error())
+	})
+}
+
+func TestLeaveRoom(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		publicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
+		userID := entity.UserID(1)
+		userPublicID := entity.UserPublicID("test_user")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockUserRepo.EXPECT().GetIDByPublicID(userPublicID).Return(userID, nil)
+		mockRoomRepo.EXPECT().RemoveMemberFromRoom(roomID, userID).Return(nil)
+
+		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{
+			RoomPublicID: publicID,
+			UserPublicID: userPublicID,
+		})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("部屋が見つからない場合", func(t *testing.T) {
+		publicID := entity.RoomPublicID("nonexistent_room")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), assert.AnError)
+
+		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{RoomPublicID: publicID, UserPublicID: entity.UserPublicID("test_user")})
+
+		assert.Error(t, err)
+		assert.Equal(t, assert.AnError.Error(), err.Error())
+	})
+}
+
+func TestUpdateRoomName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		publicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
+		newName := "Updated Room Name"
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockRoomRepo.EXPECT().UpdateRoomName(roomID, newName).Return(nil)
+
+		err := roomUseCase.UpdateRoomName(usecase.UpdateRoomNameRequest{RoomPublicID: publicID, NewName: newName})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("部屋が見つからない場合", func(t *testing.T) {
+		publicID := entity.RoomPublicID("nonexistent_room")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
+
+		err := roomUseCase.UpdateRoomName(usecase.UpdateRoomNameRequest{RoomPublicID: publicID, NewName: "New Name"})
+
+		assert.Error(t, err)
+		assert.Equal(t, "room not found", err.Error())
+	})
+}
+
+func TestDeleteRoom(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
+	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
+	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
+	params := usecase.NewRoomUseCaseParams{
+		RoomRepo:      mockRoomRepo,
+		UserRepo:      mockUserRepo,
+		RoomIDFactory: mockRoomIDFactory,
+	}
+	roomUseCase := usecase.NewRoomUseCase(params)
+
+	t.Run("正常系", func(t *testing.T) {
+		publicID := entity.RoomPublicID("public_room_1")
+		roomID := entity.RoomID(1)
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(roomID, nil)
+		mockRoomRepo.EXPECT().DeleteRoom(roomID).Return(nil)
+
+		err := roomUseCase.DeleteRoom(usecase.DeleteRoomRequest{RoomPublicID: publicID})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("部屋が見つからない場合", func(t *testing.T) {
+		publicID := entity.RoomPublicID("nonexistent_room")
+
+		mockRoomRepo.EXPECT().GetRoomIDByPublicID(publicID).Return(entity.RoomID(0), nil)
+
+		err := roomUseCase.DeleteRoom(usecase.DeleteRoomRequest{RoomPublicID: publicID})
+
+		assert.Error(t, err)
+		assert.Equal(t, "room not found", err.Error())
+	})
+}

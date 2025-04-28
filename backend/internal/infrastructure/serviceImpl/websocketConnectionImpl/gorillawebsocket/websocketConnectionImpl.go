@@ -1,0 +1,102 @@
+package gorillawsconnectionimpl
+
+import (
+	"encoding/json"
+	"errors"
+	"time"
+
+	"example.com/infrahandson/internal/domain/entity"
+	"example.com/infrahandson/internal/domain/service"
+	"example.com/infrahandson/internal/interface/adapter"
+)
+
+type GorillaWebSocketConnection struct {
+	conn adapter.ConnAdapter
+}
+
+type NewGorillaWebSocketConnectionParams struct {
+	Conn adapter.ConnAdapter
+}
+
+func (p *NewGorillaWebSocketConnectionParams) Validate() error {
+	if p.Conn == nil {
+		return errors.New("conn is required")
+	}
+	return nil
+}
+
+func NewGorillaWebSocketConnection(
+	p *NewGorillaWebSocketConnectionParams,
+) service.WebSocketConnection {
+	if err := p.Validate(); err != nil {
+		panic(err)
+	}
+	return &GorillaWebSocketConnection{
+		conn: p.Conn,
+	}
+}
+
+type MessageDTO struct {
+	ID       entity.MessageID       // メッセージID
+	PublicID entity.MessagePublicID // メッセージの公開ID
+	RoomID   entity.RoomID          // 所属するチャットルームのID
+	UserID   entity.UserID          // 投稿者のID（匿名なら名前など）
+	Content  string                 // 本文
+	SentAt   time.Time              // 送信日時
+}
+
+func (m *MessageDTO) ToEntity() *entity.Message {
+	return entity.NewMessage(entity.MessageParams{
+		ID:       m.ID,
+		PublicID: m.PublicID,
+		RoomID:   m.RoomID,
+		UserID:   m.UserID,
+		Content:  m.Content,
+		SentAt:   m.SentAt,
+	})
+}
+
+func (m *MessageDTO) FromEntity(msg *entity.Message) {
+	m.ID = msg.GetID()
+	m.PublicID = msg.GetPublicID()
+	m.RoomID = msg.GetRoomID()
+	m.UserID = msg.GetUserID()
+	m.Content = msg.GetContent()
+	m.SentAt = msg.GetSentAt()
+}
+
+func (c *GorillaWebSocketConnection) ReadMessage() (int, *entity.Message, error) {
+	_, msg, err := c.conn.ReadMessageFunc()
+	if err != nil {
+		return 0, nil, err
+	}
+	var msgDTO MessageDTO
+	// IDはおそらく零値になるが、MessageのIDはバックエンド側で生成するので問題ない
+	err = json.Unmarshal(msg, &msgDTO)
+	if err != nil {
+		return 0, nil, err
+	}
+	return 0, msgDTO.ToEntity(), nil
+}
+
+func (c *GorillaWebSocketConnection) WriteMessage(msg *entity.Message) error {
+	msgDTO := MessageDTO{}
+	msgDTO.FromEntity(msg)
+	data, err := json.Marshal(msgDTO)
+	if err != nil {
+		return err
+	}
+	err = c.conn.WriteMessageFunc(1,data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *GorillaWebSocketConnection) Close() error {
+	err := c.conn.CloseFunc()
+	if err != nil {
+		return err
+	}
+	return nil
+}

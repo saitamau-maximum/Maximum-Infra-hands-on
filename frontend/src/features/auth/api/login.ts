@@ -1,14 +1,25 @@
 import { LoginFormData } from "../types/LoginFormDate";
 import apiClient from "../../utils/apiClient";
 
-export const Login = async (data: LoginFormData): Promise<void> => {
-  const res = await apiClient.post(
-    "/api/user/login",
-    data,
-  );
+type LoginParams = {
+  data: LoginFormData;
+  refetch: () => void;
+}
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "ログインに失敗しました");
+export const Login = async ({ data, refetch }: LoginParams): Promise<void> => {
+  try {
+    const res = await apiClient.post("/api/user/login", data);
+    console.log(res);
+    
+    // ここではaxiosのレスポンスデータを直接利用できます
+    if (res.ok) {
+      // 成功時の処理
+      refetch();  // 認証情報の更新
+    } else {
+      throw new Error("ログインに失敗しました");
+    }
+  } catch (error: any) {
+    // エラーハンドリング
+    throw new Error(error.response?.data?.message || "ログインに失敗しました");
   }
 };

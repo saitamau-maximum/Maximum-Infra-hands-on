@@ -1,4 +1,4 @@
-module example.com/webrtc-practice
+module example.com/infrahandson
 
 go 1.23.2
 
@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.0

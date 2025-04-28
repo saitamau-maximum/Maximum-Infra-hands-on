@@ -13,7 +13,7 @@ const apiClient = {
       throw new Error(error.message || "APIリクエストに失敗しました");
     }
 
-    return res.json(); // レスポンスをJSONとして返す
+    return res
   },
 
   // GETリクエスト専用
@@ -23,6 +23,16 @@ const apiClient = {
 
   // POSTリクエスト専用
   post: async (endpoint: string, body: any) => {
+    console.log(body);
+    if (body == null) {
+      return apiClient.request(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      // Cookieを送信
+      });
+    }
+    
     return apiClient.request(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -13,16 +13,16 @@ export const HomePage = () => {
       <p>ようこそ、ユーザーさん！</p>
       {!user ? (
         <div>
-          <Link to="/register">
+          <Link to="/user/register">
             新規登録
           </Link>
           または
-          <Link to="/login">
+          <Link to="/user/login">
             ログイン
           </Link>
         </div>
       ) : (
-        <p>チャットを開始する</p>
+        <Link to='/room'>チャットを開始する</Link>
       )}
     </div>
   );
