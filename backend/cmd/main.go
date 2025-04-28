@@ -23,5 +23,6 @@ func main() {
 	}
 
 	// サーバーの起動
-	server.ServerStart(cfg, db)
+	e := server.ServerStart(cfg, db)        // Echoインスタンスを取得
+	e.Logger.Fatal(e.Start(":" + cfg.Port)) // サーバーを起動
 }

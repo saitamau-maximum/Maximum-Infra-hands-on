@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ServerStart(cfg *config.Config, db *sqlx.DB) {
+func ServerStart(cfg *config.Config, db *sqlx.DB) *echo.Echo {
 	e := echo.New()
 	e.Validator = validator.NewEchoValidator()
 
@@ -23,19 +23,18 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 		SecretKey:     cfg.SecretKey,
 		ExpireMinutes: int(cfg.TokenExpiry),
 	})
-	
 	e.Use(middleware.CORS())
 
 	// ルーティングの設定
 	routes.SetupRoutes(
-		e, 
+		e,
 		cfg,
-		middleware.AuthMiddleware(tokenService), 
-		*dependencies.UserHandler, 
+		middleware.AuthMiddleware(tokenService),
+		*dependencies.UserHandler,
 		*dependencies.RoomHandler,
 		*dependencies.WsHandler,
 		*dependencies.MsgHandler,
-		)
+	)
 
-	e.Logger.Fatal(e.Start(":" + cfg.Port))
+	return e
 }
