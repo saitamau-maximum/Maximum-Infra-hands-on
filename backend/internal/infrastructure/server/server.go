@@ -2,7 +2,7 @@ package server
 
 import (
 	"example.com/infrahandson/config"
-	adapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl"
+	tokenadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/tokenServiceAdapterImpl/JWT"
 	"example.com/infrahandson/internal/infrastructure/di"
 	middleware "example.com/infrahandson/internal/infrastructure/gatewayImpl/middleware/echo"
 	routes "example.com/infrahandson/internal/infrastructure/gatewayImpl/routes/echo"
@@ -19,7 +19,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 	dependencies := di.InitializeDependencies(cfg, db)
 
 	// ミドルウェアの設定
-	tokenService := adapterimpl.NewTokenServiceAdapter(adapterimpl.NewTokenServiceAdapterParams{
+	tokenService := tokenadapterimpl.NewTokenServiceAdapter(tokenadapterimpl.NewTokenServiceAdapterParams{
 		SecretKey:     cfg.SecretKey,
 		ExpireMinutes: int(cfg.TokenExpiry),
 	})

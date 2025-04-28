@@ -1,4 +1,3 @@
-// interface/factory/websocket_connection_factory.go
 package factory
 
 import (
