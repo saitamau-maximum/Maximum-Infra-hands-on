@@ -21,6 +21,7 @@ type Dependencies struct {
 	UserHandler *handler.UserHandler
 	RoomHandler *handler.RoomHandler
 	WsHandler   *handler.WebSocketHandler
+	MsgHandler  *handler.MessageHandler
 }
 
 func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
@@ -72,13 +73,18 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 		RoomIDFactory: roomIDFactory,
 	})
 	wsUseCase := usecase.NewWebsocketUseCase(usecase.NewWebsocketUseCaseParams{
-		UserRepo:     userRepository,
-		RoomRepo:     roomRepository,
-		MsgRepo:      msgRepository,
-		WsClientRepo: wsClientRepository,
+		UserRepo:         userRepository,
+		RoomRepo:         roomRepository,
+		MsgRepo:          msgRepository,
+		WsClientRepo:     wsClientRepository,
 		WebsocketManager: wsManager,
-		MsgIDFactory:    MsgIDFactory,
-		ClientIDFactory: clientDFactory,
+		MsgIDFactory:     MsgIDFactory,
+		ClientIDFactory:  clientDFactory,
+	})
+	msgUseCase := usecase.NewMessageUseCase(usecase.NewMessageUseCaseParams{
+		MsgRepo:          msgRepository,
+		RoomRepo:         roomRepository,
+		UserRepo: 				userRepository,
 	})
 
 	// Handlerの初期化
@@ -94,17 +100,22 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 		Logger:        logger,
 	})
 	wsHandler := handler.NewWebSocketHandler(handler.NewWebSocketHandlerParams{
-		WsUseCase:  wsUseCase,
-		WsUpgrader: upgrader,
-		WsConnFactory:wsConnFactory,
+		WsUseCase:     wsUseCase,
+		WsUpgrader:    upgrader,
+		WsConnFactory: wsConnFactory,
 		UserIDFactory: userIDFactory,
 		RoomIDFactory: roomIDFactory,
 		Logger:        logger,
+	})
+	msgHansler := handler.NewMessageHandler(handler.NewMessageHandlerParams{
+		MsgUseCase:   msgUseCase,
+		Logger: 		logger,
 	})
 
 	return &Dependencies{
 		UserHandler: userHandler,
 		RoomHandler: roomHandler,
 		WsHandler:   wsHandler,
+		MsgHandler:  msgHansler,
 	}
 }

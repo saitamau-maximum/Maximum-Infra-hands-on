@@ -34,6 +34,7 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) {
 		*dependencies.UserHandler, 
 		*dependencies.RoomHandler,
 		*dependencies.WsHandler,
+		*dependencies.MsgHandler,
 		)
 
 	e.Logger.Fatal(e.Start(":" + cfg.Port))

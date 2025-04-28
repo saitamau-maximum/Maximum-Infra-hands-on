@@ -17,12 +17,12 @@ type MessageHandler struct {
 	Logger     adapter.LoggerAdapter
 }
 
-type MessageHandlerParams struct {
+type NewMessageHandlerParams struct {
 	MsgUseCase usecase.MessageUseCaseInterface
 	Logger     adapter.LoggerAdapter
 }
 
-func (p *MessageHandlerParams) Validate() error {
+func (p *NewMessageHandlerParams) Validate() error {
 	if p.MsgUseCase == nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "MessageUseCase is required")
 	}
@@ -32,7 +32,7 @@ func (p *MessageHandlerParams) Validate() error {
 	return nil
 }
 
-func NewMessageHandler(params MessageHandlerParams) *MessageHandler {
+func NewMessageHandler(params NewMessageHandlerParams) *MessageHandler {
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}
@@ -40,10 +40,6 @@ func NewMessageHandler(params MessageHandlerParams) *MessageHandler {
 		MsgUseCase: params.MsgUseCase,
 		Logger:     params.Logger,
 	}
-}
-
-func (h *MessageHandler) Register(g *echo.Group) {
-	g.GET("/messages/:room_public_id", h.GetMessageHistoryInRoom)
 }
 
 type GetMessageHistoryInRoomRequest struct {

@@ -25,7 +25,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	mockUseCase := mock_usecase.NewMockMessageUseCaseInterface(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
-	handler := handler.NewMessageHandler(handler.MessageHandlerParams{
+	handler := handler.NewMessageHandler(handler.NewMessageHandlerParams{
 		MsgUseCase: mockUseCase,
 		Logger:     mockLogger,
 	})

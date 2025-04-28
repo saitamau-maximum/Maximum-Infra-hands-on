@@ -13,6 +13,7 @@ func SetupRoutes(
 	userHandler handler.UserHandler,
 	roomHandler handler.RoomHandler,
 	wsHandler handler.WebSocketHandler,
+	msgHansler handler.MessageHandler,
 ) {
 	userGroup := e.Group("/api/user")
 	RegisterUserRoutes(userGroup, &userHandler, AuthMiddleware)
@@ -20,6 +21,8 @@ func SetupRoutes(
 	RegisterRoomRoutes(roomGroup, &roomHandler)
 	wsGroup := e.Group("/api/ws", AuthMiddleware)
 	RegisterWsRoutes(wsGroup, &wsHandler)
+	msgGroup := e.Group("/api/message", AuthMiddleware)
+	RegisterMsgRoutes(msgGroup, &msgHansler)
 }
 
 // routes/user_routes.go
@@ -40,4 +43,8 @@ func RegisterRoomRoutes(g *echo.Group, h *handler.RoomHandler) {
 
 func RegisterWsRoutes(g *echo.Group, h *handler.WebSocketHandler) {
 	g.GET("/ws/:room_public_id", h.ConnectToChatRoom)
+}
+
+func RegisterMsgRoutes(g *echo.Group, h *handler.MessageHandler) {
+	g.GET("/messages/:room_public_id", h.GetMessageHistoryInRoom)
 }
