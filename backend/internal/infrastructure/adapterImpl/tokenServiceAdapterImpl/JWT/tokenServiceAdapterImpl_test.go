@@ -1,20 +1,20 @@
-package adapterimpl_test
+package tokenadapterimpl_test
 
 import (
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	adapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl"
+	tokenadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/tokenServiceAdapterImpl/JWT"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenServiceAdapter(t *testing.T) {
-	params := adapterimpl.NewTokenServiceAdapterParams{
+	params := tokenadapterimpl.NewTokenServiceAdapterParams{
 		SecretKey:     "test-secret-key",
 		ExpireMinutes: 1, // 1分で期限切れになる設定
 	}
-	tokenService := adapterimpl.NewTokenServiceAdapter(params)
+	tokenService := tokenadapterimpl.NewTokenServiceAdapter(params)
 
 	t.Run("Generate and Validate valid token", func(t *testing.T) {
 		userID := entity.UserPublicID("abc123")

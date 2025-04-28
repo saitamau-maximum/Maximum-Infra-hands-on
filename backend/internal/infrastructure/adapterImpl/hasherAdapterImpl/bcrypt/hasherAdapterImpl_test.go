@@ -1,14 +1,14 @@
-package adapterimpl_test
+package bcryptadapterimpl_test
 
 import (
 	"testing"
 
-	adapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl"
+	bcryptadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/hasherAdapterImpl/bcrypt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHasherAdapterImpl_HashAndComparePassword(t *testing.T) {
-	adapter := adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{Cost: 10})
+	adapter := bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{Cost: 10})
 
 	password := "securePassword123"
 
@@ -35,13 +35,13 @@ func TestHasherAdapterImpl_HashAndComparePassword(t *testing.T) {
 func TestNewHasherAdapter_InvalidCost(t *testing.T) {
 	t.Run("costが0以下だとpanic", func(t *testing.T) {
 		assert.Panics(t, func() {
-			_ = adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{Cost: 0})
+			_ = bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{Cost: 0})
 		})
 	})
 
 	t.Run("costが31を超えるとpanic", func(t *testing.T) {
 		assert.Panics(t, func() {
-			_ = adapterimpl.NewHasherAdapter(adapterimpl.NewHasherAddapterParams{Cost: 32})
+			_ = bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{Cost: 32})
 		})
 	})
 }

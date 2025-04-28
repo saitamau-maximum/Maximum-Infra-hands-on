@@ -1,4 +1,4 @@
-package adapterimpl
+package tokenadapterimpl
 
 import (
 	"errors"
