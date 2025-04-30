@@ -34,3 +34,7 @@ func (w *WebsocketClient) GetRoomID() RoomID {
 func (w *WebsocketClient) GetUserID() UserID {
 	return w.userID
 }
+
+func (w *WebsocketClient) SetID(id WsClientID) {
+	w.id = id
+}
