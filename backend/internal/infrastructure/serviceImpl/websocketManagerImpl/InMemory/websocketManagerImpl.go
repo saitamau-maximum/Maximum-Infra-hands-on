@@ -2,6 +2,7 @@ package inmemorywsmanagerimpl
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -82,6 +83,8 @@ func (m *InMemoryWebSocketManager) BroadcastToRoom(roomID entity.RoomID, msg *en
 	if !exists {
 		return errors.New("room not found")
 	}
+
+	fmt.Println("Broadcast content:", msg.GetContent())
 
 	for _, conn := range users {
 		if err := conn.WriteMessage(msg); err != nil {

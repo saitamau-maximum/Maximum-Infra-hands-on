@@ -114,7 +114,7 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 	go func() {
 		defer conn.Close()
 		for {
-			_, message, err := conn.ReadMessage()
+			message, err := conn.ReadMessage()
 			if err != nil {
 				h.Logger.Warn("Connection closed or error reading message", "error", err)
 				_ = h.WsUseCase.DisconnectUser(usecase.DisconnectUserRequest{
