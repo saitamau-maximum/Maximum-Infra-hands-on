@@ -1,7 +1,6 @@
 package gorillawsconnectionimpl
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -65,28 +64,20 @@ func (m *MessageDTO) FromEntity(msg *entity.Message) {
 	m.SentAt = msg.GetSentAt()
 }
 
-func (c *GorillaWebSocketConnection) ReadMessage() (int, *entity.Message, error) {
-	_, msg, err := c.conn.ReadMessageFunc()
-	if err != nil {
-		return 0, nil, err
-	}
+func (c *GorillaWebSocketConnection) ReadMessage() (*entity.Message, error) {
 	var msgDTO MessageDTO
-	// IDはおそらく零値になるが、MessageのIDはバックエンド側で生成するので問題ない
-	err = json.Unmarshal(msg, &msgDTO)
+	err := c.conn.ReadJSON(&msgDTO)
 	if err != nil {
-		return 0, nil, err
+		return nil, err
 	}
-	return 0, msgDTO.ToEntity(), nil
+
+	return msgDTO.ToEntity(), nil
 }
 
 func (c *GorillaWebSocketConnection) WriteMessage(msg *entity.Message) error {
 	msgDTO := MessageDTO{}
 	msgDTO.FromEntity(msg)
-	data, err := json.Marshal(msgDTO)
-	if err != nil {
-		return err
-	}
-	err = c.conn.WriteMessageFunc(1,data)
+	err := c.conn.WriteJSON(msgDTO)
 	if err != nil {
 		return err
 	}

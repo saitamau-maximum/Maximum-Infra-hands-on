@@ -3,7 +3,7 @@ package service
 import "example.com/infrahandson/internal/domain/entity"
 
 type WebSocketConnection interface {
-	ReadMessage() (int, *entity.Message, error)
+	ReadMessage() (*entity.Message, error)
 	WriteMessage(*entity.Message) error
 	Close() error
 }
