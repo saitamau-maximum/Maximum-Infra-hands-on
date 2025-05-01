@@ -2,7 +2,7 @@ package main
 
 import (
 	"example.com/infrahandson/config"
-	gatewayImpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
+	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	"example.com/infrahandson/internal/infrastructure/server"
 )
 
@@ -10,7 +10,7 @@ func main() {
 	// 設定の読み込み
 	cfg := config.LoadConfig()
 
-	initializer := gatewayImpl.NewSQLiteInitializer(&gatewayImpl.NewSQLiteInitializerParams{
+	initializer := sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
 		Path:           cfg.DBPath,
 		MigrationsPath: "file://./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
 	})

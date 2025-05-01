@@ -1,4 +1,4 @@
-package gatewayImpl
+package sqlitegatewayimpl
 
 import (
 	"errors"
