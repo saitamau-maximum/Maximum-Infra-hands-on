@@ -56,7 +56,7 @@ func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error)
 
 	// ルームに所属しているユーザーを取得
 	roomMembers := []model.RoomMemberModel{}
-	err = r.db.Select(&roomMembers, `SELECT user_id FROM room_users WHERE room_id = ?`, id)
+	err = r.db.Select(&roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (r *RoomRepositoryImpl) GetRoomByPubID(pubID entity.RoomPublicID) (*entity.
 
 	// ルームに所属しているユーザーを取得
 	roomMembers := []model.RoomMemberModel{}
-	err = r.db.Select(&roomMembers, `SELECT user_id FROM room_users WHERE room_id = ?`, roomModel.ID)
+	err = r.db.Select(&roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, roomModel.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 		return []*entity.User{}, nil
 	}
 
-	// IN句を使って一括でUser情報を取得（N+1回避！）
+	// IN句を使って一括でUser情報を取得（N+1回避）
 	query, args, err := sqlx.In(`SELECT id, name FROM users WHERE id IN (?)`, userIDs)
 	if err != nil {
 		return nil, err
