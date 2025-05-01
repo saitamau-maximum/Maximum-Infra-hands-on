@@ -14,7 +14,10 @@ import (
 
 func setupTestDB(t *testing.T) *sqlx.DB {
 	// SQLiteインメモリDBをセットアップ
-	initializer := gatewayImpl.NewSQLiteInitializer(":memory:")
+	initializer := gatewayImpl.NewSQLiteInitializer(&gatewayImpl.NewSQLiteInitializerParams{
+		Path:           ":memory:",
+		MigrationsPath: "file://migrations",
+	})
 	db, err := initializer.Init()
 	require.NoError(t, err)
 
