@@ -94,7 +94,8 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 		Value:    authRes.GetToken(),
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   true,
+		Secure:   true, // 本番・開発環境では true にする
+		// Secure:   false, // テスト時にはfalseにする
 		SameSite: http.SameSiteNoneMode,
 		MaxAge:   authRes.GetExp(),
 	})
@@ -133,7 +134,8 @@ func (h *UserHandler) Login(c echo.Context) error {
 		Value:    authRes.GetToken(),
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   true,
+		Secure:   true, // 本番・開発環境では true にする
+		// Secure:   false, // テスト時にはfalseにする
 		SameSite: http.SameSiteNoneMode,
 		MaxAge:   authRes.GetExp(),
 	})
@@ -147,7 +149,8 @@ func (h *UserHandler) Logout(c echo.Context) error {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   true, // 本番・開発環境では true にする
+		// Secure:   false, // テスト時にはfalseにする
 		SameSite: http.SameSiteNoneMode,
 	})
 
