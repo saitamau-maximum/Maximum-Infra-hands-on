@@ -13,12 +13,12 @@ export const RegisterForm = () => {
     register,
     handleSubmit,
   } = useForm<RegisterFormData>()
-  const { user, loading } = useAuth();
+  const { user, loading, refetch } = useAuth();
   if (loading) return <div>Loading...</div>;
 
   const registerHandler = async (data: RegisterFormData) => {
     try {
-      await Register(data);
+      await Register({data, refetch});
       navigate('/');
     } catch (error) {
       console.error("Register failed:", error);
