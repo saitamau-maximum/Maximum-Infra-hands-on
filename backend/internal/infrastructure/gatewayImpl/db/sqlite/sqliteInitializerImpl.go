@@ -1,30 +1,55 @@
 package gatewayImpl
 
 import (
-	"fmt"
+	"errors"
 	"log"
 
 	"example.com/infrahandson/internal/interface/gateway"
+	"github.com/golang-migrate/migrate/v4"
+	sqlite3 "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )
 
 type SQLiteInitializerImpl struct {
-	Path string // e.g., ":memory:" or "data/test.db"
+	Path           string // e.g., ":memory:" or "data/test.db"
+	migrationsPath string // e.g., "file://migrations"
 }
 
-func NewSQLiteInitializer(path string) gateway.DBInitializer {
-	return &SQLiteInitializerImpl{Path: path}
+type NewSQLiteInitializerParams struct {
+	Path           string // e.g., ":memory:" or "data/test.db"
+	MigrationsPath string // e.g., "file://migrations"
+}
+
+func (p *NewSQLiteInitializerParams) Validate() error {
+	if p.Path == "" {
+		return errors.New("path is required")
+	}
+	if p.MigrationsPath == "" {
+		return errors.New("migrationsPath is required")
+	}
+	return nil
+}
+
+func NewSQLiteInitializer(p *NewSQLiteInitializerParams) gateway.DBInitializer {
+	if err := p.Validate(); err != nil {
+		panic(err)
+	}
+	return &SQLiteInitializerImpl{
+		Path:           p.Path,
+		migrationsPath: p.MigrationsPath,
+	}
 }
 
 func (i *SQLiteInitializerImpl) Init() (*sqlx.DB, error) {
 	db, err := sqlx.Open("sqlite3", i.Path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open SQLite: %w", err)
+		return nil, err
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping SQLite: %w", err)
+		return nil, err
 	}
 
 	log.Printf("SQLite connected at %s\n", i.Path)
@@ -32,37 +57,23 @@ func (i *SQLiteInitializerImpl) Init() (*sqlx.DB, error) {
 }
 
 func (i *SQLiteInitializerImpl) InitSchema(db *sqlx.DB) error {
-	schema := `
-CREATE TABLE IF NOT EXISTS users (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	public_id TEXT NOT NULL UNIQUE,
-	name TEXT NOT NULL,
-	email TEXT NOT NULL UNIQUE,
-	password_hash TEXT NOT NULL,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME
-);
-CREATE TABLE IF NOT EXISTS rooms (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  public_id TEXT NOT NULL UNIQUE,
-  name TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS room_members (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  room_id INTEGER NOT NULL,
-  user_id TEXT NOT NULL,
-  FOREIGN KEY (room_id) REFERENCES rooms(id)
-);
-CREATE TABLE IF NOT EXISTS messages (
-    id        TEXT PRIMARY KEY,   
-    public_id TEXT UNIQUE NOT NULL, 
-    room_id   TEXT NOT NULL,      
-    user_id   TEXT NOT NULL,      
-    content   TEXT NOT NULL,      
-    sent_at   DATETIME NOT NULL   
-);
-`
+	driver, err := sqlite3.WithInstance(db.DB, &sqlite3.Config{})
+	if err != nil {
+		return err
+	}
 
-	_, err := db.Exec(schema)
-	return err
+	m, err := migrate.NewWithDatabaseInstance(
+		i.migrationsPath,
+		"sqlite3", driver,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Upマイグレーション実行
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	return nil
 }
