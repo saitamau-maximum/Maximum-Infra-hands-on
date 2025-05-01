@@ -12,7 +12,7 @@ func main() {
 
 	initializer := sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
 		Path:           cfg.DBPath,
-		MigrationsPath: "file://./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
+		MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
 	})
 	// データベースの初期化
 	db, err := initializer.Init()
