@@ -13,10 +13,12 @@ export const useRooms = () => {
         setLoading(true);
         setError(null); // エラーメッセージをリセット
         const roomsData = await getAllRoomsApi(); // API呼び出し
+
         const rooms: GetAllRoomsResponse[] = roomsData.map((room: any) => ({
-          id: room.id,
+          id: room.public_id,
           name: room.name,
         })); // 型を指定
+        
         setRooms(rooms); // 取得したデータを設定
       } catch (err: any) {
         setError(err.message || "ルームの取得に失敗しました");

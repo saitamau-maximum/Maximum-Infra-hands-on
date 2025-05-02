@@ -53,14 +53,6 @@ func NewRoomHandler(params NewRoomHandlerParams) *RoomHandler {
 	}
 }
 
-func (h *RoomHandler) Register(g *echo.Group) {
-	g.POST("/rooms", h.CreateRoom)
-	g.POST("/rooms/:room_public_id/join", h.JoinRoom)
-	g.POST("/rooms/:room_public_id/leave", h.LeaveRoom)
-	g.GET("/rooms/:room_public_id", h.GetRoom)
-	g.GET("/rooms", h.GetRooms)
-}
-
 type CreateRoomRequest struct {
 	Name string `json:"name" validate:"required"`
 }

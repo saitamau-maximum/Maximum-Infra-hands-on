@@ -1,0 +1,13 @@
+.roomListItem {
+  display: block;
+  padding: auto;
+  background-color: var(--primary-50);
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.name {
+  color: black;
+  font-size: 1.5rem;
+  padding: 0.5rem;
+}

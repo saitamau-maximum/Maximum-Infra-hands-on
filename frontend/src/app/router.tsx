@@ -2,8 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "../features/home";
 import { Layout } from "../features/layout";
 import { LoginPage, RegisterPage } from "../features/auth";
-import { CreateRoomPage, RoomListPage, RoomPage } from "../features/room";
-
+import { CreateRoomPage, RoomListPage } from "../features/room";
+import { RoomPage } from "../features/chatRoom"; 
 
 export const appRouter = createBrowserRouter([
   {
