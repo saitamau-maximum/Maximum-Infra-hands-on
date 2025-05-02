@@ -1,0 +1,1 @@
+DROP INDEX idx_rooms_name ON rooms;
