@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"example.com/infrahandson/config"
 	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
@@ -13,7 +11,6 @@ import (
 func main() {
 	// 設定の読み込み
 	cfg := config.LoadConfig()
-	log.Println("DSN: ", *cfg.MySQLDSN)
 	var initializer gateway.DBInitializer
 	// initializerの作成
 	if cfg.MySQLDSN != nil {

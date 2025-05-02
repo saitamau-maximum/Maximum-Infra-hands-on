@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -29,7 +28,6 @@ func LoadConfig() *Config {
 }
 
 func getEnv(key, fallback string) string {
-	log.Println("getEnv: ", key, fallback)
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}

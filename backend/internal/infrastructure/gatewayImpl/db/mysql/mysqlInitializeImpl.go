@@ -50,7 +50,7 @@ func (i *MySQLInitializer) Init() (*sqlx.DB, error) {
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
-	log.Printf("MySQL connected at \n")
+	log.Printf("MySQL connected\n")
 	return db, nil
 }
 
