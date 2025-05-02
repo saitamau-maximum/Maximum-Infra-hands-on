@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"example.com/infrahandson/config"
 	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
@@ -11,6 +13,7 @@ import (
 func main() {
 	// 設定の読み込み
 	cfg := config.LoadConfig()
+	log.Println("DSN: ", *cfg.MySQLDSN)
 	var initializer gateway.DBInitializer
 	// initializerの作成
 	if cfg.MySQLDSN != nil {
@@ -19,13 +22,13 @@ func main() {
 			DSN:            cfg.MySQLDSN,
 			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/mysql/migrations",
 		})
-		} else {
-			// SQLite用の初期化処理を行う
-			initializer = sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
-				Path:           cfg.DBPath,
-				MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
-			})
-		}
+	} else {
+		// SQLite用の初期化処理を行う
+		initializer = sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
+			Path:           cfg.DBPath,
+			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
+		})
+	}
 	// データベースの初期化
 	db, err := initializer.Init()
 	if err != nil {

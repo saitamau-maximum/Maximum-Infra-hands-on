@@ -1,18 +1,19 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"time"
 )
 
 type Config struct {
-	Port        string // サーバーのポート番号
-	DBPath      string // SQLite用データベースファイルの場所
-	SecretKey   string // JWTトークンの署名に使用する秘密鍵
-	HashCost    int // パスワードハッシュ化に使用するcost値
+	Port        string        // サーバーのポート番号
+	DBPath      string        // SQLite用データベースファイルの場所
+	SecretKey   string        // JWTトークンの署名に使用する秘密鍵
+	HashCost    int           // パスワードハッシュ化に使用するcost値
 	TokenExpiry time.Duration // JWTトークンの有効期限
-	MySQLDSN    *string // MySQL用データベースのDSN
+	MySQLDSN    *string       // MySQL用データベースのDSN
 	// MySQL用データベースのDSNをポインタにしているのは，環境変数が設定されていない場合にnilにするため
 }
 
@@ -28,7 +29,7 @@ func LoadConfig() *Config {
 }
 
 func getEnv(key, fallback string) string {
-
+	log.Println("getEnv: ", key, fallback)
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
