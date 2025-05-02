@@ -2,6 +2,7 @@ package mysqlgatewayimpl
 
 import (
 	"errors"
+	"log"
 
 	"example.com/infrahandson/internal/interface/gateway"
 	"github.com/golang-migrate/migrate/v4"
@@ -16,14 +17,14 @@ type MySQLInitializer struct {
 
 type NewMySQLInitializerParams struct {
 	DSN            *string
-	MigrationsPath *string
+	MigrationsPath string
 }
 
 func (p *NewMySQLInitializerParams) Validate() error {
 	if p.DSN == nil {
 		return errors.New("DSN is required")
 	}
-	if p.MigrationsPath == nil {
+	if p.MigrationsPath == "" {
 		return errors.New("migrationsPath is required")
 	}
 	return nil
@@ -33,10 +34,10 @@ func NewMySQLInitializer(params *NewMySQLInitializerParams) gateway.DBInitialize
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}
-	// Validateに通るなら，*params.DSNや*parms.MigrationPathがnil pointerにならないことが保証される
+	// Validateに通るなら，*params.DSNがnil pointerにならないことが保証される
 	return &MySQLInitializer{
 		dsn:            *params.DSN,
-		migrationsPath: *params.MigrationsPath,
+		migrationsPath: params.MigrationsPath,
 	}
 }
 
@@ -49,7 +50,7 @@ func (i *MySQLInitializer) Init() (*sqlx.DB, error) {
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
-
+	log.Printf("MySQL connected at \n")
 	return db, nil
 }
 
