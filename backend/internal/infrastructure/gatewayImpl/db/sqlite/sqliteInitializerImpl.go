@@ -1,4 +1,4 @@
-package gatewayImpl
+package sqlitegatewayimpl
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 )
 
 type SQLiteInitializerImpl struct {
-	Path           string // e.g., ":memory:" or "data/test.db"
+	path           string // e.g., ":memory:" or "data/test.db"
 	migrationsPath string // e.g., "file://migrations"
 }
 
@@ -37,13 +37,13 @@ func NewSQLiteInitializer(p *NewSQLiteInitializerParams) gateway.DBInitializer {
 		panic(err)
 	}
 	return &SQLiteInitializerImpl{
-		Path:           p.Path,
+		path:           p.Path,
 		migrationsPath: p.MigrationsPath,
 	}
 }
 
 func (i *SQLiteInitializerImpl) Init() (*sqlx.DB, error) {
-	db, err := sqlx.Open("sqlite3", i.Path)
+	db, err := sqlx.Open("sqlite3", i.path)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (i *SQLiteInitializerImpl) Init() (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	log.Printf("SQLite connected at %s\n", i.Path)
+	log.Printf("SQLite connected at %s\n", i.path)
 	return db, nil
 }
 
@@ -62,9 +62,12 @@ func (i *SQLiteInitializerImpl) InitSchema(db *sqlx.DB) error {
 		return err
 	}
 
+	path := "file://" + i.migrationsPath
+
 	m, err := migrate.NewWithDatabaseInstance(
-		i.migrationsPath,
-		"sqlite3", driver,
+		path,
+		"sqlite3",
+		driver,
 	)
 	if err != nil {
 		return err

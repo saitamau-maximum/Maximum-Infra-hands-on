@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS messages (
+    id VARCHAR(255) PRIMARY KEY,
+    public_id VARCHAR(255) NOT NULL UNIQUE,
+    room_id VARCHAR(255) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    sent_at DATETIME NOT NULL
+);

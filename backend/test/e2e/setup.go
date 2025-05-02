@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/config"
-	gatewayImpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
+	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	"example.com/infrahandson/internal/infrastructure/server"
 	"github.com/gorilla/websocket"
 )
@@ -43,7 +43,10 @@ func StartTestServer(t *testing.T) *TestServer {
 	cfg.Port = fmt.Sprintf("%d", port)
 
 	// DB初期化
-	initializer := gatewayImpl.NewSQLiteInitializer(cfg.DBPath)
+	initializer := sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
+		Path:           "./database.db",
+		MigrationsPath: "file://../../internal/infrastructure/gatewayImpl/db/sqlite/migrations",
+	})
 	db, err := initializer.Init()
 	if err != nil {
 		t.Fatalf("failed to initialize database: %v", err)
