@@ -85,6 +85,8 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	// クエリ: before_sent_at（任意）
 	beforeSentAtStr := c.QueryParam("before_sent_at")
 
+	// Check for "undefined" as a workaround for cases where the frontend or external system
+	// sends the string "undefined" instead of leaving the parameter empty.
 	if beforeSentAtStr != "" && beforeSentAtStr != "undefined" {
 		fixedStr := strings.Replace(beforeSentAtStr, " ", "+", 1)
 		var err error
