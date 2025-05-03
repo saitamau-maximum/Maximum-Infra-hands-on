@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	gatewayImpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
+	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	sqliteroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/sqlite"
 
 	"github.com/jmoiron/sqlx"
@@ -15,7 +15,7 @@ import (
 
 func setupTestDB(t *testing.T) *sqlx.DB {
 	// SQLiteインメモリDBをセットアップ
-	initializer := gatewayImpl.NewSQLiteInitializer(&gatewayImpl.NewSQLiteInitializerParams{
+	initializer := sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
 		Path:           ":memory:",
 		MigrationsPath: "file://migrations",
 	})

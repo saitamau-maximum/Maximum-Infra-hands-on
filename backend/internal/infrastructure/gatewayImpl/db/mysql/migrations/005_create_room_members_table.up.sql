@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS room_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
+);
