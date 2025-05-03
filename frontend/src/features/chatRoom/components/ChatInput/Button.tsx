@@ -8,7 +8,7 @@ export const Button = () => {
       type="submit"
       className={styles.button}
     >
-      <MdSend size={20} className={styles.icon} />
+      <MdSend size={40} className={styles.icon} />
     </button>
   )
 }

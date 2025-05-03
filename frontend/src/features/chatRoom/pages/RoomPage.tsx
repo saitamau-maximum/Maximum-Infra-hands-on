@@ -34,7 +34,7 @@ export const RoomPage = () => {
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
         <ChatInput.Field>
-          <input
+          <ChatInput.Input
             {...register('message')}
             placeholder="メッセージを入力"
           />
