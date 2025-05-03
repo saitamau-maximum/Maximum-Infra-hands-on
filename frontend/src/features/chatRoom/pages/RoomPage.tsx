@@ -1,19 +1,27 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRoomSocket } from '../hooks/useRoomSocket';
 import { useParams } from 'react-router-dom';
+import { ChatInput } from '../components';
+
+import styles from './RoomPage.module.css';
+
+type FormData = {
+  message: string;
+};
 
 export const RoomPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
+  const { register, handleSubmit, reset } = useForm<FormData>();
+  const { messages, sendMessage } = useRoomSocket(roomId ?? '');
+
   if (!roomId) {
     return <div>Room ID is required</div>;
   }
-  const { messages, sendMessage } = useRoomSocket(roomId);
-  const [input, setInput] = useState('');
 
-  const handleSend = () => {
-    if (input.trim()) {
-      sendMessage(input);
-      setInput('');
+  const onSubmit = (data: FormData) => {
+    if (data.message.trim()) {
+      sendMessage(data.message);
+      reset(); // フォームの値をリセット
     }
   };
 
@@ -21,17 +29,18 @@ export const RoomPage = () => {
     <div>
       <div>
         {messages.map((msg, index) => (
-          <div key={index}>
-            {msg}
-          </div>
+          <div key={index}>{msg}</div>
         ))}
       </div>
-      <input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="メッセージを入力"
-      />
-      <button onClick={handleSend}>送信</button>
+      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+        <ChatInput.Field>
+          <input
+            {...register('message')}
+            placeholder="メッセージを入力"
+          />
+          <ChatInput.Button />
+        </ChatInput.Field>
+      </form>
     </div>
   );
 };
