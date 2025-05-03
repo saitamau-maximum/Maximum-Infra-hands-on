@@ -2,7 +2,6 @@ package inmemorywsmanagerimpl
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -13,19 +12,25 @@ type InMemoryWebSocketManager struct {
 	mu                sync.RWMutex
 	connectionsByUser map[entity.UserID]service.WebSocketConnection
 	connectionsByRoom map[entity.RoomID]map[entity.UserID]service.WebSocketConnection
+	idByConn          map[service.WebSocketConnection]IDs
+}
+
+type IDs struct {
+	UserID entity.UserID
+	RoomID entity.RoomID
 }
 
 func NewInMemoryWebSocketManager() service.WebsocketManager {
 	return &InMemoryWebSocketManager{
 		connectionsByUser: make(map[entity.UserID]service.WebSocketConnection),
 		connectionsByRoom: make(map[entity.RoomID]map[entity.UserID]service.WebSocketConnection),
+		idByConn:          make(map[service.WebSocketConnection]IDs),
 	}
 }
 
 func (m *InMemoryWebSocketManager) Register(conn service.WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
 	// ユーザーごとの接続を登録
 	m.connectionsByUser[userID] = conn
 
@@ -34,33 +39,26 @@ func (m *InMemoryWebSocketManager) Register(conn service.WebSocketConnection, us
 		m.connectionsByRoom[roomID] = make(map[entity.UserID]service.WebSocketConnection)
 	}
 	m.connectionsByRoom[roomID][userID] = conn
+	// 接続とユーザーID、部屋IDのマッピングを保存
+	m.idByConn[conn] = IDs{
+		UserID: userID,
+		RoomID: roomID,
+	}
 	return nil
 }
 
 func (m *InMemoryWebSocketManager) Unregister(conn service.WebSocketConnection) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	// ユーザーIDを探して削除
-	for userID, c := range m.connectionsByUser {
-		if c == conn {
-			delete(m.connectionsByUser, userID)
-			break
-		}
+	IDs, exists := m.idByConn[conn]
+	if !exists {
+		return errors.New("connection not found")
 	}
 
-	// 部屋IDを探して削除
-	for roomID, users := range m.connectionsByRoom {
-		for userID, c := range users {
-			if c == conn {
-				delete(users, userID)
-				if len(users) == 0 {
-					delete(m.connectionsByRoom, roomID)
-				}
-				break
-			}
-		}
-	}
+	delete(m.idByConn, conn)
+	delete(m.connectionsByUser, IDs.UserID)
+	delete(m.connectionsByRoom[IDs.RoomID], IDs.UserID)
+
 	return nil
 }
 
@@ -83,8 +81,6 @@ func (m *InMemoryWebSocketManager) BroadcastToRoom(roomID entity.RoomID, msg *en
 	if !exists {
 		return errors.New("room not found")
 	}
-
-	fmt.Println("Broadcast content:", msg.GetContent())
 
 	for _, conn := range users {
 		if err := conn.WriteMessage(msg); err != nil {

@@ -4,8 +4,10 @@ import { CreateRoomFormData } from "../../types/CreateRoomFormDate";
 
 import styles from "./CreateRoomForm.module.css";
 import { CreateRoomApi } from "../../api";
+import { useNavigate } from "react-router-dom";
 
 export const CreateRoomForm = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -14,6 +16,7 @@ export const CreateRoomForm = () => {
     try {
       await CreateRoomApi(data);
       console.log("Room created:", data);
+      navigate("/room");
     } catch (error) {
       console.error("Room creation failed:", error);
     }

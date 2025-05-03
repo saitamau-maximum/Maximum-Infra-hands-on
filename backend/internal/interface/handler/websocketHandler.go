@@ -111,7 +111,11 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 	}
 
 	h.Logger.Info("User connected to room", "room_public_id", roomPublicIDStr, "user_id", userPublicIDStr)
+	
 	go func() {
+		h.Logger.Info("Starting message loop", "room_public_id", roomPublicIDStr, "user_id", userPublicIDStr)
+		var userPublicID = userPublicID
+		var roomPublicID = roomPublicID
 		defer conn.Close()
 		for {
 			message, err := conn.ReadMessage()

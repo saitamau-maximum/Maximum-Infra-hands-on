@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS room_members (
 );
 
 CREATE TABLE IF NOT EXISTS messages (
-    id        TEXT PRIMARY KEY,
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
     public_id TEXT UNIQUE NOT NULL,
     room_id   TEXT NOT NULL,
     user_id   TEXT NOT NULL,

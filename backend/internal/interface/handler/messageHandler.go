@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -61,6 +62,7 @@ type MessageResponse struct {
 }
 
 func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
+	h.Logger.Info("GetMessageHistoryInRoom called")
 	var req GetMessageHistoryInRoomRequest
 	roomPublicIDStr := c.Param("room_public_id")
 	if roomPublicIDStr == "" {
@@ -82,9 +84,13 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 
 	// クエリ: before_sent_at（任意）
 	beforeSentAtStr := c.QueryParam("before_sent_at")
-	if beforeSentAtStr != "" {
+
+	// Check for "undefined" as a workaround for cases where the frontend or external system
+	// sends the string "undefined" instead of leaving the parameter empty.
+	if beforeSentAtStr != "" && beforeSentAtStr != "undefined" {
+		fixedStr := strings.Replace(beforeSentAtStr, " ", "+", 1)
 		var err error
-		req.BeforeSentAt, err = time.Parse(time.RFC3339, beforeSentAtStr)
+		req.BeforeSentAt, err = time.Parse(time.RFC3339, fixedStr)
 		if err != nil {
 			h.Logger.Error("before_sent_at must be in RFC3339 format")
 			return echo.NewHTTPError(http.StatusBadRequest, "before_sent_at must be in RFC3339 format")

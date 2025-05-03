@@ -1,6 +1,7 @@
 import { GetAllRoomsResponse } from "../../types/GetAllRoomsResponse";
 
-import styles from "./RoomList.module.css";
+import styles from "./index.module.css";
+import { RoomListItem } from "./RoomListItem";
 
 type RoomListProps = {
   rooms: GetAllRoomsResponse[];
@@ -10,13 +11,9 @@ export const RoomList = ({ rooms }: RoomListProps) => {
   return (
     <div className={styles.roomList}>
       <h2>ルーム一覧</h2>
-      <ul>
         {rooms.map((room) => (
-          <li key={room.id}>
-            {room.name}
-          </li>
+          <RoomListItem key={room.id} room={room} />
         ))}
-      </ul>
     </div>
   );
 }

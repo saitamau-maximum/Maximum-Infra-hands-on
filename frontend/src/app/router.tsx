@@ -1,10 +1,9 @@
-// src/app/router.tsx
 import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "../features/home";
 import { Layout } from "../features/layout";
 import { LoginPage, RegisterPage } from "../features/auth";
 import { CreateRoomPage, RoomListPage } from "../features/room";
-
+import { RoomPage } from "../features/chatRoom"; 
 
 export const appRouter = createBrowserRouter([
   {
@@ -39,6 +38,10 @@ export const appRouter = createBrowserRouter([
             path: "create",
             element: <CreateRoomPage />,
           },
+          {
+            path: ":roomId",
+            element: <RoomPage />,
+          }
         ]
       },
     ]
