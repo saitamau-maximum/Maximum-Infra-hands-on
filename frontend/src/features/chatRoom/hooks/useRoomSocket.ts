@@ -3,7 +3,7 @@ import { createRoomSocket, parseRoomMessage, sendRoomMessage } from '../api';
 
 export const useRoomSocket = (roomId: string) => {
   const socketRef = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
     const socket = createRoomSocket(roomId);
@@ -14,9 +14,8 @@ export const useRoomSocket = (roomId: string) => {
     socketRef.current = socket;
 
     socket.onmessage = (event) => {
-      console.log('Received message:', event.data);
       const data = parseRoomMessage(event);
-      setMessages((prev) => [...prev, data.Content]);
+      setMessages((prev) => [...prev, data.Content as string]);
     };
 
     socket.onerror = (err) => console.error('WebSocket error:', err);
@@ -29,7 +28,6 @@ export const useRoomSocket = (roomId: string) => {
 
   const sendMessage = useCallback((message: string) => {
     if (socketRef.current) {
-      console.log('Sending message:', message);
       sendRoomMessage(socketRef.current, message);
     }
   }, []);
