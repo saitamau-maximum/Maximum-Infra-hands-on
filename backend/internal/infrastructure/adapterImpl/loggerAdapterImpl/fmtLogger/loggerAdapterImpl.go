@@ -16,12 +16,15 @@ func NewFmtLogger() adapter.LoggerAdapter {
 
 func (l *FmtLogger) Info(msg string, args ...any) {
 	fmt.Printf("[INFO] "+msg+"\n", args...)
+	fmt.Printf("\n")
 }
 
 func (l *FmtLogger) Warn(msg string, args ...any) {
 	fmt.Printf("[WARN] "+msg+"\n", args...)
+	fmt.Printf("\n")
 }
 
 func (l *FmtLogger) Error(msg string, args ...any) {
 	fmt.Printf("[ERROR] "+msg+"\n", args...)
+	fmt.Printf("\n")
 }

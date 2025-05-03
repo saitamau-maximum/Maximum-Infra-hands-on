@@ -46,5 +46,5 @@ func RegisterWsRoutes(g *echo.Group, h *handler.WebSocketHandler) {
 }
 
 func RegisterMsgRoutes(g *echo.Group, h *handler.MessageHandler) {
-	g.GET("/messages/:room_public_id", h.GetMessageHistoryInRoom)
+	g.GET("/:room_public_id", h.GetMessageHistoryInRoom)
 }

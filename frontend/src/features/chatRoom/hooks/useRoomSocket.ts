@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoomSocket, parseRoomMessage, sendRoomMessage } from '../api';
+import { MessageResponse } from '../type';
 
 export const useRoomSocket = (roomId: string) => {
   const socketRef = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MessageResponse[]>([]);
 
   useEffect(() => {
     const socket = createRoomSocket(roomId);
@@ -14,9 +15,16 @@ export const useRoomSocket = (roomId: string) => {
     socketRef.current = socket;
 
     socket.onmessage = (event) => {
-      console.log('Received message:', event.data);
       const data = parseRoomMessage(event);
-      setMessages((prev) => [...prev, data.Content]);
+      console.log('Received message:', data);
+      // MessageResonse型に変換
+      const msg: MessageResponse = {
+        id: data.PublicID as string,
+        user_id: data.UserID as string,
+        sent_at: data.SentAt as string,
+        content: data.Content as string,
+      }
+      setMessages((prev) => [...prev, msg]);
     };
 
     socket.onerror = (err) => console.error('WebSocket error:', err);
@@ -29,7 +37,6 @@ export const useRoomSocket = (roomId: string) => {
 
   const sendMessage = useCallback((message: string) => {
     if (socketRef.current) {
-      console.log('Sending message:', message);
       sendRoomMessage(socketRef.current, message);
     }
   }, []);

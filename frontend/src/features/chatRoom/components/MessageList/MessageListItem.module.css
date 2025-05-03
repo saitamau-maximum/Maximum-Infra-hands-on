@@ -1,0 +1,10 @@
+.odd {
+  background-color: var(--primary-50);
+}
+
+.message {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--primary-900);
+  text-align: center;
+}
