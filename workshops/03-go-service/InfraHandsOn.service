@@ -1,0 +1,23 @@
+[Unit]
+# サービスの説明
+Description=My Go Application
+# 順序を明確化します。ネットが有効になってから起動してほしい
+After=network.target
+
+[Service]
+# アプリケーションの実行ファイルへのパスを指定。
+ExecStart= # ビルドしたバイナリファイルが直下にある状態でpwdした結果/InfraHandsOn
+# プロセスが終了した場合に自動的に再起動する設定。
+Restart=always
+# 実行ユーザーを指定。
+User= #ユーザー名
+# 環境変数を設定。例：GO_ENV=production。
+Environment=CORS_ORIGIN=http://localhost:5173
+# アプリケーションの実行ディレクトリを指定。
+WorkingDirectory=# 先程実行ファイルの在処として指定したディレクトリ
+# サービス停止時に実行されるコマンド。ここではSIGTERMで終了。
+ExecStop=/bin/kill -SIGTERM $MAINPID
+
+[Install]
+# このサービスがマルチユーザー環境で自動起動されるように指定。
+WantedBy=multi-user.target

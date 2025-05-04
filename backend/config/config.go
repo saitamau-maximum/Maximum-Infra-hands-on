@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Port        string        // サーバーのポート番号
+	CORSOrigin  string        // CORSのオリジン
 	DBPath      string        // SQLite用データベースファイルの場所
 	SecretKey   string        // JWTトークンの署名に使用する秘密鍵
 	HashCost    int           // パスワードハッシュ化に使用するcost値
@@ -19,6 +20,7 @@ type Config struct {
 func LoadConfig() *Config {
 	return &Config{
 		Port:        getEnv("PORT", "8080"),
+		CORSOrigin:  getEnv("CORS_ORIGIN", "http://localhost:5173"),
 		DBPath:      getEnv("DB_PATH", "database.db"),
 		SecretKey:   getEnv("SECRET_KEY", "secret"),
 		HashCost:    parseInt(getEnv("HASH_COST", "10")),

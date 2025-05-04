@@ -1,5 +1,5 @@
 const apiClient = {
-  baseUrl: `http://localhost:8080`, // ベースURLを指定
+  baseUrl: import.meta.env.VITE_API_BASE_URL, // ベースURLを指定
 
   // 基本的なリクエスト処理
   request: async (endpoint: string, options: RequestInit = {}) => {
@@ -39,6 +39,12 @@ const apiClient = {
       body: JSON.stringify(body),
     });
   },
+
+  // websocket接続
+  websocket: (endpoint: string) => {
+    const ws = new WebSocket(`${apiClient.baseUrl}${endpoint}`);
+    return ws;
+  }
 };
 
 export default apiClient;

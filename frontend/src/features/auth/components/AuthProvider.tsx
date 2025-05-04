@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, ReactNode } from "react";
 import { Logout } from "../api/logout";
+import apiClient from "../../utils/apiClient";
 
 type User = {
   id: string;
@@ -22,10 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUser = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8080/api/user/me", {// TODO: 環境変数化
-        method: "GET",
-        credentials: "include", // ← Cookieを送信
-      });
+      const res = await apiClient.get("/api/user/me");
       if (res.ok) {
         const data = await res.json();
         setUser(data);
