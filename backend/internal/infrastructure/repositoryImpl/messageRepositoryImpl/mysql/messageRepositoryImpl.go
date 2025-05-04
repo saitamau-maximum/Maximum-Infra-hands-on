@@ -35,15 +35,16 @@ func NewMessageRepositoryImpl(params *NewMessageRepositoryImplParams) repository
 }
 
 func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
-	var Message model.MessageModel
-	Message.FromEntity(message)
+	var msg model.MessageModel
+	msg.FromEntity(message)
 
-	_, err := r.db.NamedExec("INSERT INTO messages (id, room_id, user_id, content, sent_at) VALUES (:id, :room_id, :user_id, :content, :sent_at)", &Message)
-	if err != nil {
-		return err
-	}
+	// UUIDを文字列で扱い、DB側でUUID_TO_BINに変換
+	_, err := r.db.Exec(`
+		INSERT INTO messages (id, room_id, user_id, content, sent_at)
+		VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)`,
+		string(msg.ID), string(msg.RoomID), string(msg.UserID), msg.Content, msg.SentAt)
 
-	return nil
+	return err
 }
 
 func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
@@ -51,24 +52,37 @@ func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
 	limit int,
 	beforeSentAt time.Time,
 ) (messages []*entity.Message, nextBeforeSentAt time.Time, hasNext bool, err error) {
-	var MessageModels []model.MessageModel
-	query := "SELECT * FROM messages WHERE room_id = ? AND sent_at < ? ORDER BY sent_at DESC LIMIT ?"
-	err = r.db.Select(&MessageModels, query, roomID, beforeSentAt, limit)
+	var msgModels []model.MessageModel
+
+	// UUIDは文字列で渡し、DB側で比較用に UUID_TO_BIN を使用
+	query := `
+		SELECT 
+			BIN_TO_UUID(id) AS id,
+			BIN_TO_UUID(room_id) AS room_id,
+			BIN_TO_UUID(user_id) AS user_id,
+			content,
+			sent_at
+		FROM messages
+		WHERE room_id = UUID_TO_BIN(?) AND sent_at < ?
+		ORDER BY sent_at DESC
+		LIMIT ?`
+
+	err = r.db.Select(&msgModels, query, string(roomID), beforeSentAt, limit)
 	if err != nil {
 		return nil, time.Now(), false, err
 	}
 
-	if len(MessageModels) == 0 {
+	if len(msgModels) == 0 {
 		return nil, time.Now(), false, nil
 	}
 
-	messages = make([]*entity.Message, len(MessageModels))
-	for i := range MessageModels {
-		messages[i] = MessageModels[i].ToEntity()
+	messages = make([]*entity.Message, len(msgModels))
+	for i := range msgModels {
+		messages[i] = msgModels[i].ToEntity()
 	}
 
-	nextBeforeSentAt = MessageModels[len(MessageModels)-1].SentAt
-	hasNext = len(MessageModels) == limit
+	nextBeforeSentAt = msgModels[len(msgModels)-1].SentAt
+	hasNext = len(msgModels) == limit
 
 	return messages, nextBeforeSentAt, hasNext, nil
 }

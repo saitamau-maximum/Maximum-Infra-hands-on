@@ -40,8 +40,8 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 
 	_, err := r.db.Exec(`
 		INSERT INTO users (id, name, email, password_hash, created_at)
-		VALUES (?, ?, ?, ?, ?)`,
-		string(user.GetID()),
+		VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`,
+		user.GetID(),
 		user.GetName(),
 		user.GetEmail(),
 		user.GetPasswdHash(),
@@ -56,13 +56,13 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 
 func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error) {
 	if id == "" {
-		return nil, errors.New("id cannot be 0")
+		return nil, errors.New("id cannot be empty")
 	}
 
 	row := r.db.QueryRowx(`
-		SELECT id, name, email, password_hash, created_at, updated_at
+		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
-		WHERE id = ?`, id)
+		WHERE id = UUID_TO_BIN(?)`, id)
 
 	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
@@ -78,7 +78,7 @@ func (r *UserRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) 
 	}
 
 	row := r.db.QueryRowx(`
-		SELECT id, name, email, password_hash, created_at, updated_at
+		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)
 

@@ -19,7 +19,7 @@ export const useRoomSocket = (roomId: string) => {
       console.log('Received message:', data);
       // MessageResonse型に変換
       const msg: MessageResponse = {
-        id: data.PublicID as string,
+        id: data.ID as string,
         user_id: data.UserID as string,
         sent_at: data.SentAt as string,
         content: data.Content as string,
