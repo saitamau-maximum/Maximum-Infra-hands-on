@@ -44,9 +44,9 @@ func NewMessageHandler(params NewMessageHandlerParams) *MessageHandler {
 }
 
 type GetMessageHistoryInRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_public_id"`
-	Limit        int                 `json:"limit"`
-	BeforeSentAt time.Time           `json:"before_sent_at"`
+	RoomID       entity.RoomID `json:"room_id"`
+	Limit        int           `json:"limit"`
+	BeforeSentAt time.Time     `json:"before_sent_at"`
 }
 
 type GetMessageHistoryInRoomResponse struct {
@@ -64,12 +64,12 @@ type MessageResponse struct {
 func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	h.Logger.Info("GetMessageHistoryInRoom called")
 	var req GetMessageHistoryInRoomRequest
-	roomPublicIDStr := c.Param("room_public_id")
-	if roomPublicIDStr == "" {
+	roomIDStr := c.Param("room_public_id")
+	if roomIDStr == "" {
 		h.Logger.Error("room_public_id is required")
 		return echo.NewHTTPError(http.StatusBadRequest, "room_public_id is required")
 	}
-	req.RoomPublicID = entity.RoomPublicID(roomPublicIDStr)
+	req.RoomID = entity.RoomID(roomIDStr)
 
 	// クエリ: limit（任意、デフォルト 10）
 	req.Limit = 10
@@ -101,7 +101,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 
 	// Usecase呼び出し
 	res, err := h.MsgUseCase.GetMessageHistoryInRoom(usecase.GetMessageHistoryInRoomRequest{
-		RoomPublicID: req.RoomPublicID,
+		RoomID:       req.RoomID,
 		Limit:        req.Limit,
 		BeforeSentAt: req.BeforeSentAt,
 	})
@@ -119,8 +119,8 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to format message")
 		}
 		messages[i] = MessageResponse{
-			ID:      formatedMsg.PublicID,
-			UserID:  formatedMsg.UserPublicID,
+			ID:      formatedMsg.ID,
+			UserID:  formatedMsg.UserID,
 			SentAt:  formatedMsg.SentAt.Format(time.RFC3339),
 			Content: formatedMsg.Content,
 		}

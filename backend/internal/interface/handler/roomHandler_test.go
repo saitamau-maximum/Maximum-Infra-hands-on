@@ -49,13 +49,11 @@ func TestCreateRoom(t *testing.T) {
 
 	mockRoomUseCase.EXPECT().CreateRoom(gomock.Any()).Return(usecase.CreateRoomResponse{
 		Room: entity.NewRoom(entity.RoomParams{
-			ID:       1,
-			PublicID: "mockRoomID",
-			Name:     "testRoom",
-			Members:  []entity.UserPublicID{"mockUserID"},
+			ID:      "mockRoomID",
+			Name:    "testRoom",
+			Members: []entity.UserID{"mockUserID"},
 		}),
 	}, nil)
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
 	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.CreateRoom(c)) {
@@ -91,8 +89,6 @@ func TestJoinRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
-	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"), nil)
 	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.JoinRoom(c)) {
@@ -129,8 +125,6 @@ func TestLeaveRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
-	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"), nil)
 	mockRoomUseCase.EXPECT().LeaveRoom(gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.LeaveRoom(c)) {
@@ -166,13 +160,11 @@ func TestGetRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomIDFactory.EXPECT().FromString("mockRoomID").Return(entity.RoomPublicID("mockRoomID"), nil)
-	mockRoomUseCase.EXPECT().GetRoomByPublicID(gomock.Any()).Return(usecase.GetRoomByPublicIDResponse{
+	mockRoomUseCase.EXPECT().GetRoomByID(gomock.Any()).Return(usecase.GetRoomByIDResponse{
 		Room: entity.NewRoom(entity.RoomParams{
-			ID:       1,
-			PublicID: "mockRoomID",
-			Name:     "testRoom",
-			Members:  []entity.UserPublicID{"user1", "user2"},
+			ID:      "mockRoomID",
+			Name:    "testRoom",
+			Members: []entity.UserID{"user1", "user2"},
 		}),
 	}, nil)
 
@@ -210,16 +202,14 @@ func TestGetRooms(t *testing.T) {
 
 	mockRoomUseCase.EXPECT().GetAllRooms().Return([]*entity.Room{
 		entity.NewRoom(entity.RoomParams{
-			ID:       1,
-			PublicID: "room1",
-			Name:     "Room 1",
-			Members:  []entity.UserPublicID{"user1", "user2"},
+			ID:      "room1",
+			Name:    "Room 1",
+			Members: []entity.UserID{"user1", "user2"},
 		}),
 		entity.NewRoom(entity.RoomParams{
-			ID:       2,
-			PublicID: "room2",
-			Name:     "Room 2",
-			Members:  []entity.UserPublicID{"user3", "user4"},
+			ID:      "room2",
+			Name:    "Room 2",
+			Members: []entity.UserID{"user3", "user4"},
 		}),
 	}, nil)
 
