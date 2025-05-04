@@ -69,6 +69,17 @@ ExecStart=/home/ubuntu/Maximum-Infra-hands-on/backend/InfraHandsOn
 
 ここを指定しない場合、rootユーザーによる実行になります。
 
+次に、環境変数を変更して下さい。
+
+この教材の01章でやったものと同様の変更です。
+
+例
+```bash
+Environment=CORS_ORIGIN=http://localhost:5173
+↓
+Environment=CORS_ORIGIN=http://192.168.123.8:5173
+```
+
 最後に、ワーキングディレクトリを設定します。
 
 Goアプリケーションのルートディレクトリを指定するので、先程バイナリファイルを指定したときのパスから、バイナリファイル名を消せばいいです。

@@ -12,7 +12,7 @@ Restart=always
 # 実行ユーザーを指定。
 User= #ユーザー名
 # 環境変数を設定。例：GO_ENV=production。
-Environment=GO_ENV=production
+Environment=CORS_ORIGIN=http://localhost:5173
 # アプリケーションの実行ディレクトリを指定。
 WorkingDirectory=# 先程実行ファイルの在処として指定したディレクトリ
 # サービス停止時に実行されるコマンド。ここではSIGTERMで終了。
