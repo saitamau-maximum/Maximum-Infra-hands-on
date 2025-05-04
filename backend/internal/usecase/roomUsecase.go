@@ -10,7 +10,7 @@ import (
 
 type RoomUseCaseInterface interface {
 	CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error)
-	GetRoomByPublicID(params GetRoomByPublicIDParams) (GetRoomByPublicIDResponse, error)
+	GetRoomByID(params GetRoomByIDParams) (GetRoomByIDResponse, error)
 	GetAllRooms() ([]*entity.Room, error)
 	GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomResponse, error)
 	JoinRoom(req JoinRoomRequest) error
@@ -72,16 +72,15 @@ type CreateRoomResponse struct {
 
 // CreateRoom: 新しい部屋を作成
 func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error) {
-	roomPublicID, err := r.roomIDFactory.NewRoomPublicID()
+	id, err := r.roomIDFactory.NewRoomID()
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
 
 	room := entity.NewRoom(entity.RoomParams{
-		ID:       -1, // IDはDBに保存後に更新されるため、-1を指定
-		PublicID: roomPublicID,
-		Name:     req.Name,
-		Members:  []entity.UserPublicID{},
+		ID:      id,
+		Name:    req.Name,
+		Members: []entity.UserID{},
 	})
 
 	savedRoomID, err := r.roomRepo.SaveRoom(room)
@@ -97,35 +96,26 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 	return CreateRoomResponse{Room: res}, nil
 }
 
-// GetRoomByPublicIDParams構造体: 公開IDで部屋を取得するためのパラメータ
-type GetRoomByPublicIDParams struct {
-	PublicID entity.RoomPublicID `json:"public_id"` // 公開ID
+// GetRoomByIDParams構造体: 公開IDで部屋を取得するためのパラメータ
+type GetRoomByIDParams struct {
+	ID entity.RoomID `json:"id"`
 }
 
-// GetRoomByPublicIDResponse構造体: 公開IDで部屋を取得した結果
-type GetRoomByPublicIDResponse struct {
+// GetRoomByIDResponse構造体: 公開IDで部屋を取得した結果
+type GetRoomByIDResponse struct {
 	Room *entity.Room `json:"room"` // 取得した部屋
 }
 
-// GetRoomByPublicID: 公開IDを使用して部屋を取得
-func (r *RoomUseCase) GetRoomByPublicID(params GetRoomByPublicIDParams) (GetRoomByPublicIDResponse, error) {
-	roomID, err := r.roomRepo.GetRoomIDByPublicID(params.PublicID)
+// GetRoomByID: 公開IDを使用して部屋を取得
+func (r *RoomUseCase) GetRoomByID(params GetRoomByIDParams) (GetRoomByIDResponse, error) {
+	room, err := r.roomRepo.GetRoomByID(params.ID)
 	if err != nil {
-		return GetRoomByPublicIDResponse{}, err
-	}
-
-	if roomID <= 0 {
-		return GetRoomByPublicIDResponse{}, errors.New("room not found")
-	}
-
-	room, err := r.roomRepo.GetRoomByID(roomID)
-	if err != nil {
-		return GetRoomByPublicIDResponse{}, err
+		return GetRoomByIDResponse{}, err
 	}
 	if room == nil {
-		return GetRoomByPublicIDResponse{}, errors.New("room not found")
+		return GetRoomByIDResponse{}, errors.New("room not found")
 	}
-	return GetRoomByPublicIDResponse{Room: room}, nil
+	return GetRoomByIDResponse{Room: room}, nil
 }
 
 // GetAllRooms: 全ての部屋を取得
@@ -139,7 +129,7 @@ func (r *RoomUseCase) GetAllRooms() ([]*entity.Room, error) {
 
 // GetUsersInRoomRequest構造体: 部屋内のユーザーを取得するリクエスト
 type GetUsersInRoomRequest struct {
-	PublicID entity.RoomPublicID `json:"public_id"` // 公開ID
+	ID entity.RoomID `json:"id"` // 公開ID
 }
 
 // GetUsersInRoomResponse構造体: 部屋内のユーザー取得結果
@@ -149,16 +139,7 @@ type GetUsersInRoomResponse struct {
 
 // GetUsersInRoom: 部屋内のユーザーを取得
 func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomResponse, error) {
-	roomID, err := r.roomRepo.GetRoomIDByPublicID(req.PublicID)
-	if err != nil {
-		return GetUsersInRoomResponse{}, err
-	}
-
-	if roomID <= 0 {
-		return GetUsersInRoomResponse{}, errors.New("room not found")
-	}
-
-	users, err := r.roomRepo.GetUsersInRoom(roomID)
+	users, err := r.roomRepo.GetUsersInRoom(req.ID)
 	if err != nil {
 		return GetUsersInRoomResponse{}, err
 	}
@@ -168,30 +149,13 @@ func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomR
 
 // JoinRoomRequest構造体: 部屋に参加するリクエスト
 type JoinRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	UserPublicID entity.UserPublicID `json:"user_id"` // 参加するユーザー
+	RoomID entity.RoomID `json:"room_id"` // 部屋の公開ID
+	UserID entity.UserID `json:"user_id"` // 参加するユーザー
 }
 
 // JoinRoom: 部屋にユーザーを参加させる
 func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
-	roomPublicID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
-	if err != nil {
-		return err
-	}
-
-	userPublicID, err := r.userRepo.GetIDByPublicID(req.UserPublicID)
-	if err != nil {
-		return err
-	}
-
-	if roomPublicID <= 0 {
-		return errors.New("room not found")
-	}
-	if userPublicID <= 0 {
-		return errors.New("user not found")
-	}
-
-	err = r.roomRepo.AddMemberToRoom(roomPublicID, userPublicID)
+	err := r.roomRepo.AddMemberToRoom(req.RoomID, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -201,31 +165,13 @@ func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
 
 // LeaveRoomRequest構造体: 部屋から退出するリクエスト
 type LeaveRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
-	UserPublicID entity.UserPublicID `json:"user_id"` // 退出するユーザーID
+	RoomID entity.RoomID `json:"room_id"` // 部屋の公開ID
+	UserID entity.UserID `json:"user_id"` // 退出するユーザーID
 }
 
 // LeaveRoom: 部屋からユーザーを退出させる
 func (r *RoomUseCase) LeaveRoom(req LeaveRoomRequest) error {
-	roomPublicID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
-	if err != nil {
-		return err
-	}
-
-	userPublicID, err := r.userRepo.GetIDByPublicID(req.UserPublicID)
-	if err != nil {
-		return err
-	}
-
-	if userPublicID <= 0 {
-		return errors.New("room not found")
-	}
-
-	if roomPublicID <= 0 {
-		return errors.New("user not found")
-	}
-
-	err = r.roomRepo.RemoveMemberFromRoom(roomPublicID, userPublicID)
+	err := r.roomRepo.RemoveMemberFromRoom(req.RoomID, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -255,21 +201,13 @@ func (r *RoomUseCase) SearchRoom(req SearchRoomRequest) (SearchRoomResponse, err
 
 // UpdateRoomNameRequest構造体: 部屋名を更新するリクエスト
 type UpdateRoomNameRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"`  // 部屋の公開ID
-	NewName      string              `json:"new_name"` // 新しい部屋名
+	RoomID  entity.RoomID `json:"room_id"`  
+	NewName string        `json:"new_name"` // 新しい部屋名
 }
 
 // UpdateRoomName: 部屋名を更新
 func (r *RoomUseCase) UpdateRoomName(req UpdateRoomNameRequest) error {
-	roomID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
-	if err != nil {
-		return err
-	}
-
-	if roomID <= 0 {
-		return errors.New("room not found")
-	}
-	err = r.roomRepo.UpdateRoomName(roomID, req.NewName)
+	err := r.roomRepo.UpdateRoomName(req.RoomID, req.NewName)
 	if err != nil {
 		return err
 	}
@@ -278,20 +216,12 @@ func (r *RoomUseCase) UpdateRoomName(req UpdateRoomNameRequest) error {
 
 // DeleteRoomRequest構造体: 部屋を削除するリクエスト
 type DeleteRoomRequest struct {
-	RoomPublicID entity.RoomPublicID `json:"room_id"` // 部屋の公開ID
+	RoomID entity.RoomID `json:"room_id"` // 部屋の公開ID
 }
 
 // DeleteRoom: 部屋を削除
 func (r *RoomUseCase) DeleteRoom(req DeleteRoomRequest) error {
-	roomID, err := r.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
-	if err != nil {
-		return err
-	}
-
-	if roomID <= 0 {
-		return errors.New("room not found")
-	}
-	err = r.roomRepo.DeleteRoom(roomID)
+	err := r.roomRepo.DeleteRoom(req.RoomID)
 	if err != nil {
 		return err
 	}

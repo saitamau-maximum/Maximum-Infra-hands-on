@@ -14,7 +14,7 @@ import (
 type UserUseCaseInterface interface {
 	SignUp(req SignUpRequest) (SignUpResponse, error)
 	AuthenticateUser(req AuthenticateUserRequest) (AuthenticateUserResponse, error)
-	GetUserByID(id entity.UserPublicID) (*entity.User, error)
+	GetUserByID(id entity.UserID) (*entity.User, error)
 }
 
 type UserUseCase struct {
@@ -59,14 +59,13 @@ func (u *UserUseCase) SignUp(req SignUpRequest) (SignUpResponse, error) {
 		return SignUpResponse{nil}, err
 	}
 
-	publicID, err := u.userIDFactory.NewUserPublicID()
+	id, err := u.userIDFactory.NewUserID()
 	if err != nil {
 		return SignUpResponse{nil}, err
 	}
 
 	userParams := entity.UserParams{
-		ID:         -1, // IDはDBに保存後に更新されるため、-1を指定
-		PublicID:   publicID,
+		ID:         id,
 		Name:       req.Name,
 		Email:      req.Email,
 		PasswdHash: hashedPassword,
@@ -137,7 +136,7 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 		return AuthenticateUserResponse{token: nil}, errors.New("password mismatch")
 	}
 
-	res, err := u.tokenSvc.GenerateToken(user.GetPublicID())
+	res, err := u.tokenSvc.GenerateToken(user.GetID())
 	if err != nil {
 		return AuthenticateUserResponse{token: nil}, err
 	}
@@ -153,12 +152,8 @@ func (u *UserUseCase) AuthenticateUser(req AuthenticateUserRequest) (Authenticat
 	}, nil
 }
 
-func (u *UserUseCase) GetUserByID(id entity.UserPublicID) (*entity.User, error) {
-	userID, err := u.userRepo.GetIDByPublicID(id)
-	if err != nil {
-		return nil, err
-	}
-	user, err := u.userRepo.GetUserByID(userID)
+func (u *UserUseCase) GetUserByID(id entity.UserID) (*entity.User, error) {
+	user, err := u.userRepo.GetUserByID(id)
 	if err != nil {
 		return nil, err
 	}
