@@ -1,5 +1,7 @@
 # Maximum-Infra-hands-on
 
+**教材は`/workshops`にまとめてあります**
+
 インフラ班で扱うコンテンツにしたい。
 
 小規模なISUCONみたいな感じ。
