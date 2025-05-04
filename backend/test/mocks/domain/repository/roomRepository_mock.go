@@ -83,21 +83,6 @@ func (mr *MockRoomRepositoryMockRecorder) GetAllRooms() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRooms", reflect.TypeOf((*MockRoomRepository)(nil).GetAllRooms))
 }
 
-// GetPublicIDByRoomID mocks base method.
-func (m *MockRoomRepository) GetPublicIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPublicIDByRoomID", id)
-	ret0, _ := ret[0].(entity.RoomPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPublicIDByRoomID indicates an expected call of GetPublicIDByRoomID.
-func (mr *MockRoomRepositoryMockRecorder) GetPublicIDByRoomID(id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicIDByRoomID", reflect.TypeOf((*MockRoomRepository)(nil).GetPublicIDByRoomID), id)
-}
-
 // GetRoomByID mocks base method.
 func (m *MockRoomRepository) GetRoomByID(id entity.RoomID) (*entity.Room, error) {
 	m.ctrl.T.Helper()
@@ -126,21 +111,6 @@ func (m *MockRoomRepository) GetRoomByNameLike(name string) ([]*entity.Room, err
 func (mr *MockRoomRepositoryMockRecorder) GetRoomByNameLike(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByNameLike", reflect.TypeOf((*MockRoomRepository)(nil).GetRoomByNameLike), name)
-}
-
-// GetRoomIDByPublicID mocks base method.
-func (m *MockRoomRepository) GetRoomIDByPublicID(id entity.RoomPublicID) (entity.RoomID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoomIDByPublicID", id)
-	ret0, _ := ret[0].(entity.RoomID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRoomIDByPublicID indicates an expected call of GetRoomIDByPublicID.
-func (mr *MockRoomRepositoryMockRecorder) GetRoomIDByPublicID(id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomIDByPublicID", reflect.TypeOf((*MockRoomRepository)(nil).GetRoomIDByPublicID), id)
 }
 
 // GetUsersInRoom mocks base method.

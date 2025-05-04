@@ -68,21 +68,6 @@ func (mr *MockWebsocketUseCaseInterfaceMockRecorder) DisconnectUser(req any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisconnectUser", reflect.TypeOf((*MockWebsocketUseCaseInterface)(nil).DisconnectUser), req)
 }
 
-// GetMessageHistory mocks base method.
-func (m *MockWebsocketUseCaseInterface) GetMessageHistory(req usecase.GetMessageHistoryRequest) (usecase.GetMessageHistoryResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMessageHistory", req)
-	ret0, _ := ret[0].(usecase.GetMessageHistoryResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMessageHistory indicates an expected call of GetMessageHistory.
-func (mr *MockWebsocketUseCaseInterfaceMockRecorder) GetMessageHistory(req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageHistory", reflect.TypeOf((*MockWebsocketUseCaseInterface)(nil).GetMessageHistory), req)
-}
-
 // SendMessage mocks base method.
 func (m *MockWebsocketUseCaseInterface) SendMessage(req usecase.SendMessageRequest) error {
 	m.ctrl.T.Helper()

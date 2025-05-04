@@ -57,7 +57,7 @@ func (mr *MockUserUseCaseInterfaceMockRecorder) AuthenticateUser(req any) *gomoc
 }
 
 // GetUserByID mocks base method.
-func (m *MockUserUseCaseInterface) GetUserByID(id entity.UserPublicID) (*entity.User, error) {
+func (m *MockUserUseCaseInterface) GetUserByID(id entity.UserID) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", id)
 	ret0, _ := ret[0].(*entity.User)

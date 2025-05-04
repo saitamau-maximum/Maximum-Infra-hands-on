@@ -41,10 +41,10 @@ func TestSignUp(t *testing.T) {
 			Password: "password123",
 		}
 		hashedPassword := "hashed_password"
-		userID := entity.UserPublicID("public_user_id")
+		userID := entity.UserID("public_user_id")
 
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return(hashedPassword, nil)
-		mockUserIDFactory.EXPECT().NewUserPublicID().Return(userID, nil)
+		mockUserIDFactory.EXPECT().NewUserID().Return(userID, nil)
 		mockUserRepo.EXPECT().
 			SaveUser(gomock.AssignableToTypeOf(&entity.User{})).
 			DoAndReturn(func(u *entity.User) (*entity.User, error) {
@@ -58,7 +58,7 @@ func TestSignUp(t *testing.T) {
 		assert.Equal(t, signUpRequest.Name, response.User.GetName())
 		assert.Equal(t, signUpRequest.Email, response.User.GetEmail())
 		assert.Equal(t, hashedPassword, response.User.GetPasswdHash())
-		assert.Equal(t, userID, response.User.GetPublicID())
+		assert.Equal(t, userID, response.User.GetID())
 	})
 
 	t.Run("ハッシュ化失敗時", func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestSignUp(t *testing.T) {
 		expectedErr := errors.New("failed to generate user ID")
 
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return(hashedPassword, nil)
-		mockUserIDFactory.EXPECT().NewUserPublicID().Return(entity.UserPublicID(""), expectedErr)
+		mockUserIDFactory.EXPECT().NewUserID().Return(entity.UserID(""), expectedErr)
 
 		response, err := userUseCase.SignUp(signUpRequest)
 
@@ -123,8 +123,7 @@ func TestAuthenticateUser(t *testing.T) {
 		hashedPassword := "hashed_password"
 
 		parms := entity.UserParams{
-			ID:         entity.UserID(1),
-			PublicID:   entity.UserPublicID("user_id"),
+			ID:         entity.UserID("user_id"),
 			Name:       "John Doe",
 			Email:      email,
 			PasswdHash: hashedPassword,
@@ -142,7 +141,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		mockUserRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(true, nil)
-		mockTokenSvc.EXPECT().GenerateToken(user.GetPublicID()).Return(token, nil)
+		mockTokenSvc.EXPECT().GenerateToken(user.GetID()).Return(token, nil)
 		mockTokenSvc.EXPECT().GetExpireAt(token).Return(1, nil)
 
 		response, err := userUseCase.AuthenticateUser(req)
@@ -173,8 +172,7 @@ func TestAuthenticateUser(t *testing.T) {
 		hashedPassword := "correct_hash"
 
 		user := entity.NewUser(entity.UserParams{
-			ID:         entity.UserID(1),
-			PublicID:   entity.UserPublicID("user_id"),
+			ID:         entity.UserID("user_id"),
 			Name:       "John Doe",
 			Email:      email,
 			PasswdHash: hashedPassword,
