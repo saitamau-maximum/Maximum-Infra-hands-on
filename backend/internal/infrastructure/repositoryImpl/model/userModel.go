@@ -7,8 +7,7 @@ import (
 )
 
 type UserModel struct {
-	ID           int        `db:"id"`
-	PublicID     string     `db:"public_id"`
+	ID           string        `db:"id"`
 	Name         string     `db:"name"`
 	Email        string     `db:"email"`
 	PasswordHash string     `db:"password_hash"`
@@ -19,7 +18,6 @@ type UserModel struct {
 func (u *UserModel) ToEntity() *entity.User {
 	return entity.NewUser(entity.UserParams{
 		ID:         entity.UserID(u.ID),
-		PublicID:   entity.UserPublicID(u.PublicID),
 		Name:       u.Name,
 		Email:      u.Email,
 		PasswdHash: u.PasswordHash,

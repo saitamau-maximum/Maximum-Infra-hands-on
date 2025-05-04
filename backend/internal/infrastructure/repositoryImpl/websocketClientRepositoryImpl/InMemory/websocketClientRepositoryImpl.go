@@ -13,7 +13,6 @@ type InMemoryWebsocketClientRepository struct {
 	clients         map[entity.WsClientID]*entity.WebsocketClient
 	clientsByRoomID map[entity.RoomID]map[entity.WsClientID]*entity.WebsocketClient
 	clientsByUserID map[entity.UserID]*entity.WebsocketClient
-	nextID          int
 }
 
 type NewInMemoryWebsocketClientRepositoryParams struct{}
@@ -23,7 +22,6 @@ func NewInMemoryWebsocketClientRepository(_ NewInMemoryWebsocketClientRepository
 		clients:         make(map[entity.WsClientID]*entity.WebsocketClient),
 		clientsByRoomID: make(map[entity.RoomID]map[entity.WsClientID]*entity.WebsocketClient),
 		clientsByUserID: make(map[entity.UserID]*entity.WebsocketClient),
-		nextID:          1,
 	}
 }
 
@@ -32,8 +30,7 @@ func (r *InMemoryWebsocketClientRepository) CreateClient(client *entity.Websocke
 	defer r.mu.Unlock()
 
 	// IDを自動生成
-	client.SetID(entity.WsClientID(r.nextID))
-	r.nextID++
+	client.SetID(entity.WsClientID(client.GetID()))
 
 	if _, exists := r.clients[client.GetID()]; exists {
 		return errors.New("client already exists")

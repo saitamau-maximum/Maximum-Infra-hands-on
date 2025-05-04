@@ -39,9 +39,9 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 	}
 
 	_, err := r.db.Exec(`
-		INSERT INTO users (public_id, name, email, password_hash, created_at)
+		INSERT INTO users (id, name, email, password_hash, created_at)
 		VALUES (?, ?, ?, ?, ?)`,
-		string(user.GetPublicID()),
+		string(user.GetID()),
 		user.GetName(),
 		user.GetEmail(),
 		user.GetPasswdHash(),
@@ -51,16 +51,16 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 		return nil, err
 	}
 
-	return r.GetUserByPublicID(user.GetPublicID())
+	return r.GetUserByID(user.GetID())
 }
 
 func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error) {
-	if id == 0 {
+	if id == "" {
 		return nil, errors.New("id cannot be 0")
 	}
 
 	row := r.db.QueryRowx(`
-		SELECT id, public_id, name, email, password_hash, created_at, updated_at
+		SELECT id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE id = ?`, id)
 
@@ -78,7 +78,7 @@ func (r *UserRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) 
 	}
 
 	row := r.db.QueryRowx(`
-		SELECT id, public_id, name, email, password_hash, created_at, updated_at
+		SELECT id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)
 
@@ -88,52 +88,4 @@ func (r *UserRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) 
 	}
 
 	return userModel.ToEntity(), nil
-}
-
-func (r *UserRepositoryImpl) GetUserByPublicID(publicID entity.UserPublicID) (*entity.User, error) {
-	if publicID == "" {
-		return nil, errors.New("publicID cannot be empty")
-	}
-
-	row := r.db.QueryRowx(`
-		SELECT id, public_id, name, email, password_hash, created_at, updated_at
-		FROM users
-		WHERE public_id = ?`, string(publicID))
-
-	var userModel model.UserModel
-	if err := row.StructScan(&userModel); err != nil {
-		return nil, err
-	}
-
-	return userModel.ToEntity(), nil
-}
-
-func (r *UserRepositoryImpl) GetIDByPublicID(publicID entity.UserPublicID) (entity.UserID, error) {
-	if publicID == "" {
-		return 0, errors.New("publicID cannot be empty")
-	}
-
-	row := r.db.QueryRowx(`SELECT id FROM users WHERE public_id = ?`, string(publicID))
-
-	var id int64
-	if err := row.Scan(&id); err != nil {
-		return 0, err
-	}
-
-	return entity.UserID(id), nil
-}
-
-func (r *UserRepositoryImpl) GetPublicIDByID(id entity.UserID) (entity.UserPublicID, error) {
-	if id == 0 {
-		return "", errors.New("id cannot be 0")
-	}
-
-	row := r.db.QueryRowx(`SELECT public_id FROM users WHERE id = ?`, id)
-
-	var publicID string
-	if err := row.Scan(&publicID); err != nil {
-		return "", err
-	}
-
-	return entity.UserPublicID(publicID), nil
 }

@@ -37,7 +37,7 @@ func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
 	var Message model.MessageModel
 	Message.FromEntity(message)
 
-	_, err := r.DB.NamedExec("INSERT INTO messages (public_id, room_id, user_id, content, sent_at) VALUES (:public_id, :room_id, :user_id, :content, :sent_at)", &Message)
+	_, err := r.DB.NamedExec("INSERT INTO messages (id, room_id, user_id, content, sent_at) VALUES (:id, :room_id, :user_id, :content, :sent_at)", &Message)
 	if err != nil {
 		return err
 	}
