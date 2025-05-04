@@ -41,18 +41,18 @@ func (m *MockTokenServiceAdapter) EXPECT() *MockTokenServiceAdapterMockRecorder 
 }
 
 // GenerateToken mocks base method.
-func (m *MockTokenServiceAdapter) GenerateToken(userPublicID entity.UserPublicID) (string, error) {
+func (m *MockTokenServiceAdapter) GenerateToken(userID entity.UserID) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateToken", userPublicID)
+	ret := m.ctrl.Call(m, "GenerateToken", userID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateToken indicates an expected call of GenerateToken.
-func (mr *MockTokenServiceAdapterMockRecorder) GenerateToken(userPublicID any) *gomock.Call {
+func (mr *MockTokenServiceAdapterMockRecorder) GenerateToken(userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockTokenServiceAdapter)(nil).GenerateToken), userPublicID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockTokenServiceAdapter)(nil).GenerateToken), userID)
 }
 
 // GetExpireAt mocks base method.

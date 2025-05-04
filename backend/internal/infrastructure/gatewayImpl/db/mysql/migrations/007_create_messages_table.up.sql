@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS messages (
-    id VARCHAR(255) PRIMARY KEY,
-    public_id VARCHAR(255) NOT NULL UNIQUE,
-    room_id VARCHAR(255) NOT NULL,
-    user_id VARCHAR(255) NOT NULL,
+    id BINARY(16) NOT NULL PRIMARY KEY,
+    room_id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
     content TEXT NOT NULL,
-    sent_at DATETIME NOT NULL
+    sent_at DATETIME NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

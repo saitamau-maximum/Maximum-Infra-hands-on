@@ -40,49 +40,19 @@ func (m *MockUserIDFactory) EXPECT() *MockUserIDFactoryMockRecorder {
 	return m.recorder
 }
 
-// FromInt mocks base method.
-func (m *MockUserIDFactory) FromInt(arg0 int) (entity.UserID, error) {
+// NewUserID mocks base method.
+func (m *MockUserIDFactory) NewUserID() (entity.UserID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromInt", arg0)
+	ret := m.ctrl.Call(m, "NewUserID")
 	ret0, _ := ret[0].(entity.UserID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FromInt indicates an expected call of FromInt.
-func (mr *MockUserIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
+// NewUserID indicates an expected call of NewUserID.
+func (mr *MockUserIDFactoryMockRecorder) NewUserID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromInt", reflect.TypeOf((*MockUserIDFactory)(nil).FromInt), arg0)
-}
-
-// FromString mocks base method.
-func (m *MockUserIDFactory) FromString(arg0 string) (entity.UserPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromString", arg0)
-	ret0, _ := ret[0].(entity.UserPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FromString indicates an expected call of FromString.
-func (mr *MockUserIDFactoryMockRecorder) FromString(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromString", reflect.TypeOf((*MockUserIDFactory)(nil).FromString), arg0)
-}
-
-// NewUserPublicID mocks base method.
-func (m *MockUserIDFactory) NewUserPublicID() (entity.UserPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewUserPublicID")
-	ret0, _ := ret[0].(entity.UserPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NewUserPublicID indicates an expected call of NewUserPublicID.
-func (mr *MockUserIDFactoryMockRecorder) NewUserPublicID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewUserPublicID", reflect.TypeOf((*MockUserIDFactory)(nil).NewUserPublicID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewUserID", reflect.TypeOf((*MockUserIDFactory)(nil).NewUserID))
 }
 
 // MockRoomIDFactory is a mock of RoomIDFactory interface.
@@ -109,49 +79,19 @@ func (m *MockRoomIDFactory) EXPECT() *MockRoomIDFactoryMockRecorder {
 	return m.recorder
 }
 
-// FromInt mocks base method.
-func (m *MockRoomIDFactory) FromInt(arg0 int) (entity.RoomID, error) {
+// NewRoomID mocks base method.
+func (m *MockRoomIDFactory) NewRoomID() (entity.RoomID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromInt", arg0)
+	ret := m.ctrl.Call(m, "NewRoomID")
 	ret0, _ := ret[0].(entity.RoomID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FromInt indicates an expected call of FromInt.
-func (mr *MockRoomIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
+// NewRoomID indicates an expected call of NewRoomID.
+func (mr *MockRoomIDFactoryMockRecorder) NewRoomID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromInt", reflect.TypeOf((*MockRoomIDFactory)(nil).FromInt), arg0)
-}
-
-// FromString mocks base method.
-func (m *MockRoomIDFactory) FromString(arg0 string) (entity.RoomPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromString", arg0)
-	ret0, _ := ret[0].(entity.RoomPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FromString indicates an expected call of FromString.
-func (mr *MockRoomIDFactoryMockRecorder) FromString(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromString", reflect.TypeOf((*MockRoomIDFactory)(nil).FromString), arg0)
-}
-
-// NewRoomPublicID mocks base method.
-func (m *MockRoomIDFactory) NewRoomPublicID() (entity.RoomPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewRoomPublicID")
-	ret0, _ := ret[0].(entity.RoomPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NewRoomPublicID indicates an expected call of NewRoomPublicID.
-func (mr *MockRoomIDFactoryMockRecorder) NewRoomPublicID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRoomPublicID", reflect.TypeOf((*MockRoomIDFactory)(nil).NewRoomPublicID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRoomID", reflect.TypeOf((*MockRoomIDFactory)(nil).NewRoomID))
 }
 
 // MockMessageIDFactory is a mock of MessageIDFactory interface.
@@ -178,49 +118,19 @@ func (m *MockMessageIDFactory) EXPECT() *MockMessageIDFactoryMockRecorder {
 	return m.recorder
 }
 
-// FromInt mocks base method.
-func (m *MockMessageIDFactory) FromInt(arg0 int) (entity.MessagePublicID, error) {
+// NewMessageID mocks base method.
+func (m *MockMessageIDFactory) NewMessageID() (entity.MessageID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromInt", arg0)
-	ret0, _ := ret[0].(entity.MessagePublicID)
+	ret := m.ctrl.Call(m, "NewMessageID")
+	ret0, _ := ret[0].(entity.MessageID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FromInt indicates an expected call of FromInt.
-func (mr *MockMessageIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
+// NewMessageID indicates an expected call of NewMessageID.
+func (mr *MockMessageIDFactoryMockRecorder) NewMessageID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromInt", reflect.TypeOf((*MockMessageIDFactory)(nil).FromInt), arg0)
-}
-
-// FromString mocks base method.
-func (m *MockMessageIDFactory) FromString(arg0 string) (entity.MessagePublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromString", arg0)
-	ret0, _ := ret[0].(entity.MessagePublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FromString indicates an expected call of FromString.
-func (mr *MockMessageIDFactoryMockRecorder) FromString(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromString", reflect.TypeOf((*MockMessageIDFactory)(nil).FromString), arg0)
-}
-
-// NewMessagePublicID mocks base method.
-func (m *MockMessageIDFactory) NewMessagePublicID() (entity.MessagePublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewMessagePublicID")
-	ret0, _ := ret[0].(entity.MessagePublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NewMessagePublicID indicates an expected call of NewMessagePublicID.
-func (mr *MockMessageIDFactoryMockRecorder) NewMessagePublicID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewMessagePublicID", reflect.TypeOf((*MockMessageIDFactory)(nil).NewMessagePublicID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewMessageID", reflect.TypeOf((*MockMessageIDFactory)(nil).NewMessageID))
 }
 
 // MockWsClientIDFactory is a mock of WsClientIDFactory interface.
@@ -247,47 +157,17 @@ func (m *MockWsClientIDFactory) EXPECT() *MockWsClientIDFactoryMockRecorder {
 	return m.recorder
 }
 
-// FromInt mocks base method.
-func (m *MockWsClientIDFactory) FromInt(arg0 int) (entity.WsClientPublicID, error) {
+// NewWsClientID mocks base method.
+func (m *MockWsClientIDFactory) NewWsClientID() (entity.WsClientID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromInt", arg0)
-	ret0, _ := ret[0].(entity.WsClientPublicID)
+	ret := m.ctrl.Call(m, "NewWsClientID")
+	ret0, _ := ret[0].(entity.WsClientID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FromInt indicates an expected call of FromInt.
-func (mr *MockWsClientIDFactoryMockRecorder) FromInt(arg0 any) *gomock.Call {
+// NewWsClientID indicates an expected call of NewWsClientID.
+func (mr *MockWsClientIDFactoryMockRecorder) NewWsClientID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromInt", reflect.TypeOf((*MockWsClientIDFactory)(nil).FromInt), arg0)
-}
-
-// FromString mocks base method.
-func (m *MockWsClientIDFactory) FromString(arg0 string) (entity.WsClientPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FromString", arg0)
-	ret0, _ := ret[0].(entity.WsClientPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FromString indicates an expected call of FromString.
-func (mr *MockWsClientIDFactoryMockRecorder) FromString(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromString", reflect.TypeOf((*MockWsClientIDFactory)(nil).FromString), arg0)
-}
-
-// NewWsClientPublicID mocks base method.
-func (m *MockWsClientIDFactory) NewWsClientPublicID() (entity.WsClientPublicID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewWsClientPublicID")
-	ret0, _ := ret[0].(entity.WsClientPublicID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NewWsClientPublicID indicates an expected call of NewWsClientPublicID.
-func (mr *MockWsClientIDFactoryMockRecorder) NewWsClientPublicID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewWsClientPublicID", reflect.TypeOf((*MockWsClientIDFactory)(nil).NewWsClientPublicID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewWsClientID", reflect.TypeOf((*MockWsClientIDFactory)(nil).NewWsClientID))
 }

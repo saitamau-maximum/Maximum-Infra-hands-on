@@ -10,8 +10,7 @@ import (
 
 func newTestClient(roomID entity.RoomID, userID entity.UserID) *entity.WebsocketClient {
 	return entity.NewWebsocketClient(entity.WebsocketClientParams{
-		ID: 	 entity.WsClientID(1),
-		PublicID: entity.WsClientPublicID("test"),
+		ID: entity.WsClientID("test"),
 		RoomID:   roomID,
 		UserID:   userID,
 	})
@@ -20,8 +19,8 @@ func newTestClient(roomID entity.RoomID, userID entity.UserID) *entity.Websocket
 func TestInMemoryWebsocketClientRepository(t *testing.T) {
 	repo := inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepository(inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepositoryParams{})
 
-	roomID := entity.RoomID(1)
-	userID := entity.UserID(1)
+	roomID := entity.RoomID("test-room")
+	userID := entity.UserID("test-user")
 	client := newTestClient(roomID, userID)
 
 	t.Run("CreateClient and GetClientByID success", func(t *testing.T) {
@@ -46,7 +45,7 @@ func TestInMemoryWebsocketClientRepository(t *testing.T) {
 	})
 
 	t.Run("GetClientsByRoomID not found", func(t *testing.T) {
-		otherRoomID := entity.RoomID(2)
+		otherRoomID := entity.RoomID("other-room")
 		clients, err := repo.GetClientsByRoomID(otherRoomID)
 		require.NoError(t, err)
 		require.Nil(t, clients)
@@ -59,7 +58,7 @@ func TestInMemoryWebsocketClientRepository(t *testing.T) {
 	})
 
 	t.Run("GetClientsByUserID not found", func(t *testing.T) {
-		otherUserID := entity.UserID(2)
+		otherUserID := entity.UserID("other-user")
 		got, err := repo.GetClientsByUserID(otherUserID)
 		require.Error(t, err)
 		require.Nil(t, got)

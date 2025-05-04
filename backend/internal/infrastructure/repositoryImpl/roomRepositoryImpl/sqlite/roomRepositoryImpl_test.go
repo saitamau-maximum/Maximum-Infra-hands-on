@@ -25,8 +25,7 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 
 	// テスト用スキーマを作成
 	_, err = db.Exec(`CREATE TABLE users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		public_id TEXT NOT NULL,
+		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
 		email TEXT NOT NULL,
 		password_hash TEXT NOT NULL,
@@ -34,12 +33,11 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 		updated_at DATETIME
 	);
 	CREATE TABLE rooms (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  public_id TEXT NOT NULL UNIQUE,
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL
 	);
 	CREATE TABLE room_members (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id TEXT PRIMARY KEY,
 		room_id INTEGER NOT NULL,
 		user_id TEXT NOT NULL,
 		FOREIGN KEY (room_id) REFERENCES rooms(id)
@@ -60,7 +58,7 @@ func TestRoomRepositoryImpl_GetUsersInRoom(t *testing.T) {
 	// データ準備
 	// ユーザー登録
 	now := time.Now().Format(time.RFC3339)
-	_, err := db.Exec(`INSERT INTO users (public_id, name, email, password_hash, created_at) VALUES
+	_, err := db.Exec(`INSERT INTO users (id, name, email, password_hash, created_at) VALUES
 		('user-public-1', 'Alice', 'alice@example.com', 'hash1', ?),
 		('user-public-2', 'Bob', 'bob@example.com', 'hash2', ?)`,
 		now, now,
@@ -68,7 +66,7 @@ func TestRoomRepositoryImpl_GetUsersInRoom(t *testing.T) {
 	require.NoError(t, err)
 
 	// ルーム登録
-	_, err = db.Exec(`INSERT INTO rooms (public_id, name) VALUES ('room-public-1', 'Test Room')`)
+	_, err = db.Exec(`INSERT INTO rooms (id, name) VALUES ('room-public-1', 'Test Room')`)
 	require.NoError(t, err)
 
 	// room_members登録
@@ -76,7 +74,7 @@ func TestRoomRepositoryImpl_GetUsersInRoom(t *testing.T) {
 	require.NoError(t, err)
 
 	// テスト対象呼び出し
-	users, err := repo.GetUsersInRoom(entity.RoomID(1))
+	users, err := repo.GetUsersInRoom(entity.RoomID("room-public-1"))
 	require.NoError(t, err)
 	require.Len(t, users, 2)
 

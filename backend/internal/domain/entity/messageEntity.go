@@ -3,40 +3,33 @@ package entity
 import "time"
 
 type Message struct {
-	id       MessageID       // メッセージID
-	publicID MessagePublicID // メッセージの公開ID
-	roomID   RoomID          // 所属するチャットルームのID
-	userID   UserID          // 投稿者のID（匿名なら名前など）
-	content  string          // 本文
-	sentAt   time.Time       // 送信日時
+	id      MessageID // メッセージID
+	roomID  RoomID    // 所属するチャットルームのID
+	userID  UserID    // 投稿者のID（匿名なら名前など）
+	content string    // 本文
+	sentAt  time.Time // 送信日時
 }
 
 type MessageParams struct {
-	ID       MessageID
-	PublicID MessagePublicID
-	RoomID   RoomID
-	UserID   UserID
-	Content  string
-	SentAt   time.Time
+	ID      MessageID
+	RoomID  RoomID
+	UserID  UserID
+	Content string
+	SentAt  time.Time
 }
 
 func NewMessage(params MessageParams) *Message {
 	return &Message{
-		id:       params.ID,
-		publicID: params.PublicID,
-		roomID:   params.RoomID,
-		userID:   params.UserID,
-		content:  params.Content,
-		sentAt:   params.SentAt,
+		id:      params.ID,
+		roomID:  params.RoomID,
+		userID:  params.UserID,
+		content: params.Content,
+		sentAt:  params.SentAt,
 	}
 }
 
 func (m *Message) GetID() MessageID {
 	return m.id
-}
-
-func (m *Message) GetPublicID() MessagePublicID {
-	return m.publicID
 }
 
 func (m *Message) GetRoomID() RoomID {

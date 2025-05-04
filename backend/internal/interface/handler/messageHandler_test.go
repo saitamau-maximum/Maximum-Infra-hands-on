@@ -34,23 +34,21 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	roomPublicID := "test-room"
+	roomID := "test-room"
 	mockMessages := []*entity.Message{
 		entity.NewMessage(entity.MessageParams{
-			ID:       entity.MessageID(1),
-			PublicID: entity.MessagePublicID("message1"),
-			RoomID:   entity.RoomID(1),
-			UserID:   entity.UserID(1),
-			Content:  "Hello",
-			SentAt:   time.Now(),
+			ID:      entity.MessageID("message1"),
+			RoomID:  entity.RoomID("test-room"),
+			UserID:  entity.UserID("user1"),
+			Content: "Hello",
+			SentAt:  time.Now(),
 		}),
 		entity.NewMessage(entity.MessageParams{
-			ID:       entity.MessageID(2),
-			PublicID: entity.MessagePublicID("message2"),
-			RoomID:   entity.RoomID(1),
-			UserID:   entity.UserID(2),
-			Content:  "Hi",
-			SentAt:   time.Now(),
+			ID:      entity.MessageID("message2"),
+			RoomID:  entity.RoomID("test-room"),
+			UserID:  entity.UserID("user2"),
+			Content: "Hi",
+			SentAt:  time.Now(),
 		}),
 	}
 	mockResponse := usecase.GetMessageHistoryInRoomResponse{
@@ -63,28 +61,28 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		GetMessageHistoryInRoom(gomock.Any()).
 		Return(mockResponse, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/messages/"+roomPublicID, nil)
+	req := httptest.NewRequest(http.MethodGet, "/messages/"+roomID, nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("room_public_id")
-	c.SetParamValues(roomPublicID)
+	c.SetParamValues(roomID)
 
 	mockUseCase.EXPECT().FormatMessage(mockMessages[0]).Return(
 		usecase.FormatMessageResponse{
-			PublicID:     string(mockMessages[0].GetPublicID()),
-			RoomPublicID: "test-room",
-			UserPublicID: "user1",
-			Content:      mockMessages[0].GetContent(),
-			SentAt:       mockMessages[0].GetSentAt(),
+			ID:      string(mockMessages[0].GetID()),
+			RoomID:  "test-room",
+			UserID:  "user1",
+			Content: mockMessages[0].GetContent(),
+			SentAt:  mockMessages[0].GetSentAt(),
 		}, nil,
 	)
 	mockUseCase.EXPECT().FormatMessage(mockMessages[1]).Return(
 		usecase.FormatMessageResponse{
-			PublicID:     string(mockMessages[1].GetPublicID()),
-			RoomPublicID: "test-room",
-			UserPublicID: "user2",
-			Content:      mockMessages[1].GetContent(),
-			SentAt:       mockMessages[1].GetSentAt(),
+			ID:      string(mockMessages[1].GetID()),
+			RoomID:  "test-room",
+			UserID:  "user2",
+			Content: mockMessages[1].GetContent(),
+			SentAt:  mockMessages[1].GetSentAt(),
 		}, nil,
 	)
 

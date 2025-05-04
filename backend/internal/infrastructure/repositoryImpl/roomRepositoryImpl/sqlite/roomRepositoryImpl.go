@@ -36,15 +36,15 @@ func NewRoomRepositoryImpl(params *NewRoomRepositoryImplParams) repository.RoomR
 }
 
 func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) {
-	_, err := r.db.Exec(`INSERT INTO rooms (public_id, name) VALUES (?, ?)`, room.GetPubID(), room.GetName())
+	_, err := r.db.Exec(`INSERT INTO rooms (id, name) VALUES (?, ?)`, room.GetID(), room.GetName())
 	if err != nil {
-		return entity.RoomID(-1), err
+		return entity.RoomID(""), err
 	}
 
 	var roomID entity.RoomID
-	err = r.db.Get(&roomID, `SELECT id FROM rooms WHERE public_id = ?`, room.GetPubID())
+	err = r.db.Get(&roomID, `SELECT id FROM rooms WHERE id = ?`, room.GetID())
 	if err != nil {
-		return entity.RoomID(-1), err
+		return entity.RoomID(""), err
 	}
 
 	return roomID, nil
@@ -52,7 +52,7 @@ func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) 
 
 func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error) {
 	roomModel := model.RoomModel{}
-	err := r.db.Get(&roomModel, `SELECT public_id, name FROM rooms WHERE id = ?`, id)
+	err := r.db.Get(&roomModel, `SELECT id, name FROM rooms WHERE id = ?`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -66,16 +66,15 @@ func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error)
 
 	room := entity.NewRoom(entity.RoomParams{
 		ID:       entity.RoomID(roomModel.ID),
-		PublicID: entity.RoomPublicID(roomModel.PublicID),
 		Name:     roomModel.Name,
-		Members:  make([]entity.UserPublicID, len(roomMembers)),
+		Members:  make([]entity.UserID, len(roomMembers)),
 	})
 	return room, nil
 }
 
 func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 	roomModels := []model.RoomModel{}
-	err := r.db.Select(&roomModels, `SELECT id, public_id, name FROM rooms`)
+	err := r.db.Select(&roomModels, `SELECT id, name FROM rooms`)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +83,8 @@ func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 	for i, roomModel := range roomModels {
 		rooms[i] = entity.NewRoom(entity.RoomParams{
 			ID:       entity.RoomID(roomModel.ID),
-			PublicID: entity.RoomPublicID(roomModel.PublicID),
 			Name:     roomModel.Name,
-			Members:  []entity.UserPublicID{},
+			Members:  []entity.UserID{},
 		})
 	}
 
@@ -133,7 +131,6 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	for _, um := range userModels {
 		users = append(users, entity.NewUser(entity.UserParams{
 			ID:         entity.UserID(um.ID),
-			PublicID:   entity.UserPublicID(um.PublicID),
 			Name:       um.Name,
 			Email:      um.Email,
 			PasswdHash: um.PasswordHash,
@@ -163,7 +160,7 @@ func (r *RoomRepositoryImpl) RemoveMemberFromRoom(roomID entity.RoomID, userID e
 
 func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, error) {
 	roomModels := []model.RoomModel{}
-	err := r.db.Select(&roomModels, `SELECT id, public_id, name FROM rooms WHERE name LIKE ?`, "%"+name+"%")
+	err := r.db.Select(&roomModels, `SELECT id, name FROM rooms WHERE name LIKE ?`, "%"+name+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -172,9 +169,8 @@ func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, err
 	for i, roomModel := range roomModels {
 		rooms[i] = entity.NewRoom(entity.RoomParams{
 			ID:       entity.RoomID(roomModel.ID),
-			PublicID: entity.RoomPublicID(roomModel.PublicID),
 			Name:     roomModel.Name,
-			Members:  []entity.UserPublicID{},
+			Members:  []entity.UserID{},
 		})
 	}
 
@@ -197,26 +193,23 @@ func (r *RoomRepositoryImpl) DeleteRoom(roomID entity.RoomID) error {
 	return nil
 }
 
-func (r *RoomRepositoryImpl) GetRoomIDByPublicID(id entity.RoomPublicID) (entity.RoomID, error) {
-	roomID := entity.RoomID(-1)
-	err := r.db.Get(&roomID, `SELECT id FROM rooms WHERE public_id = ?`, id)
+func (r *RoomRepositoryImpl) GetRoomIDByID(id entity.RoomID) (entity.RoomID, error) {
+	roomID := entity.RoomID("")
+	err := r.db.Get(&roomID, `SELECT id FROM rooms WHERE id = ?`, id)
 	if err != nil {
-		return entity.RoomID(-1), err
-	}
-	if roomID <= 0 {
-		return entity.RoomID(-1), errors.New("room not found")
+		return entity.RoomID(""), err
 	}
 	return roomID, nil
 }
 
-func (r *RoomRepositoryImpl) GetPublicIDByRoomID(id entity.RoomID) (entity.RoomPublicID, error) {
-	roomPublicID := entity.RoomPublicID("")
-	err := r.db.Get(&roomPublicID, `SELECT public_id FROM rooms WHERE id = ?`, id)
+func (r *RoomRepositoryImpl) GetIDByRoomID(id entity.RoomID) (entity.RoomID, error) {
+	var roomID entity.RoomID
+	err := r.db.Get(&roomID, `SELECT id FROM rooms WHERE id = ?`, id)
 	if err != nil {
-		return entity.RoomPublicID(""), err
+		return entity.RoomID(""), err
 	}
-	if roomPublicID == "" {
-		return entity.RoomPublicID(""), errors.New("room not found")
+	if roomID == "" {
+		return entity.RoomID(""), errors.New("room not found")
 	}
-	return roomPublicID, nil
+	return roomID, nil
 }

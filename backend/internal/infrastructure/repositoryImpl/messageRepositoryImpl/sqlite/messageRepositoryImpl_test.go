@@ -19,7 +19,7 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 
 	schema := `
 CREATE TABLE messages (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	id TEXT PRIMARY KEY,
 	public_id TEXT NOT NULL,
 	room_id TEXT NOT NULL,
 	user_id TEXT NOT NULL,
@@ -41,9 +41,9 @@ func TestMessageRepositoryImpl_CreateAndGetMessageHistoryInRoom(t *testing.T) {
 	// メッセージを作成
 	now := time.Now().UTC()
 	message := entity.NewMessage(entity.MessageParams{
-		PublicID: entity.MessagePublicID("test-public-id"),
-		RoomID:   entity.RoomID(1),
-		UserID:   entity.UserID(1),
+		ID: entity.MessageID("test-public-id"),
+		RoomID:   entity.RoomID("test-room-id"),
+		UserID:   entity.UserID("test-user-id"),
 		Content:  "Hello, World!",
 		SentAt:   now,
 	})
@@ -53,7 +53,7 @@ func TestMessageRepositoryImpl_CreateAndGetMessageHistoryInRoom(t *testing.T) {
 
 	// メッセージ履歴を取得
 	messages, nextBeforeSentAt, hasNext, err := repo.GetMessageHistoryInRoom(
-		entity.RoomID(1),
+		entity.RoomID("test-room-id"),
 		10,
 		time.Now().Add(1*time.Hour), // 未来時間を指定しているので、登録したメッセージが対象になる
 	)

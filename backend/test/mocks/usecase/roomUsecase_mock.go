@@ -85,19 +85,19 @@ func (mr *MockRoomUseCaseInterfaceMockRecorder) GetAllRooms() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRooms", reflect.TypeOf((*MockRoomUseCaseInterface)(nil).GetAllRooms))
 }
 
-// GetRoomByPublicID mocks base method.
-func (m *MockRoomUseCaseInterface) GetRoomByPublicID(params usecase.GetRoomByPublicIDParams) (usecase.GetRoomByPublicIDResponse, error) {
+// GetRoomByID mocks base method.
+func (m *MockRoomUseCaseInterface) GetRoomByID(params usecase.GetRoomByIDParams) (usecase.GetRoomByIDResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoomByPublicID", params)
-	ret0, _ := ret[0].(usecase.GetRoomByPublicIDResponse)
+	ret := m.ctrl.Call(m, "GetRoomByID", params)
+	ret0, _ := ret[0].(usecase.GetRoomByIDResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetRoomByPublicID indicates an expected call of GetRoomByPublicID.
-func (mr *MockRoomUseCaseInterfaceMockRecorder) GetRoomByPublicID(params any) *gomock.Call {
+// GetRoomByID indicates an expected call of GetRoomByID.
+func (mr *MockRoomUseCaseInterfaceMockRecorder) GetRoomByID(params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByPublicID", reflect.TypeOf((*MockRoomUseCaseInterface)(nil).GetRoomByPublicID), params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByID", reflect.TypeOf((*MockRoomUseCaseInterface)(nil).GetRoomByID), params)
 }
 
 // GetUsersInRoom mocks base method.

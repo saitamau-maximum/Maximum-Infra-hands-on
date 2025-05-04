@@ -57,8 +57,7 @@ func TestSaveUser(t *testing.T) {
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
-		ID:         entity.UserID(-1),
-		PublicID:   "test-public-id",
+		ID:   "test-public-id",
 		Name:       "John Doe",
 		Email:      "johndoe@example.com",
 		PasswdHash: "hashed-password",
@@ -74,7 +73,7 @@ func TestSaveUser(t *testing.T) {
 	require.NoError(t, err)
 
 	// fetchedUserとsavedUserが一致することを確認
-	assert.Equal(t, savedUser.GetPublicID(), fetchedUser.GetPublicID())
+	assert.Equal(t, savedUser.GetID(), fetchedUser.GetID())
 	assert.Equal(t, savedUser.GetName(), fetchedUser.GetName())
 	assert.Equal(t, savedUser.GetEmail(), fetchedUser.GetEmail())
 }
@@ -89,7 +88,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
-		PublicID:   "test-public-id",
+		ID:   "test-public-id",
 		Name:       "Jane Doe",
 		Email:      "janedoe@example.com",
 		PasswdHash: "hashed-password",
@@ -105,64 +104,6 @@ func TestGetUserByEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	// fetchedUserとsavedUserが一致することを確認
-	assert.Equal(t, savedUser.GetPublicID(), fetchedUser.GetPublicID())
+	assert.Equal(t, savedUser.GetID(), fetchedUser.GetID())
 	assert.Equal(t, savedUser.GetName(), fetchedUser.GetName())
-}
-
-func TestGetIDByPublicID(t *testing.T) {
-	// テスト用DBをセットアップ
-	db := setupTestDB(t)
-	defer db.Close()
-
-	// UserRepositoryをインスタンス化
-	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
-
-	// テスト用ユーザーを作成
-	user := entity.NewUser(entity.UserParams{
-		PublicID:   "test-public-id",
-		Name:       "Alice",
-		Email:      "alice@example.com",
-		PasswdHash: "hashed-password",
-		CreatedAt:  time.Now(),
-	})
-
-	// ユーザーを保存
-	savedUser, err := userRepo.SaveUser(user)
-	require.NoError(t, err)
-
-	// 保存したユーザーのPublicIDを使ってIDを取得
-	userID, err := userRepo.GetIDByPublicID(savedUser.GetPublicID())
-	require.NoError(t, err)
-
-	// 取得したIDが保存したユーザーのIDと一致することを確認
-	assert.Equal(t, savedUser.GetID(), userID)
-}
-
-func TestGetPublicIDByID(t *testing.T) {
-	// テスト用DBをセットアップ
-	db := setupTestDB(t)
-	defer db.Close()
-
-	// UserRepositoryをインスタンス化
-	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
-
-	// テスト用ユーザーを作成
-	user := entity.NewUser(entity.UserParams{
-		PublicID:   "test-public-id",
-		Name:       "Bob",
-		Email:      "bob@example.com",
-		PasswdHash: "hashed-password",
-		CreatedAt:  time.Now(),
-	})
-
-	// ユーザーを保存
-	savedUser, err := userRepo.SaveUser(user)
-	require.NoError(t, err)
-
-	// 保存したユーザーのIDを使ってPublicIDを取得
-	publicID, err := userRepo.GetPublicIDByID(savedUser.GetID())
-	require.NoError(t, err)
-
-	// 取得したPublicIDが保存したユーザーのPublicIDと一致することを確認
-	assert.Equal(t, savedUser.GetPublicID(), publicID)
 }

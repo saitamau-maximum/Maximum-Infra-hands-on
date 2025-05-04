@@ -17,7 +17,7 @@ func TestTokenServiceAdapter(t *testing.T) {
 	tokenService := tokenadapterimpl.NewTokenServiceAdapter(params)
 
 	t.Run("Generate and Validate valid token", func(t *testing.T) {
-		userID := entity.UserPublicID("abc123")
+		userID := entity.UserID("abc123")
 		token, err := tokenService.GenerateToken(userID)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)

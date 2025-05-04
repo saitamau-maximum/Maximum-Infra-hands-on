@@ -37,7 +37,6 @@ func NewGorillaWebSocketConnection(
 
 type MessageDTO struct {
 	ID       entity.MessageID       // メッセージID
-	PublicID entity.MessagePublicID // メッセージの公開ID
 	RoomID   entity.RoomID          // 所属するチャットルームのID
 	UserID   entity.UserID          // 投稿者のID（匿名なら名前など）
 	Content  string                 // 本文
@@ -47,7 +46,6 @@ type MessageDTO struct {
 func (m *MessageDTO) ToEntity() *entity.Message {
 	return entity.NewMessage(entity.MessageParams{
 		ID:       m.ID,
-		PublicID: m.PublicID,
 		RoomID:   m.RoomID,
 		UserID:   m.UserID,
 		Content:  m.Content,
@@ -57,7 +55,7 @@ func (m *MessageDTO) ToEntity() *entity.Message {
 
 func (m *MessageDTO) FromEntity(msg *entity.Message) {
 	m.ID = msg.GetID()
-	m.PublicID = msg.GetPublicID()
+	m.ID = msg.GetID()
 	m.RoomID = msg.GetRoomID()
 	m.UserID = msg.GetUserID()
 	m.Content = msg.GetContent()

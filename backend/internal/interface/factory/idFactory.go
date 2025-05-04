@@ -3,25 +3,17 @@ package factory
 import "example.com/infrahandson/internal/domain/entity"
 
 type UserIDFactory interface {
-	NewUserPublicID() (entity.UserPublicID, error)
-	FromInt(int) (entity.UserID, error)
-	FromString(string) (entity.UserPublicID, error)
+	NewUserID() (entity.UserID, error)
 }
 
 type RoomIDFactory interface {
-	NewRoomPublicID() (entity.RoomPublicID, error)
-	FromInt(int) (entity.RoomID, error)
-	FromString(string) (entity.RoomPublicID, error)
+	NewRoomID() (entity.RoomID, error)
 }
 
 type MessageIDFactory interface {
-	NewMessagePublicID() (entity.MessagePublicID, error)
-	FromString(string) (entity.MessagePublicID, error)
-	FromInt(int) (entity.MessagePublicID, error)
+	NewMessageID() (entity.MessageID, error)
 }
 
 type WsClientIDFactory interface {
-	NewWsClientPublicID() (entity.WsClientPublicID, error)
-	FromInt(int) (entity.WsClientPublicID, error)
-	FromString(string) (entity.WsClientPublicID, error)
+	NewWsClientID() (entity.WsClientID, error)
 }

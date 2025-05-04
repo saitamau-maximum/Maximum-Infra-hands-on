@@ -19,7 +19,6 @@ type WebsocketUseCaseInterface interface {
 
 	// 切断処理
 	DisconnectUser(req DisconnectUserRequest) error
-
 }
 
 type WebsocketUseCase struct {
@@ -86,38 +85,27 @@ func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInter
 
 // ConnectUserToRoomRequest構造体: 接続・参加処理のリクエスト
 type ConnectUserToRoomRequest struct {
-	UserPublicID entity.UserPublicID
-	RoomPublicID entity.RoomPublicID
-	Conn         service.WebSocketConnection
+	UserID entity.UserID
+	RoomID entity.RoomID
+	Conn   service.WebSocketConnection
 }
 
 // ConnectUserToRoom 接続・参加処理
 func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error {
-	userID, err := w.userRepo.GetIDByPublicID(req.UserPublicID)
+	user, err := w.userRepo.GetUserByID(req.UserID)
 	if err != nil {
 		return err
 	}
 
-	user, err := w.userRepo.GetUserByID(userID)
-	if err != nil {
-		return err
-	}
-
-	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
-	if err != nil {
-		return err
-	}
-
-	publicID, err := w.clientIDFactory.NewWsClientPublicID()
+	id, err := w.clientIDFactory.NewWsClientID()
 	if err != nil {
 		return err
 	}
 
 	client := entity.NewWebsocketClient(entity.WebsocketClientParams{
-		ID:       -1, // IDはDBに保存後に更新されるため、-1を指定
-		PublicID: publicID,
-		UserID:   user.GetID(),
-		RoomID:   roomID,
+		ID:     id,
+		UserID: user.GetID(),
+		RoomID: req.RoomID,
 	})
 
 	err = w.wsClientRepo.CreateClient(client)
@@ -125,7 +113,7 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 		return err
 	}
 
-	err = w.websocketManager.Register(req.Conn, userID, roomID)
+	err = w.websocketManager.Register(req.Conn, req.UserID, req.RoomID)
 	if err != nil {
 		return err
 	}
@@ -135,41 +123,31 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 
 // SendMessageRequest構造体: メッセージ送信リクエスト
 type SendMessageRequest struct {
-	RoomPublicID entity.RoomPublicID
-	Sender       entity.UserPublicID
-	Content      string
+	RoomID  entity.RoomID
+	Sender  entity.UserID
+	Content string
 }
 
 // SendMessage メッセージ送信
 func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
-	roomID, err := w.roomRepo.GetRoomIDByPublicID(req.RoomPublicID)
-	if err != nil {
-		return err
-	}
-
-	msgPublicID, err := w.msgIDFactory.NewMessagePublicID()
-	if err != nil {
-		return err
-	}
-	senderID, err := w.userRepo.GetIDByPublicID(req.Sender)
+	id, err := w.msgIDFactory.NewMessageID()
 	if err != nil {
 		return err
 	}
 
 	msg := entity.NewMessage(entity.MessageParams{
-		ID:       -1,
-		PublicID: msgPublicID,
-		RoomID:   roomID,
-		UserID:   senderID,
-		Content:  req.Content,
-		SentAt:   time.Now(),
+		ID:      id,
+		RoomID:  req.RoomID,
+		UserID:  req.Sender,
+		Content: req.Content,
+		SentAt:  time.Now(),
 	})
 
 	if err := w.msgRepo.CreateMessage(msg); err != nil {
 		return err
 	}
 
-	err = w.websocketManager.BroadcastToRoom(roomID, msg)
+	err = w.websocketManager.BroadcastToRoom(req.RoomID, msg)
 	if err != nil {
 		return err
 	}
@@ -179,22 +157,17 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 
 // DisconnectUserRequest構造体: 切断処理リクエスト
 type DisconnectUserRequest struct {
-	UserID entity.UserPublicID
+	UserID entity.UserID
 }
 
 // DisconnectUser 切断処理
 func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
-	userID, err := w.userRepo.GetIDByPublicID(req.UserID)
+	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
 	if err != nil {
 		return err
 	}
 
-	conn, err := w.websocketManager.GetConnectionByUserID(userID)
-	if err != nil {
-		return err
-	}
-
-	user, err := w.wsClientRepo.GetClientsByUserID(userID)
+	user, err := w.wsClientRepo.GetClientsByUserID(req.UserID)
 	if err != nil {
 		return err
 	}
@@ -214,11 +187,10 @@ func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
 
 // GetMessageHistoryRequest構造体: メッセージ履歴取得リクエスト
 type GetMessageHistoryRequest struct {
-	PublicRoomID entity.RoomPublicID
+	RoomID entity.RoomID
 }
 
 // GetMessageHistoryResponse構造体: メッセージ履歴取得レスポンス
 type GetMessageHistoryResponse struct {
 	Messages []*entity.Message
 }
-

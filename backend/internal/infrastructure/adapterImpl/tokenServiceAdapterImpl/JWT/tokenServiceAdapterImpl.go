@@ -39,9 +39,9 @@ func NewTokenServiceAdapter(params NewTokenServiceAdapterParams) adapter.TokenSe
 	}
 }
 
-func (s *TokenServiceAdapterImpl) GenerateToken(userPublicID entity.UserPublicID) (string, error) {
+func (s *TokenServiceAdapterImpl) GenerateToken(userID entity.UserID) (string, error) {
 	claims := jwt.MapClaims{
-		"user_id": string(userPublicID),
+		"user_id": string(userID),
 		"exp":     time.Now().Add(time.Duration(s.expireMinutes) * time.Minute).Unix(),
 	}
 

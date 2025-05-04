@@ -6,7 +6,6 @@ import (
 
 type User struct {
 	id         UserID
-	publicID   UserPublicID
 	name       string
 	email      string
 	passwdhash string
@@ -16,7 +15,6 @@ type User struct {
 
 type UserParams struct {
 	ID         UserID
-	PublicID   UserPublicID
 	Name       string
 	Email      string
 	PasswdHash string
@@ -27,7 +25,6 @@ type UserParams struct {
 func NewUser(p UserParams) *User {
 	return &User{
 		id:         p.ID,
-		publicID:   p.PublicID,
 		name:       p.Name,
 		email:      p.Email,
 		passwdhash: p.PasswdHash,
@@ -38,10 +35,6 @@ func NewUser(p UserParams) *User {
 
 func (u User) GetID() UserID {
 	return u.id
-}
-
-func (u User) GetPublicID() UserPublicID {
-	return u.publicID
 }
 
 func (u User) GetName() string {

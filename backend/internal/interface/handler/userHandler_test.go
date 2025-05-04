@@ -103,8 +103,7 @@ func TestGetMe(t *testing.T) {
 	defer ctrl.Finish()
 
 	userParams := entity.UserParams{
-		ID:         1,
-		PublicID:   "mockUserID",
+		ID:   "mockUserID",
 		Name:       "Test User",
 		Email:      "test",
 		PasswdHash: "hashedPassword",
@@ -134,8 +133,7 @@ func TestGetMe(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserIDFactory.EXPECT().FromString("mockUserID").Return(entity.UserPublicID("mockUserID"), nil)
-	mockUserUseCase.EXPECT().GetUserByID(entity.UserPublicID("mockUserID")).Return(user, nil)
+	mockUserUseCase.EXPECT().GetUserByID(entity.UserID("mockUserID")).Return(user, nil)
 
 	if assert.NoError(t, handler.GetMe(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)

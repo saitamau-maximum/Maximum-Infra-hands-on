@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/interface/adapter"
 	"example.com/infrahandson/internal/interface/factory"
 	"example.com/infrahandson/internal/usecase"
@@ -10,21 +11,21 @@ import (
 )
 
 type WebSocketHandler struct {
-	WsUseCase        usecase.WebsocketUseCaseInterface
-	WsUpgrader       adapter.WebSocketUpgraderAdapter
-	WsConnFactory    factory.WebSocketConnectionFactory
-	UserIDFactory    factory.UserIDFactory
+	WsUseCase     usecase.WebsocketUseCaseInterface
+	WsUpgrader    adapter.WebSocketUpgraderAdapter
+	WsConnFactory factory.WebSocketConnectionFactory
+	UserIDFactory factory.UserIDFactory
 	RoomIDFactory factory.RoomIDFactory
-	Logger           adapter.LoggerAdapter
+	Logger        adapter.LoggerAdapter
 }
 
 type NewWebSocketHandlerParams struct {
-	WsUseCase        usecase.WebsocketUseCaseInterface
-	WsUpgrader       adapter.WebSocketUpgraderAdapter
-	WsConnFactory    factory.WebSocketConnectionFactory
-	UserIDFactory    factory.UserIDFactory
+	WsUseCase     usecase.WebsocketUseCaseInterface
+	WsUpgrader    adapter.WebSocketUpgraderAdapter
+	WsConnFactory factory.WebSocketConnectionFactory
+	UserIDFactory factory.UserIDFactory
 	RoomIDFactory factory.RoomIDFactory
-	Logger           adapter.LoggerAdapter
+	Logger        adapter.LoggerAdapter
 }
 
 func (p *NewWebSocketHandlerParams) Validate() error {
@@ -54,41 +55,31 @@ func NewWebSocketHandler(params NewWebSocketHandlerParams) *WebSocketHandler {
 		panic(err)
 	}
 	return &WebSocketHandler{
-		WsUseCase:        params.WsUseCase,
-		WsUpgrader:       params.WsUpgrader,
-		WsConnFactory:    params.WsConnFactory,
-		UserIDFactory:    params.UserIDFactory,
+		WsUseCase:     params.WsUseCase,
+		WsUpgrader:    params.WsUpgrader,
+		WsConnFactory: params.WsConnFactory,
+		UserIDFactory: params.UserIDFactory,
 		RoomIDFactory: params.RoomIDFactory,
-		Logger:           params.Logger,
+		Logger:        params.Logger,
 	}
 }
 
 func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 	h.Logger.Info("ConnectToChatRoom called")
 
-	userPublicIDStr, ok := c.Get("user_id").(string)
-	if !ok || userPublicIDStr == "" {
+	userID, ok := c.Get("user_id").(string)
+	if !ok || userID == "" {
 		h.Logger.Warn("User ID is missing or invalid")
 		return echo.NewHTTPError(http.StatusUnauthorized, "User ID is required")
 	}
-	userPublicID, err := h.UserIDFactory.FromString(userPublicIDStr)
-	if err != nil {
-		h.Logger.Warn("Invalid User ID", "user_id", userPublicIDStr)
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid User ID")
-	}
 
-	roomPublicIDStr := c.Param("room_public_id")
-	if roomPublicIDStr == "" {
+	roomID := c.Param("room_public_id")
+	if roomID == "" {
 		h.Logger.Warn("Room public ID is missing")
 		return echo.NewHTTPError(http.StatusBadRequest, "Room public ID is required")
 	}
-	roomPublicID, err := h.RoomIDFactory.FromString(roomPublicIDStr)
-	if err != nil {
-		h.Logger.Warn("Invalid Room public ID", "room_public_id", roomPublicIDStr)
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Room public ID")
-	}
 
-	h.Logger.Info("Upgrading WebSocket connection", "room_public_id", roomPublicIDStr, "user_id", userPublicIDStr)
+	h.Logger.Info("Upgrading WebSocket connection", "room_public_id", roomID, "user_id", userID)
 	connRaw, err := h.WsUpgrader.Upgrade(c.Response().Writer, c.Request())
 	if err != nil {
 		h.Logger.Error("Failed to upgrade connection", "error", err)
@@ -102,36 +93,36 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 	}
 
 	if err := h.WsUseCase.ConnectUserToRoom(usecase.ConnectUserToRoomRequest{
-		UserPublicID: userPublicID,
-		RoomPublicID: roomPublicID,
-		Conn:         conn,
+		UserID: entity.UserID(userID),
+		RoomID: entity.RoomID(roomID),
+		Conn:   conn,
 	}); err != nil {
 		h.Logger.Error("Failed to connect user to room", "error", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to connect user to room")
 	}
 
-	h.Logger.Info("User connected to room", "room_public_id", roomPublicIDStr, "user_id", userPublicIDStr)
-	
+	h.Logger.Info("User connected to room", "room_public_id", roomID, "user_id", userID)
+
 	go func() {
-		h.Logger.Info("Starting message loop", "room_public_id", roomPublicIDStr, "user_id", userPublicIDStr)
-		var userPublicID = userPublicID
-		var roomPublicID = roomPublicID
+		h.Logger.Info("Starting message loop", "room_public_id", roomID, "user_id", userID)
+		var userID = userID
+		var roomID = roomID
 		defer conn.Close()
 		for {
 			message, err := conn.ReadMessage()
 			if err != nil {
 				h.Logger.Warn("Connection closed or error reading message", "error", err)
 				_ = h.WsUseCase.DisconnectUser(usecase.DisconnectUserRequest{
-					UserID: userPublicID,
+					UserID: entity.UserID(userID),
 				})
 				return
 			}
 
-			h.Logger.Info("Message received", "room_public_id", roomPublicIDStr, "user_id", userPublicIDStr)
+			h.Logger.Info("Message received", "room_public_id", roomID, "user_id", userID)
 			h.WsUseCase.SendMessage(usecase.SendMessageRequest{
-				RoomPublicID: roomPublicID,
-				Sender:       userPublicID,
-				Content:      message.GetContent(),
+				RoomID:  entity.RoomID(roomID),
+				Sender:  entity.UserID(userID),
+				Content: message.GetContent(),
 			})
 		}
 	}()
