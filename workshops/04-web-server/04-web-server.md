@@ -138,7 +138,7 @@ Nginxの設定ファイルを作ることでこれらは実現できます。
 `root`を埋めるために、ファイルの置き場所を作っていきます。
 
 ```bash
-sudo mkidr -p /var/www/InfraHandsOn
+sudo mkdir -p /var/www/InfraHandsOn
 ```
 `-p`は、親ディレクトリまで含めて一括作成するためのオプションです。
 
