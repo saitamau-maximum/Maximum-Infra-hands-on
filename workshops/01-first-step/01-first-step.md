@@ -64,10 +64,15 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.bashrc
 nvm install --lts
 ```
-Goのinsatllは、Ubuntuのバージョンなどによって異なるようなので、公式ページをご覧ください。
 
-[https://go.dev/doc/install](https://go.dev/doc/install)
+そのあと、環境変数の設定をします。`frontend`の直下にある`.env`ファイルの`localhost`の部分をサーバーのIPアドレスにしてください
 
+例
+```
+VITE_API_BASE_URL=http://localhost:8080
+↓
+VITE_API_BASE_URL=http://192.168.123.8:8080
+```
 ここまでできたら、
 ```bash
 cd ~/Maximum-Infra-hands-on/frontend
@@ -75,12 +80,26 @@ npm install
 ```
 これで、フロントエンドの構築はOK。
 
-また、
+次にバックエンドです
+
+Goのinsatllは、Ubuntuのバージョンなどによって異なるようなので、公式ページをご覧ください。
+
+[https://go.dev/doc/install](https://go.dev/doc/install)
+
+入れられたら、まずは変数をいじりましょう。
+
+`backend/config/config.go`の、`CORSOrigin`のデフォルト値を変えてください。
+
+例
+```
+CORSOrigin:  getEnv("CORS_ORIGIN", "http://localhost:5173"),
+↓
+CORSOrigin:  getEnv("CORS_ORIGIN", "http://192.168.123.8:5173"),
+```
+これができたら、次に動かす準備をします。
 ```bash
 cd ~/Maximum-Infra-hands-on/backend
 go mod tidy
-go build ./cmd/main.go
-
 ```
 をしましょう。これでバックエンドの構築もOK。
 
@@ -92,6 +111,7 @@ go build ./cmd/main.go
 bash ./script/start-dev
 ```
 と実行してください。
+そのIPアドレスの5173番ポートに訪れることで、アプリを見ることができます。
 
 もし正しく開発環境が動いたら、最初のセットアップは成功です。
 
