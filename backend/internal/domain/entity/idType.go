@@ -1,18 +1,10 @@
 // IDの生成方法を隠蔽するためのラッパー
 package entity
 
-type UserID int
+type UserID string
 
-type UserPublicID string
+type RoomID string
 
-type RoomID int
+type MessageID string
 
-type RoomPublicID string
-
-type MessageID int
-
-type MessagePublicID string
-
-type WsClientID int
-
-type WsClientPublicID string
+type WsClientID string
