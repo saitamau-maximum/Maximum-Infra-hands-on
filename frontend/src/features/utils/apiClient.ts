@@ -1,5 +1,5 @@
 const apiClient = {
-  baseUrl: `http://localhost:8080`, // ベースURLを指定
+  baseUrl: import.meta.env.VITE_API_BASE_URL, // ベースURLを指定
 
   // 基本的なリクエスト処理
   request: async (endpoint: string, options: RequestInit = {}) => {
