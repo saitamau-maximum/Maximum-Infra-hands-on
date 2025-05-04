@@ -39,6 +39,12 @@ const apiClient = {
       body: JSON.stringify(body),
     });
   },
+
+  // websocket接続
+  websocket: (endpoint: string) => {
+    const ws = new WebSocket(`${apiClient.baseUrl}${endpoint}`);
+    return ws;
+  }
 };
 
 export default apiClient;
