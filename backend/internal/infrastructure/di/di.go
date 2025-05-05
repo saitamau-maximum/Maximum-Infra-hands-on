@@ -2,6 +2,7 @@ package di
 
 import (
 	"example.com/infrahandson/config"
+	"example.com/infrahandson/internal/domain/repository"
 	bcryptadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/hasherAdapterImpl/bcrypt"
 	fmtloggerimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/loggerAdapterImpl/fmtLogger"
 	tokenadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/tokenServiceAdapterImpl/JWT"
@@ -9,6 +10,7 @@ import (
 	factoryimpl "example.com/infrahandson/internal/infrastructure/factoryImpl"
 	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
 	sqliteroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/sqlite"
+	mysqluserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/mysql"
 	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
 	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
@@ -36,16 +38,21 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 	upgrader := gorillawebsocketupgraderImpl.NewGorillaWebSocketUpgrader()
 	wsConnFactory := factoryimpl.NewWebSocketConnectionFactoryImpl()
 
+	var userRepository repository.UserRepository
+	var roomRepository repository.RoomRepository
+	var msgRepository repository.MessageRepository
+	
 	// Repositoryの初期化
-	userRepository := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{
-		DB: db,
-	})
-	roomRepository := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
-		DB: db,
-	})
-	msgRepository := sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{
-		DB: db,
-	})
+	if cfg.MySQLDSN != nil {
+		userRepository = mysqluserrepoimpl.NewUserRepositoryImpl(&mysqluserrepoimpl.NewUserRepositoryImplParams{DB: db})
+		roomRepository = sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
+		msgRepository = sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
+	} else {
+		userRepository = sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
+		roomRepository = sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
+		msgRepository = sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
+	}
+
 	wsClientRepository := inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepository(inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepositoryParams{})
 
 	// Serviceの初期化
@@ -82,9 +89,9 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 		ClientIDFactory:  clientDFactory,
 	})
 	msgUseCase := usecase.NewMessageUseCase(usecase.NewMessageUseCaseParams{
-		MsgRepo:          msgRepository,
-		RoomRepo:         roomRepository,
-		UserRepo: 				userRepository,
+		MsgRepo:  msgRepository,
+		RoomRepo: roomRepository,
+		UserRepo: userRepository,
 	})
 
 	// Handlerの初期化
@@ -108,8 +115,8 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 		Logger:        logger,
 	})
 	msgHansler := handler.NewMessageHandler(handler.NewMessageHandlerParams{
-		MsgUseCase:   msgUseCase,
-		Logger: 		logger,
+		MsgUseCase: msgUseCase,
+		Logger:     logger,
 	})
 
 	return &Dependencies{
