@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -43,25 +43,25 @@ type NewWebsocketUseCaseParams struct {
 
 func (p *NewWebsocketUseCaseParams) Validate() error {
 	if p.UserRepo == nil {
-		return fmt.Errorf("UserRepo is required")
+		return errors.New("UserRepo is required")
 	}
 	if p.RoomRepo == nil {
-		return fmt.Errorf("RoomRepo is required")
+		return errors.New("RoomRepo is required")
 	}
 	if p.MsgRepo == nil {
-		return fmt.Errorf("MsgRepo is required")
+		return errors.New("MsgRepo is required")
 	}
 	if p.WsClientRepo == nil {
-		return fmt.Errorf("WsClientRepo is required")
+		return errors.New("WsClientRepo is required")
 	}
 	if p.WebsocketManager == nil {
-		return fmt.Errorf("WebsocketManager is required")
+		return errors.New("WebsocketManager is required")
 	}
 	if p.MsgIDFactory == nil {
-		return fmt.Errorf("MsgIDFactory is required")
+		return errors.New("MsgIDFactory is required")
 	}
 	if p.ClientIDFactory == nil {
-		return fmt.Errorf("ClientIDFactory is required")
+		return errors.New("ClientIDFactory is required")
 	}
 	return nil
 }
@@ -69,7 +69,7 @@ func (p *NewWebsocketUseCaseParams) Validate() error {
 func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInterface {
 	// Paramsのバリデーションを行う
 	if err := params.Validate(); err != nil {
-		panic(fmt.Sprintf("Invalid parameters: %v", err))
+		panic(err)
 	}
 
 	return &WebsocketUseCase{

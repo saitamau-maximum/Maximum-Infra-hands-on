@@ -1,8 +1,6 @@
 package di
 
 import (
-	"fmt"
-
 	"example.com/infrahandson/config"
 	"example.com/infrahandson/internal/domain/repository"
 	bcryptadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/hasherAdapterImpl/bcrypt"
@@ -45,10 +43,9 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 	var userRepository repository.UserRepository
 	var roomRepository repository.RoomRepository
 	var msgRepository repository.MessageRepository
-	
+
 	// Repositoryの初期化
 	if cfg.MySQLDSN != nil {
-		fmt.Println("Using MySQL")
 		userRepository = mysqluserrepoimpl.NewUserRepositoryImpl(&mysqluserrepoimpl.NewUserRepositoryImplParams{DB: db})
 		roomRepository = mysqlroomrepoimpl.NewRoomRepositoryImpl(&mysqlroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
 		msgRepository = mysqlmsgrepoimpl.NewMessageRepositoryImpl(&mysqlmsgrepoimpl.NewMessageRepositoryImplParams{DB: db})

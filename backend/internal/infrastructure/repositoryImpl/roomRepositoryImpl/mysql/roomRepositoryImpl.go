@@ -2,7 +2,6 @@ package mysqlroomrepoimpl
 
 import (
 	"errors"
-	"fmt"
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/repository"
@@ -39,12 +38,10 @@ func NewRoomRepositoryImpl(p *NewRoomRepositoryImplParams) repository.RoomReposi
 func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) {
 	// RoomID -> UUID
 	id := room.GetID()
-	fmt.Println("id", id)
 	idUUID, err := id.RoomID2UUID()
 	if err != nil {
 		return entity.RoomID(""), err
 	}
-	fmt.Println("idUUID", idUUID)
 	// UUID -> BIN
 	_, err = r.db.Exec(`INSERT INTO rooms (id, name) VALUES (UUID_TO_BIN(?), ?)`, idUUID, room.GetName())
 	if err != nil {
