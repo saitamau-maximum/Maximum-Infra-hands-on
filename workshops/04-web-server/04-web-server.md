@@ -188,7 +188,7 @@ sudo systemctl restart nginx
 Nginxと、拡張モジュールを使うと、この章で行ったこと以外にもいろいろなことができます。
 - アクセスログ収集
 - レスポンスのgzip圧縮
-- request/respoonseのバッファリング
+- request/responseのバッファリング
 - TLS通信の高速化
 - ロードバランス
 - コンテンツキャッシュ
