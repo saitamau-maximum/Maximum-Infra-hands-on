@@ -4,10 +4,11 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
+	"github.com/google/uuid"
 )
 
 type UserModel struct {
-	ID           string        `db:"id"`
+	ID           uuid.UUID  `db:"id"`
 	Name         string     `db:"name"`
 	Email        string     `db:"email"`
 	PasswordHash string     `db:"password_hash"`
@@ -17,7 +18,7 @@ type UserModel struct {
 
 func (u *UserModel) ToEntity() *entity.User {
 	return entity.NewUser(entity.UserParams{
-		ID:         entity.UserID(u.ID),
+		ID:         entity.UserID(u.ID.String()), // UUID -> UserID
 		Name:       u.Name,
 		Email:      u.Email,
 		PasswdHash: u.PasswordHash,

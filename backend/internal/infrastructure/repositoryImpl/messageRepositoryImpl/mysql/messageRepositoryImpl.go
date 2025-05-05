@@ -42,7 +42,7 @@ func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
 	_, err := r.db.Exec(`
 		INSERT INTO messages (id, room_id, user_id, content, sent_at)
 		VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)`,
-		string(msg.ID), string(msg.RoomID), string(msg.UserID), msg.Content, msg.SentAt)
+		msg.ID, msg.RoomID, msg.UserID, msg.Content, msg.SentAt)
 
 	return err
 }
@@ -54,7 +54,6 @@ func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
 ) (messages []*entity.Message, nextBeforeSentAt time.Time, hasNext bool, err error) {
 	var msgModels []model.MessageModel
 
-	// UUIDは文字列で渡し、DB側で比較用に UUID_TO_BIN を使用
 	query := `
 		SELECT 
 			BIN_TO_UUID(id) AS id,
@@ -67,7 +66,12 @@ func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
 		ORDER BY sent_at DESC
 		LIMIT ?`
 
-	err = r.db.Select(&msgModels, query, string(roomID), beforeSentAt, limit)
+	// RoomID -> UUID
+	roomIDUUID, err := roomID.RoomID2UUID()
+	if err != nil {
+		return nil, time.Now(), false, err
+	}
+	err = r.db.Select(&msgModels, query, roomIDUUID, beforeSentAt, limit)
 	if err != nil {
 		return nil, time.Now(), false, err
 	}
