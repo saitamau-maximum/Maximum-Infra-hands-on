@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/repository"
@@ -82,12 +83,12 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 		Name:    req.Name,
 		Members: []entity.UserID{},
 	})
-
+	fmt.Println("room", room)
 	savedRoomID, err := r.roomRepo.SaveRoom(room)
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
-
+	fmt.Println("savedRoomID", savedRoomID)
 	res, err := r.roomRepo.GetRoomByID(savedRoomID)
 	if err != nil {
 		return CreateRoomResponse{nil}, err

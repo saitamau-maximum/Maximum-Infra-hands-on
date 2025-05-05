@@ -65,7 +65,7 @@ func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error)
 	}
 
 	room := entity.NewRoom(entity.RoomParams{
-		ID:       entity.RoomID(roomModel.ID),
+		ID:       entity.RoomID(roomModel.ID.String()),
 		Name:     roomModel.Name,
 		Members:  make([]entity.UserID, len(roomMembers)),
 	})
@@ -82,7 +82,7 @@ func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 	rooms := make([]*entity.Room, len(roomModels))
 	for i, roomModel := range roomModels {
 		rooms[i] = entity.NewRoom(entity.RoomParams{
-			ID:       entity.RoomID(roomModel.ID),
+			ID:       entity.RoomID(roomModel.ID.String()),
 			Name:     roomModel.Name,
 			Members:  []entity.UserID{},
 		})
@@ -102,7 +102,7 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	// user_idだけ取り出す
 	userIDs := make([]int, 0, len(roomMembers))
 	for _, rm := range roomMembers {
-		id, err := strconv.Atoi(rm.UserID)
+		id, err := strconv.Atoi(rm.UserID.String())
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	users := make([]*entity.User, 0, len(userModels))
 	for _, um := range userModels {
 		users = append(users, entity.NewUser(entity.UserParams{
-			ID:         entity.UserID(um.ID),
+			ID:         entity.UserID(um.ID.String()),
 			Name:       um.Name,
 			Email:      um.Email,
 			PasswdHash: um.PasswordHash,
@@ -168,7 +168,7 @@ func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, err
 	rooms := make([]*entity.Room, len(roomModels))
 	for i, roomModel := range roomModels {
 		rooms[i] = entity.NewRoom(entity.RoomParams{
-			ID:       entity.RoomID(roomModel.ID),
+			ID:       entity.RoomID(roomModel.ID.String()),
 			Name:     roomModel.Name,
 			Members:  []entity.UserID{},
 		})

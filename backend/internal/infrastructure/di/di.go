@@ -1,6 +1,8 @@
 package di
 
 import (
+	"fmt"
+
 	"example.com/infrahandson/config"
 	"example.com/infrahandson/internal/domain/repository"
 	bcryptadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/hasherAdapterImpl/bcrypt"
@@ -8,7 +10,9 @@ import (
 	tokenadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/tokenServiceAdapterImpl/JWT"
 	gorillawebsocketupgraderImpl "example.com/infrahandson/internal/infrastructure/adapterImpl/upgraderAdapterImpl/gorillawebsocket"
 	factoryimpl "example.com/infrahandson/internal/infrastructure/factoryImpl"
+	mysqlmsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/mysql"
 	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
+	mysqlroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/mysql"
 	sqliteroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/sqlite"
 	mysqluserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/mysql"
 	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
@@ -44,9 +48,10 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 	
 	// Repositoryの初期化
 	if cfg.MySQLDSN != nil {
+		fmt.Println("Using MySQL")
 		userRepository = mysqluserrepoimpl.NewUserRepositoryImpl(&mysqluserrepoimpl.NewUserRepositoryImplParams{DB: db})
-		roomRepository = sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
-		msgRepository = sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
+		roomRepository = mysqlroomrepoimpl.NewRoomRepositoryImpl(&mysqlroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
+		msgRepository = mysqlmsgrepoimpl.NewMessageRepositoryImpl(&mysqlmsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
 	} else {
 		userRepository = sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
 		roomRepository = sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
