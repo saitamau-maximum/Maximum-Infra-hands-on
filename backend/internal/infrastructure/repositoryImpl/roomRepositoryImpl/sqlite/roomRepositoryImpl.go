@@ -193,23 +193,3 @@ func (r *RoomRepositoryImpl) DeleteRoom(roomID entity.RoomID) error {
 	return nil
 }
 
-func (r *RoomRepositoryImpl) GetRoomIDByID(id entity.RoomID) (entity.RoomID, error) {
-	roomID := entity.RoomID("")
-	err := r.db.Get(&roomID, `SELECT id FROM rooms WHERE id = ?`, id)
-	if err != nil {
-		return entity.RoomID(""), err
-	}
-	return roomID, nil
-}
-
-func (r *RoomRepositoryImpl) GetIDByRoomID(id entity.RoomID) (entity.RoomID, error) {
-	var roomID entity.RoomID
-	err := r.db.Get(&roomID, `SELECT id FROM rooms WHERE id = ?`, id)
-	if err != nil {
-		return entity.RoomID(""), err
-	}
-	if roomID == "" {
-		return entity.RoomID(""), errors.New("room not found")
-	}
-	return roomID, nil
-}
