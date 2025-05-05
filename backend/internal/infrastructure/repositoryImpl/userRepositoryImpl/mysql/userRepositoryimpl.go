@@ -37,11 +37,17 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 	if user == nil {
 		return nil, errors.New("user cannot be nil")
 	}
-
-	_, err := r.db.Exec(`
+	// UserID -> UUID
+	id := user.GetID()
+	idUUID, err := id.UserID2UUID()
+	if err != nil {
+		return nil, err
+	}
+	// UUID -> BIN
+	_, err = r.db.Exec(`
 		INSERT INTO users (id, name, email, password_hash, created_at)
 		VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`,
-		user.GetID(),
+		idUUID,
 		user.GetName(),
 		user.GetEmail(),
 		user.GetPasswdHash(),
@@ -58,11 +64,16 @@ func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error)
 	if id == "" {
 		return nil, errors.New("id cannot be empty")
 	}
-
+	// UserID -> UUID
+	idUUID, err := id.UserID2UUID()
+	if err != nil {
+		return nil, err
+	}
+	// UUID -> BIN
 	row := r.db.QueryRowx(`
 		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
-		WHERE id = UUID_TO_BIN(?)`, id)
+		WHERE id = UUID_TO_BIN(?)`, idUUID)
 
 	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {

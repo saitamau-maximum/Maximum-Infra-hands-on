@@ -82,12 +82,10 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 		Name:    req.Name,
 		Members: []entity.UserID{},
 	})
-
 	savedRoomID, err := r.roomRepo.SaveRoom(room)
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
-
 	res, err := r.roomRepo.GetRoomByID(savedRoomID)
 	if err != nil {
 		return CreateRoomResponse{nil}, err
@@ -201,7 +199,7 @@ func (r *RoomUseCase) SearchRoom(req SearchRoomRequest) (SearchRoomResponse, err
 
 // UpdateRoomNameRequest構造体: 部屋名を更新するリクエスト
 type UpdateRoomNameRequest struct {
-	RoomID  entity.RoomID `json:"room_id"`  
+	RoomID  entity.RoomID `json:"room_id"`
 	NewName string        `json:"new_name"` // 新しい部屋名
 }
 

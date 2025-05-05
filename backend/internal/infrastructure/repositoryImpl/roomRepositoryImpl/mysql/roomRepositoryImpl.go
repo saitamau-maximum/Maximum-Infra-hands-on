@@ -2,11 +2,11 @@ package mysqlroomrepoimpl
 
 import (
 	"errors"
-	"strconv"
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/repository"
 	"example.com/infrahandson/internal/infrastructure/repositoryImpl/model"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -36,7 +36,14 @@ func NewRoomRepositoryImpl(p *NewRoomRepositoryImplParams) repository.RoomReposi
 }
 
 func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) {
-	_, err := r.db.Exec(`INSERT INTO rooms (id, name) VALUES (UUID_TO_BIN(?), ?)`, room.GetID(), room.GetName())
+	// RoomID -> UUID
+	id := room.GetID()
+	idUUID, err := id.RoomID2UUID()
+	if err != nil {
+		return entity.RoomID(""), err
+	}
+	// UUID -> BIN
+	_, err = r.db.Exec(`INSERT INTO rooms (id, name) VALUES (UUID_TO_BIN(?), ?)`, idUUID, room.GetName())
 	if err != nil {
 		return entity.RoomID(""), err
 	}
@@ -45,30 +52,12 @@ func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) 
 
 func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error) {
 	roomModel := model.RoomModel{}
-	err := r.db.Get(&roomModel, `SELECT BIN_TO_UUID(id) AS id, name FROM rooms WHERE id = UUID_TO_BIN(?)`, id)
+	// RoomID -> UUID
+	idUUID, err := id.RoomID2UUID()
 	if err != nil {
 		return nil, err
 	}
-
-	// ルームに所属しているユーザーを取得
-	roomMembers := []model.RoomMemberModel{}
-	err = r.db.Select(&roomMembers, `SELECT BIN_TO_UUID(user_id) AS user_id FROM room_members WHERE room_id = UUID_TO_BIN(?)`, id)
-	if err != nil {
-		return nil, err
-	}
-
-	room := entity.NewRoom(entity.RoomParams{
-		ID:       entity.RoomID(roomModel.ID),
-		Name:     roomModel.Name,
-		Members:  make([]entity.UserID, len(roomMembers)),
-	})
-
-	return room, nil
-}
-
-func (r *RoomRepositoryImpl) GetRoomByPubID(pubID entity.RoomID) (*entity.Room, error) {
-	roomModel := model.RoomModel{}
-	err := r.db.Get(&roomModel, `SELECT BIN_TO_UUID(id) AS id, name FROM rooms WHERE id = UUID_TO_BIN(?)`, pubID)
+	err = r.db.Get(&roomModel, `SELECT BIN_TO_UUID(id) AS id, name FROM rooms WHERE id = UUID_TO_BIN(?)`, idUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +70,38 @@ func (r *RoomRepositoryImpl) GetRoomByPubID(pubID entity.RoomID) (*entity.Room, 
 	}
 
 	room := entity.NewRoom(entity.RoomParams{
-		ID:       entity.RoomID(roomModel.ID),
-		Name:     roomModel.Name,
-		Members:  make([]entity.UserID, len(roomMembers)),
+		ID:      entity.RoomID(roomModel.ID.String()),
+		Name:    roomModel.Name,
+		Members: make([]entity.UserID, len(roomMembers)),
+	})
+
+	return room, nil
+}
+
+func (r *RoomRepositoryImpl) GetRoomByPubID(id entity.RoomID) (*entity.Room, error) {
+	roomModel := model.RoomModel{}
+	// RoomID -> UUID
+	idUUID, err := id.RoomID2UUID()
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.db.Get(&roomModel, `SELECT BIN_TO_UUID(id) AS id, name FROM rooms WHERE id = UUID_TO_BIN(?)`, idUUID)
+	if err != nil {
+		return nil, err
+	}
+
+	// ルームに所属しているユーザーを取得
+	roomMembers := []model.RoomMemberModel{}
+	err = r.db.Select(&roomMembers, `SELECT BIN_TO_UUID(user_id) AS user_id FROM room_members WHERE room_id = UUID_TO_BIN(?)`, roomModel.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	room := entity.NewRoom(entity.RoomParams{
+		ID:      entity.RoomID(roomModel.ID.String()),
+		Name:    roomModel.Name,
+		Members: make([]entity.UserID, len(roomMembers)),
 	})
 
 	return room, nil
@@ -99,9 +117,9 @@ func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 	rooms := make([]*entity.Room, len(roomModels))
 	for i, roomModel := range roomModels {
 		rooms[i] = entity.NewRoom(entity.RoomParams{
-			ID:       entity.RoomID(roomModel.ID),
-			Name:     roomModel.Name,
-			Members:  []entity.UserID{},
+			ID:      entity.RoomID(roomModel.ID.String()),
+			Name:    roomModel.Name,
+			Members: []entity.UserID{},
 		})
 	}
 
@@ -109,21 +127,22 @@ func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 }
 
 func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.User, error) {
+	// RoomID -> UUID
+	roomIDUUID, err := roomID.RoomID2UUID()
+	if err != nil {
+		return nil, err
+	}
 	// まず中間テーブルから対象のuser_id一覧を取得
 	var roomMembers []model.RoomMemberModel
-	err := r.db.Select(&roomMembers, `SELECT BIN_TO_UUID(user_id) AS user_id FROM room_members WHERE room_id = UUID_TO_BIN(?)`, roomID)
+	err = r.db.Select(&roomMembers, `SELECT BIN_TO_UUID(user_id) AS user_id FROM room_members WHERE room_id = UUID_TO_BIN(?)`, roomIDUUID)
 	if err != nil {
 		return nil, err
 	}
 
 	// user_idだけ取り出す
-	userIDs := make([]int, 0, len(roomMembers))
+	userIDs := make([]uuid.UUID, 0, len(roomMembers))
 	for _, rm := range roomMembers {
-		id, err := strconv.Atoi(rm.UserID)
-		if err != nil {
-			return nil, err
-		}
-		userIDs = append(userIDs, id)
+		userIDs = append(userIDs, rm.UserID)
 	}
 
 	if len(userIDs) == 0 {
@@ -147,7 +166,7 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	users := make([]*entity.User, 0, len(userModels))
 	for _, um := range userModels {
 		users = append(users, entity.NewUser(entity.UserParams{
-			ID:         entity.UserID(um.ID),
+			ID:         entity.UserID(um.ID.String()),
 			Name:       um.Name,
 			Email:      um.Email,
 			PasswdHash: um.PasswordHash,
@@ -160,7 +179,18 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 }
 
 func (r *RoomRepositoryImpl) AddMemberToRoom(roomID entity.RoomID, userID entity.UserID) error {
-	_, err := r.db.Exec(`INSERT INTO room_members (room_id, user_id) VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?))`, roomID, userID)
+	// RoomID -> UUID
+	roomIDUUID, err := roomID.RoomID2UUID()
+	if err != nil {
+		return err
+	}
+	// UserID -> UUID
+	userIDUUID, err := userID.UserID2UUID()
+	if err != nil {
+		return err
+	}
+	// UUID -> BIN
+	_, err = r.db.Exec(`INSERT INTO room_members (room_id, user_id) VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?))`, roomIDUUID, userIDUUID)
 	if err != nil {
 		return err
 	}
@@ -168,7 +198,18 @@ func (r *RoomRepositoryImpl) AddMemberToRoom(roomID entity.RoomID, userID entity
 }
 
 func (r *RoomRepositoryImpl) RemoveMemberFromRoom(roomID entity.RoomID, userID entity.UserID) error {
-	_, err := r.db.Exec(`DELETE FROM room_members WHERE room_id = UUID_TO_BIN(?) AND user_id = UUID_TO_BIN(?)`, roomID, userID)
+	// RoomID -> UUID
+	roomIDUUID, err := roomID.RoomID2UUID()
+	if err != nil {
+		return err
+	}
+	// UserID -> UUID
+	userIDUUID, err := userID.UserID2UUID()
+	if err != nil {
+		return err
+	}
+	// UUID -> BIN
+	_, err = r.db.Exec(`DELETE FROM room_members WHERE room_id = UUID_TO_BIN(?) AND user_id = UUID_TO_BIN(?)`, roomIDUUID, userIDUUID)
 	if err != nil {
 		return err
 	}
@@ -191,9 +232,9 @@ func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, err
 	rooms := make([]*entity.Room, len(roomModels))
 	for i, roomModel := range roomModels {
 		rooms[i] = entity.NewRoom(entity.RoomParams{
-			ID:       entity.RoomID(roomModel.ID),
-			Name:     roomModel.Name,
-			Members:  []entity.UserID{},
+			ID:      entity.RoomID(roomModel.ID.String()),
+			Name:    roomModel.Name,
+			Members: []entity.UserID{},
 		})
 	}
 
@@ -201,7 +242,13 @@ func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, err
 }
 
 func (r *RoomRepositoryImpl) UpdateRoomName(roomID entity.RoomID, name string) error {
-	_, err := r.db.Exec(`UPDATE rooms SET name = ? WHERE id = UUID_TO_BIN(?)`, name, roomID)
+	// RoomID -> UUID
+	roomIDUUID, err := roomID.RoomID2UUID()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec(`UPDATE rooms SET name = ? WHERE id = UUID_TO_BIN(?)`, name, roomIDUUID)
 	if err != nil {
 		return err
 	}
@@ -209,30 +256,14 @@ func (r *RoomRepositoryImpl) UpdateRoomName(roomID entity.RoomID, name string) e
 }
 
 func (r *RoomRepositoryImpl) DeleteRoom(roomID entity.RoomID) error {
-	_, err := r.db.Exec(`DELETE FROM rooms WHERE id = UUID_TO_BIN(?)`, roomID)
+	// RoomID -> UUID
+	roomIDUUID, err := roomID.RoomID2UUID()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(`DELETE FROM rooms WHERE id = UUID_TO_BIN(?)`, roomIDUUID)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (r *RoomRepositoryImpl) GetRoomIDByID(id entity.RoomID) (entity.RoomID, error) {
-	var roomID entity.RoomID
-	err := r.db.Get(&roomID, `SELECT BIN_TO_UUID(id) AS id FROM rooms WHERE id = UUID_TO_BIN(?)`, id)
-	if err != nil {
-		return entity.RoomID(""), err
-	}
-	return roomID, nil
-}
-
-func (r *RoomRepositoryImpl) GetIDByRoomID(id entity.RoomID) (entity.RoomID, error) {
-	roomID := entity.RoomID("")
-	err := r.db.Get(&roomID, `SELECT BIN_TO_UUID(id) AS id FROM rooms WHERE id = UUID_TO_BIN(?)`, id)
-	if err != nil {
-		return entity.RoomID(""), err
-	}
-	if roomID == "" {
-		return entity.RoomID(""), errors.New("room not found")
-	}
-	return roomID, nil
 }
