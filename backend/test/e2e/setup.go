@@ -41,8 +41,13 @@ func StartTestServer(t *testing.T) *TestServer {
 	cfg := config.LoadConfig()
 	cfg.Port = fmt.Sprintf("%d", port)
 
-	e, db, _ := server.ServerStart(cfg)
-	t.Cleanup(func() { db.Close() })
+	e, db, memcacheClient := server.ServerStart(cfg)
+	t.Cleanup(func() {
+		db.Close()
+		if memcacheClient != nil {
+			memcacheClient.Close()
+		}
+	})
 
 	// Echoサーバー起動
 
