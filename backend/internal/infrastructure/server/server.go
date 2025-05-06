@@ -11,6 +11,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// ServerStart initializes the Echo server, sets up dependencies, middleware, and routes,
+// and returns the Echo instance along with the database connection.
+// 
+// Parameters:
+// - cfg: A pointer to the configuration object containing server settings.
+//
+// Returns:
+// - *echo.Echo: The initialized Echo server instance.
+// - *sqlx.DB: The database connection initialized with the provided configuration.
 func ServerStart(cfg *config.Config) (*echo.Echo, *sqlx.DB) {
 	e := echo.New()
 	e.Validator = validator.NewEchoValidator()
