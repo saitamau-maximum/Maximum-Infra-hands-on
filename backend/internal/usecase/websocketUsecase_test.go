@@ -17,6 +17,7 @@ type mockDeps struct {
 	UserRepo         *mock_repository.MockUserRepository
 	RoomRepo         *mock_repository.MockRoomRepository
 	MsgRepo          *mock_repository.MockMessageRepository
+	MsgCache         *mock_service.MockMessageCacheService
 	WsClientRepo     *mock_repository.MockWebsocketClientRepository
 	WebsocketManager *mock_service.MockWebsocketManager
 	ClientIDFactory  *mock_factory.MockWsClientIDFactory
@@ -30,6 +31,7 @@ func newTestWebsocketUseCase(
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockMsgRepo := mock_repository.NewMockMessageRepository(ctrl)
+	mockMsgCache := mock_service.NewMockMessageCacheService(ctrl)
 	mockWsClientRepo := mock_repository.NewMockWebsocketClientRepository(ctrl)
 	mockWebsocketManager := mock_service.NewMockWebsocketManager(ctrl)
 	mockClientIDFactory := mock_factory.NewMockWsClientIDFactory(ctrl)
@@ -39,6 +41,7 @@ func newTestWebsocketUseCase(
 		UserRepo:         mockUserRepo,
 		RoomRepo:         mockRoomRepo,
 		MsgRepo:          mockMsgRepo,
+		MsgCache:         mockMsgCache,
 		WsClientRepo:     mockWsClientRepo,
 		WebsocketManager: mockWebsocketManager,
 		MsgIDFactory:     mockMsgIDFactory,
@@ -51,6 +54,7 @@ func newTestWebsocketUseCase(
 		UserRepo:         mockUserRepo,
 		RoomRepo:         mockRoomRepo,
 		MsgRepo:          mockMsgRepo,
+		MsgCache:         mockMsgCache,
 		WsClientRepo:     mockWsClientRepo,
 		WebsocketManager: mockWebsocketManager,
 		ClientIDFactory:  mockClientIDFactory,
@@ -178,6 +182,7 @@ func TestSendMessage(t *testing.T) {
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
 		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(roomID ,gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(nil)
 
 		request := usecase.SendMessageRequest{
@@ -188,6 +193,83 @@ func TestSendMessage(t *testing.T) {
 		err := useCase.SendMessage(request)
 
 		assert.NoError(t, err)
+	})
+
+	t.Run("異常系：メッセージID生成失敗", func(t *testing.T) {
+		roomID := entity.RoomID("room123")
+		senderID := entity.UserID("user123")
+		content := "Hello, World!"
+
+		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(entity.MessageID(""), assert.AnError)
+
+		request := usecase.SendMessageRequest{
+			RoomID:  roomID,
+			Sender:  senderID,
+			Content: content,
+		}
+		err := useCase.SendMessage(request)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：メッセージ作成失敗", func(t *testing.T) {
+		roomID := entity.RoomID("room123")
+		senderID := entity.UserID("user123")
+		content := "Hello, World!"
+		messageID := entity.MessageID("msg123")
+
+		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(assert.AnError)
+
+		request := usecase.SendMessageRequest{
+			RoomID:  roomID,
+			Sender:  senderID,
+			Content: content,
+		}
+		err := useCase.SendMessage(request)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：メッセージキャッシュ失敗", func(t *testing.T) {
+		roomID := entity.RoomID("room123")
+		senderID := entity.UserID("user123")
+		content := "Hello, World!"
+		messageID := entity.MessageID("msg123")
+
+		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(roomID, gomock.Any()).Return(assert.AnError)
+
+		request := usecase.SendMessageRequest{
+			RoomID:  roomID,
+			Sender:  senderID,
+			Content: content,
+		}
+		err := useCase.SendMessage(request)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("異常系：メッセージ送信失敗", func(t *testing.T) {
+		roomID := entity.RoomID("room123")
+		senderID := entity.UserID("user123")
+		content := "Hello, World!"
+		messageID := entity.MessageID("msg123")
+
+		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(roomID, gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(assert.AnError)
+
+		request := usecase.SendMessageRequest{
+			RoomID:  roomID,
+			Sender:  senderID,
+			Content: content,
+		}
+		err := useCase.SendMessage(request)
+
+		assert.Error(t, err)
 	})
 }
 
