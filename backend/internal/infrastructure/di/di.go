@@ -17,6 +17,7 @@ import (
 	mysqluserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/mysql"
 	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
 	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
+	inmemorymsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/Inmemory"
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
 	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
@@ -89,6 +90,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 
 	// Serviceの初期化
 	wsManager := inmemorywsmanagerimpl.NewInMemoryWebSocketManager()
+	msgCache := inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{MsgRepo: msgRepository})
 
 	// AdapterとServiceの初期化
 	hasher := bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{
@@ -115,6 +117,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		UserRepo:         userRepository,
 		RoomRepo:         roomRepository,
 		MsgRepo:          msgRepository,
+		MsgCache:         msgCache,
 		WsClientRepo:     wsClientRepository,
 		WebsocketManager: wsManager,
 		MsgIDFactory:     MsgIDFactory,
@@ -122,6 +125,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	})
 	msgUseCase := usecase.NewMessageUseCase(usecase.NewMessageUseCaseParams{
 		MsgRepo:  msgRepository,
+		MsgCache: msgCache,
 		RoomRepo: roomRepository,
 		UserRepo: userRepository,
 	})
