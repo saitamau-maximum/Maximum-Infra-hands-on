@@ -25,6 +25,7 @@ type WebsocketUseCase struct {
 	userRepo         repository.UserRepository
 	roomRepo         repository.RoomRepository
 	msgRepo          repository.MessageRepository
+	msgCache         service.MessageCacheService
 	wsClientRepo     repository.WebsocketClientRepository
 	websocketManager service.WebsocketManager
 	msgIDFactory     factory.MessageIDFactory
@@ -35,6 +36,7 @@ type NewWebsocketUseCaseParams struct {
 	UserRepo         repository.UserRepository
 	RoomRepo         repository.RoomRepository
 	MsgRepo          repository.MessageRepository
+	MsgCache         service.MessageCacheService
 	WsClientRepo     repository.WebsocketClientRepository
 	WebsocketManager service.WebsocketManager
 	MsgIDFactory     factory.MessageIDFactory
@@ -50,6 +52,9 @@ func (p *NewWebsocketUseCaseParams) Validate() error {
 	}
 	if p.MsgRepo == nil {
 		return errors.New("MsgRepo is required")
+	}
+	if p.MsgCache == nil {
+		return errors.New("MsgCache is required")
 	}
 	if p.WsClientRepo == nil {
 		return errors.New("WsClientRepo is required")
@@ -76,6 +81,7 @@ func NewWebsocketUseCase(params NewWebsocketUseCaseParams) WebsocketUseCaseInter
 		userRepo:         params.UserRepo,
 		roomRepo:         params.RoomRepo,
 		msgRepo:          params.MsgRepo,
+		msgCache:         params.MsgCache,
 		wsClientRepo:     params.WsClientRepo,
 		websocketManager: params.WebsocketManager,
 		msgIDFactory:     params.MsgIDFactory,
@@ -144,6 +150,10 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 	})
 
 	if err := w.msgRepo.CreateMessage(msg); err != nil {
+		return err
+	}
+
+	if err := w.msgCache.AddMessage(req.RoomID, msg); err != nil {
 		return err
 	}
 
