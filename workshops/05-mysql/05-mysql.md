@@ -47,6 +47,7 @@ Nginxを導入したことで、順調な滑り出しを見せたInfraChat。
 SQLiteは軽量で手軽ですが、ファイルベースのシンプルさ故に同時アクセスや、多量のデータ処理に不向きです。
 
 SQLite以外のRDBMS（Relational DataBase Management System）としては、
+
 - MySQL
 - MariaDB
 - PostgreSQL
