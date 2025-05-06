@@ -2,7 +2,7 @@
 - MySQLのセットアップ
 
 ### 注意
-04章までとリポジトリの内容が変わっています。
+04章までとリポジトリの内容が変わっています。v2.0.0以前のバージョンで遊んでいた方は、最新の内容の反映をお願いします。
 ```bash
 git stash
 ```
@@ -16,6 +16,11 @@ git stash apply
 ```
 で、一時的にどけた環境変数設定が戻ります
 
+また、Goのアプリケーションの内容をビルドし直す必要があります。
+```bash
+cd ~/Maximum-Infra-hands-on/backend
+go build -o InfraHandsOn ./cmd/main.go
+```
 ## 手軽さには罠がある
 Nginxを導入したことで、順調な滑り出しを見せたInfraChat。
 
@@ -41,7 +46,7 @@ Nginxを導入したことで、順調な滑り出しを見せたInfraChat。
 
 SQLiteは軽量で手軽ですが、ファイルベースのシンプルさ故に同時アクセスや、多量のデータ処理に不向きです。
 
-SQLite以外のRDBMSとしては、
+SQLite以外のRDBMS（Relational DataBase Management System）としては、
 - MySQL
 - MariaDB
 - PostgreSQL
