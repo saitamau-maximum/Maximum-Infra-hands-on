@@ -2,6 +2,9 @@ package service
 
 import "example.com/infrahandson/internal/domain/entity"
 
+// RECENT_MESSAGE_LIMIT defines the maximum number of recent messages to be cached and retrieved for a room.
+// This limit should align with any client-side constraints to ensure consistent message handling between
+// the frontend and backend.
 const RECENT_MESSAGE_LIMIT = 20
 
 type MessageCacheService interface {
