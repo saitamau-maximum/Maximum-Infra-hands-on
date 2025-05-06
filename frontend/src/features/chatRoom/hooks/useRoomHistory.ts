@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { getMessageHistory } from "../api/getMessageHistory";
 import { MessageResponse } from "../type";
 
+// 1ページあたりのメッセージ数
+const MESSAGE_LIMIT = 20;
+
 export const useRoomHistory = (roomPublicId: string, initialLoad = true) => {
   const [messages, setMessages] = useState<MessageResponse[]>([]);
   const [hasNext, setHasNext] = useState(true);
@@ -16,7 +19,7 @@ export const useRoomHistory = (roomPublicId: string, initialLoad = true) => {
       console.log("履歴取得開始", roomPublicId, nextBeforeSentAt);
       const res = await getMessageHistory({
         roomPublicId,
-        limit: 20,
+        limit: MESSAGE_LIMIT,
         beforeSentAt: nextBeforeSentAt ?? undefined,
       });
       console.log("履歴取得", res);

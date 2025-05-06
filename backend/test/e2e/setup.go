@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"example.com/infrahandson/config"
-	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	"example.com/infrahandson/internal/infrastructure/server"
 	"github.com/gorilla/websocket"
 )
@@ -42,24 +41,15 @@ func StartTestServer(t *testing.T) *TestServer {
 	cfg := config.LoadConfig()
 	cfg.Port = fmt.Sprintf("%d", port)
 
-	// DB初期化
-	initializer := sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
-		Path:           "./database.db",
-		MigrationsPath: "file://../../internal/infrastructure/gatewayImpl/db/sqlite/migrations",
+	e, db, memcacheClient := server.ServerStart(cfg)
+	t.Cleanup(func() {
+		db.Close()
+		if memcacheClient != nil {
+			memcacheClient.Close()
+		}
 	})
-	db, err := initializer.Init()
-	if err != nil {
-		t.Fatalf("failed to initialize database: %v", err)
-	}
-	t.Cleanup(func() { db.Close() })
-
-	// スキーマ初期化
-	if err := initializer.InitSchema(db); err != nil {
-		t.Fatalf("failed to initialize schema: %v", err)
-	}
 
 	// Echoサーバー起動
-	e := server.ServerStart(cfg, db)
 
 	go func() {
 		if err := e.Start(":" + cfg.Port); err != nil && err != http.ErrServerClosed {
