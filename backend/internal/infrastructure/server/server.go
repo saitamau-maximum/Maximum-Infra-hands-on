@@ -11,12 +11,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ServerStart(cfg *config.Config, db *sqlx.DB) *echo.Echo {
+// ServerStart initializes the Echo server, sets up dependencies, middleware, and routes,
+// and returns the Echo instance along with the database connection.
+// 
+// Parameters:
+// - cfg: A pointer to the configuration object containing server settings.
+//
+// Returns:
+// - *echo.Echo: The initialized Echo server instance.
+// - *sqlx.DB: The database connection initialized with the provided configuration.
+func ServerStart(cfg *config.Config) (*echo.Echo, *sqlx.DB) {
 	e := echo.New()
 	e.Validator = validator.NewEchoValidator()
 
 	// 依存関係の初期化
-	dependencies := di.InitializeDependencies(cfg, db)
+	dependencies := di.InitializeDependencies(cfg)
 
 	// ミドルウェアの設定
 	tokenService := tokenadapterimpl.NewTokenServiceAdapter(tokenadapterimpl.NewTokenServiceAdapterParams{
@@ -36,5 +45,5 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) *echo.Echo {
 		*dependencies.MsgHandler,
 	)
 
-	return e
+	return e, dependencies.DB
 }
