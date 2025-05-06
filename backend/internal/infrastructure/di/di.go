@@ -8,6 +8,8 @@ import (
 	tokenadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/tokenServiceAdapterImpl/JWT"
 	gorillawebsocketupgraderImpl "example.com/infrahandson/internal/infrastructure/adapterImpl/upgraderAdapterImpl/gorillawebsocket"
 	factoryimpl "example.com/infrahandson/internal/infrastructure/factoryImpl"
+	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
+	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	mysqlmsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/mysql"
 	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
 	mysqlroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/mysql"
@@ -16,21 +18,49 @@ import (
 	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
 	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
+	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/usecase"
 	"github.com/jmoiron/sqlx"
 )
 
 type Dependencies struct {
+	DB          *sqlx.DB
 	UserHandler *handler.UserHandler
 	RoomHandler *handler.RoomHandler
 	WsHandler   *handler.WebSocketHandler
 	MsgHandler  *handler.MessageHandler
 }
 
-func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
+func InitializeDependencies(cfg *config.Config) *Dependencies {
 	// Loggerの設定
 	logger := fmtloggerimpl.NewFmtLogger()
+
+	// DBの初期化
+	var initializer gateway.DBInitializer
+	// initializerの作成
+	if cfg.MySQLDSN != nil {
+		// MySQL用のDSNが設定されている場合、MySQL用の初期化処理を行う
+		initializer = mysqlgatewayimpl.NewMySQLInitializer(&mysqlgatewayimpl.NewMySQLInitializerParams{
+			DSN:            cfg.MySQLDSN,
+			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/mysql/migrations",
+		})
+	} else {
+		// SQLite用の初期化処理を行う
+		initializer = sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
+			Path:           cfg.DBPath,
+			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
+		})
+	}
+	db, err := initializer.Init()
+	if err != nil {
+		panic("failed to initialize database: " + err.Error())
+	}
+
+	// スキーマの初期化
+	if err := initializer.InitSchema(db); err != nil {
+		panic("failed to initialize schema: " + err.Error())
+	}
 
 	// Factoryの初期化
 	userIDFactory := factoryimpl.NewUserIDFactory()
@@ -122,6 +152,7 @@ func InitializeDependencies(cfg *config.Config, db *sqlx.DB) *Dependencies {
 	})
 
 	return &Dependencies{
+		DB:          db,
 		UserHandler: userHandler,
 		RoomHandler: roomHandler,
 		WsHandler:   wsHandler,

@@ -11,12 +11,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ServerStart(cfg *config.Config, db *sqlx.DB) *echo.Echo {
+func ServerStart(cfg *config.Config) (*echo.Echo, *sqlx.DB) {
 	e := echo.New()
 	e.Validator = validator.NewEchoValidator()
 
 	// 依存関係の初期化
-	dependencies := di.InitializeDependencies(cfg, db)
+	dependencies := di.InitializeDependencies(cfg)
 
 	// ミドルウェアの設定
 	tokenService := tokenadapterimpl.NewTokenServiceAdapter(tokenadapterimpl.NewTokenServiceAdapterParams{
@@ -36,5 +36,5 @@ func ServerStart(cfg *config.Config, db *sqlx.DB) *echo.Echo {
 		*dependencies.MsgHandler,
 	)
 
-	return e
+	return e, dependencies.DB
 }
