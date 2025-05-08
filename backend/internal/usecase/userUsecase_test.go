@@ -47,7 +47,7 @@ func TestSignUp(t *testing.T) {
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return(hashedPassword, nil)
 		mockUserIDFactory.EXPECT().NewUserID().Return(userID, nil)
 		mockUserRepo.EXPECT().
-			SaveUser(gomock.AssignableToTypeOf(&entity.User{})).
+			SaveUser(context.Background(), gomock.AssignableToTypeOf(&entity.User{})).
 			DoAndReturn(func(u *entity.User) (*entity.User, error) {
 				return u, nil
 			})
@@ -140,7 +140,7 @@ func TestAuthenticateUser(t *testing.T) {
 			Password: password,
 		}
 
-		mockUserRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
+		mockUserRepo.EXPECT().GetUserByEmail(context.Background(), email).Return(user, nil)
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(true, nil)
 		mockTokenSvc.EXPECT().GenerateToken(user.GetID()).Return(token, nil)
 		mockTokenSvc.EXPECT().GetExpireAt(token).Return(1, nil)
@@ -160,7 +160,7 @@ func TestAuthenticateUser(t *testing.T) {
 			Password: password,
 		}
 
-		mockUserRepo.EXPECT().GetUserByEmail(email).Return(nil, errors.New("user not found"))
+		mockUserRepo.EXPECT().GetUserByEmail(context.Background(), email).Return(nil, errors.New("user not found"))
 
 		response, err := userUseCase.AuthenticateUser(context.Background(), req)
 		assert.Error(t, err)
@@ -186,7 +186,7 @@ func TestAuthenticateUser(t *testing.T) {
 			Password: password,
 		}
 
-		mockUserRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
+		mockUserRepo.EXPECT().GetUserByEmail(context.Background(), email).Return(user, nil)
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(false, nil)
 
 		response, err := userUseCase.AuthenticateUser(context.Background(), req)

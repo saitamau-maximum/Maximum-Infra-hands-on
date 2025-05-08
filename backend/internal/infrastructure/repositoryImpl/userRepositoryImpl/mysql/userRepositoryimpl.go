@@ -1,6 +1,7 @@
 package mysqluserrepoimpl
 
 import (
+	"context"
 	"errors"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -33,7 +34,7 @@ func NewUserRepositoryImpl(params *NewUserRepositoryImplParams) repository.UserR
 	}
 }
 
-func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
+func (r *UserRepositoryImpl) SaveUser(ctx context.Context, user *entity.User) (*entity.User, error) {
 	if user == nil {
 		return nil, errors.New("user cannot be nil")
 	}
@@ -44,7 +45,7 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 		return nil, err
 	}
 	// UUID -> BIN
-	_, err = r.db.Exec(`
+	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO users (id, name, email, password_hash, created_at)
 		VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`,
 		idUUID,
@@ -57,10 +58,10 @@ func (r *UserRepositoryImpl) SaveUser(user *entity.User) (*entity.User, error) {
 		return nil, err
 	}
 
-	return r.GetUserByID(user.GetID())
+	return r.GetUserByID(ctx, user.GetID())
 }
 
-func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error) {
+func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error) {
 	if id == "" {
 		return nil, errors.New("id cannot be empty")
 	}
@@ -70,7 +71,7 @@ func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error)
 		return nil, err
 	}
 	// UUID -> BIN
-	row := r.db.QueryRowx(`
+	row := r.db.QueryRowxContext(ctx, `
 		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE id = UUID_TO_BIN(?)`, idUUID)
@@ -83,12 +84,12 @@ func (r *UserRepositoryImpl) GetUserByID(id entity.UserID) (*entity.User, error)
 	return userModel.ToEntity(), nil
 }
 
-func (r *UserRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) {
+func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	if email == "" {
 		return nil, errors.New("email cannot be empty")
 	}
 
-	row := r.db.QueryRowx(`
+	row := r.db.QueryRowxContext(ctx, `
 		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)

@@ -85,7 +85,7 @@ func TestConnectUserToRoom(t *testing.T) {
 	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
 	t.Run("正常系", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(nil)
@@ -104,7 +104,7 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：ユーザ取得失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(nil, assert.AnError)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(nil, assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
 			UserID: userID,
@@ -119,7 +119,7 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：クライアントID生成失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(entity.WsClientID(""), assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
@@ -135,7 +135,7 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：クライアント作成失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(assert.AnError)
 		// テスト実行
@@ -152,7 +152,7 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：WebSocket登録失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(assert.AnError)

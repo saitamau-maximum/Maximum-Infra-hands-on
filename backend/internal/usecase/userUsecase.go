@@ -76,7 +76,7 @@ func (u *UserUseCase) SignUp(ctx context.Context, req SignUpRequest) (SignUpResp
 
 	user := entity.NewUser(userParams)
 
-	res, err := u.userRepo.SaveUser(user)
+	res, err := u.userRepo.SaveUser(ctx, user)
 	if err != nil {
 		return SignUpResponse{nil}, err
 	}
@@ -123,7 +123,7 @@ func (res *AuthenticateUserResponse) SetToken(token string) {
 
 // AuthenticateUser ユーザー認証
 func (u *UserUseCase) AuthenticateUser(ctx context.Context, req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
-	user, err := u.userRepo.GetUserByEmail(req.Email)
+	user, err := u.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return AuthenticateUserResponse{token: nil}, err
 	}
@@ -154,7 +154,7 @@ func (u *UserUseCase) AuthenticateUser(ctx context.Context, req AuthenticateUser
 }
 
 func (u *UserUseCase) GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error) {
-	user, err := u.userRepo.GetUserByID(id)
+	user, err := u.userRepo.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}

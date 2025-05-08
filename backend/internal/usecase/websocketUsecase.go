@@ -99,7 +99,7 @@ type ConnectUserToRoomRequest struct {
 
 // ConnectUserToRoom 接続・参加処理
 func (w *WebsocketUseCase) ConnectUserToRoom(ctx context.Context, req ConnectUserToRoomRequest) error {
-	user, err := w.userRepo.GetUserByID(req.UserID)
+	user, err := w.userRepo.GetUserByID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
