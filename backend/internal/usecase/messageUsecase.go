@@ -71,7 +71,7 @@ type GetMessageHistoryInRoomResponse struct {
 
 func (uc *MessageUseCase) GetMessageHistoryInRoom(ctx context.Context, req GetMessageHistoryInRoomRequest) (GetMessageHistoryInRoomResponse, error) {
 	// まずはキャッシュからの取得を試みる
-	messages, err := uc.msgCache.GetRecentMessages(req.RoomID)
+	messages, err := uc.msgCache.GetRecentMessages(ctx, req.RoomID)
 	if err != nil {
 		return GetMessageHistoryInRoomResponse{}, err
 	}

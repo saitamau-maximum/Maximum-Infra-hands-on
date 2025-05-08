@@ -80,7 +80,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		}
 
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 
 		req := usecase.GetMessageHistoryInRoomRequest{
@@ -108,7 +108,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		}
 		
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 		mockMsgRepo.EXPECT().
 			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
@@ -140,7 +140,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			}),
 		}
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 
 		mockMsgRepo.EXPECT().
@@ -162,7 +162,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 
 	t.Run("4. キャッシュエラー", func(t *testing.T) {
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(nil, errors.New("cache error"))
 
 		req := usecase.GetMessageHistoryInRoomRequest{

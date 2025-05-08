@@ -2,6 +2,7 @@ package inmemorymsgcacheimpl
 
 import (
 	"container/list"
+	"context"
 	"errors"
 	"sync"
 	"time"
@@ -41,14 +42,14 @@ func NewMessageCacheService(p *NewMessageCacheServiceParams) service.MessageCach
 	}
 }
 
-func (m *messageCache) GetRecentMessages(roomID entity.RoomID) ([]*entity.Message, error) {
+func (m *messageCache) GetRecentMessages(ctx context.Context, roomID entity.RoomID) ([]*entity.Message, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	lst, ok := m.cache[roomID]
 	if !ok {
 		// キャッシュに存在しない場合は、リポジトリから取得
-		messages, _, _, err := m.msgRepo.GetMessageHistoryInRoom(roomID, m.limit, time.Now())
+		messages, _, _, err := m.msgRepo.GetMessageHistoryInRoom(ctx, roomID, m.limit, time.Now())
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +70,7 @@ func (m *messageCache) GetRecentMessages(roomID entity.RoomID) ([]*entity.Messag
 	return messages, nil
 }
 
-func (m *messageCache) AddMessage(roomID entity.RoomID, message *entity.Message) error {
+func (m *messageCache) AddMessage(ctx context.Context, roomID entity.RoomID, message *entity.Message) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

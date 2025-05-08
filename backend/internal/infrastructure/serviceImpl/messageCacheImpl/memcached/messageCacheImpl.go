@@ -2,6 +2,7 @@ package memcachedmsgcacheimpl
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"errors"
 	"time"
@@ -48,7 +49,7 @@ func NewMessageCacheService(p *NewMessageCacheServiceParams) service.MessageCach
 }
 
 // serializeMessages は、メッセージをDTO化してMemcached用にエンコードします。
-func serializeMessages(messages []*entity.Message) ([]byte, error) {
+func serializeMessages(_ context.Context, messages []*entity.Message) ([]byte, error) {
 	dtos := make([]*MessageDTO, 0, len(messages))
 	for _, m := range messages {
 		dtos = append(dtos, fromEntityMessage(m))
@@ -62,7 +63,7 @@ func serializeMessages(messages []*entity.Message) ([]byte, error) {
 }
 
 // deserializeMessages は、Memcachedのバイト列をDTOとしてデコードし、エンティティへ変換します。
-func deserializeMessages(data []byte) ([]*entity.Message, error) {
+func deserializeMessages(_ context.Context, data []byte) ([]*entity.Message, error) {
 	var dtos []*MessageDTO
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
@@ -81,14 +82,14 @@ func deserializeMessages(data []byte) ([]*entity.Message, error) {
 	return messages, nil
 }
 
-func (m *messageCache) GetRecentMessages(roomID entity.RoomID) ([]*entity.Message, error) {
+func (m *messageCache) GetRecentMessages(ctx context.Context, roomID entity.RoomID) ([]*entity.Message, error) {
 	item, err := m.client.Get(string(roomID))
 	if err == memcache.ErrCacheMiss {
-		messages, _, _, err := m.msgRepo.GetMessageHistoryInRoom(roomID, m.limit, time.Now())
+		messages, _, _, err := m.msgRepo.GetMessageHistoryInRoom(ctx, roomID, m.limit, time.Now())
 		if err != nil {
 			return nil, err
 		}
-		data, err := serializeMessages(messages)
+		data, err := serializeMessages(ctx, messages)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +103,7 @@ func (m *messageCache) GetRecentMessages(roomID entity.RoomID) ([]*entity.Messag
 		return nil, err
 	}
 
-	messages, err := deserializeMessages(item.Value)
+	messages, err := deserializeMessages(ctx, item.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +111,8 @@ func (m *messageCache) GetRecentMessages(roomID entity.RoomID) ([]*entity.Messag
 	return messages, nil
 }
 
-func (m *messageCache) AddMessage(roomID entity.RoomID, message *entity.Message) error {
-	messages, err := m.GetRecentMessages(roomID)
+func (m *messageCache) AddMessage(ctx context.Context, roomID entity.RoomID, message *entity.Message) error {
+	messages, err := m.GetRecentMessages(ctx, roomID)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func (m *messageCache) AddMessage(roomID entity.RoomID, message *entity.Message)
 		messages = messages[:m.limit]
 	}
 
-	data, err := serializeMessages(messages)
+	data, err := serializeMessages(ctx, messages)
 	if err != nil {
 		return err
 	}

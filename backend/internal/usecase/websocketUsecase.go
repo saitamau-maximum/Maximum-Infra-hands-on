@@ -154,7 +154,7 @@ func (w *WebsocketUseCase) SendMessage(ctx context.Context, req SendMessageReque
 		return err
 	}
 
-	if err := w.msgCache.AddMessage(req.RoomID, msg); err != nil {
+	if err := w.msgCache.AddMessage(ctx, req.RoomID, msg); err != nil {
 		return err
 	}
 
