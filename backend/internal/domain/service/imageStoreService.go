@@ -8,6 +8,6 @@ import (
 
 type ImageStoreService interface {
 	SaveImage(ctx context.Context, imageData []byte, userID entity.UserID) (path string, err error)
-	// パスは変更しないUpdate
+	// Update the image without changing its path
 	UpdateImage(ctx context.Context, imageData []byte, userID entity.UserID) error
 }
