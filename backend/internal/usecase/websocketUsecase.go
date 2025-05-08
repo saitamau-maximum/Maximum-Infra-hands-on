@@ -120,7 +120,7 @@ func (w *WebsocketUseCase) ConnectUserToRoom(ctx context.Context, req ConnectUse
 		return err
 	}
 
-	err = w.websocketManager.Register(req.Conn, req.UserID, req.RoomID)
+	err = w.websocketManager.Register(ctx, req.Conn, req.UserID, req.RoomID)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (w *WebsocketUseCase) SendMessage(ctx context.Context, req SendMessageReque
 		return err
 	}
 
-	err = w.websocketManager.BroadcastToRoom(req.RoomID, msg)
+	err = w.websocketManager.BroadcastToRoom(ctx, req.RoomID, msg)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ type DisconnectUserRequest struct {
 
 // DisconnectUser 切断処理
 func (w *WebsocketUseCase) DisconnectUser(ctx context.Context, req DisconnectUserRequest) error {
-	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
+	conn, err := w.websocketManager.GetConnectionByUserID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (w *WebsocketUseCase) DisconnectUser(ctx context.Context, req DisconnectUse
 		return err
 	}
 
-	err = w.websocketManager.Unregister(conn)
+	err = w.websocketManager.Unregister(ctx, conn)
 	if err != nil {
 		return err
 	}

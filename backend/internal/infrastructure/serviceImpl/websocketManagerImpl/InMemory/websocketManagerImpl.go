@@ -1,6 +1,7 @@
 package inmemorywsmanagerimpl
 
 import (
+	"context"
 	"errors"
 	"sync"
 
@@ -28,7 +29,7 @@ func NewInMemoryWebSocketManager() service.WebsocketManager {
 	}
 }
 
-func (m *InMemoryWebSocketManager) Register(conn service.WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error {
+func (m *InMemoryWebSocketManager) Register(ctx context.Context, conn service.WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	// ユーザーごとの接続を登録
@@ -47,7 +48,7 @@ func (m *InMemoryWebSocketManager) Register(conn service.WebSocketConnection, us
 	return nil
 }
 
-func (m *InMemoryWebSocketManager) Unregister(conn service.WebSocketConnection) error {
+func (m *InMemoryWebSocketManager) Unregister(ctx context.Context, conn service.WebSocketConnection) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	IDs, exists := m.idByConn[conn]
@@ -62,7 +63,7 @@ func (m *InMemoryWebSocketManager) Unregister(conn service.WebSocketConnection) 
 	return nil
 }
 
-func (m *InMemoryWebSocketManager) GetConnectionByUserID(userID entity.UserID) (service.WebSocketConnection, error) {
+func (m *InMemoryWebSocketManager) GetConnectionByUserID(ctx context.Context, userID entity.UserID) (service.WebSocketConnection, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -73,7 +74,7 @@ func (m *InMemoryWebSocketManager) GetConnectionByUserID(userID entity.UserID) (
 	return conn, nil
 }
 
-func (m *InMemoryWebSocketManager) BroadcastToRoom(roomID entity.RoomID, msg *entity.Message) error {
+func (m *InMemoryWebSocketManager) BroadcastToRoom(ctx context.Context, roomID entity.RoomID, msg *entity.Message) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
