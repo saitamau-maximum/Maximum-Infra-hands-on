@@ -9,6 +9,7 @@ type User struct {
 	name       string
 	email      string
 	passwdhash string
+	imagePath  *string
 	createdAt  time.Time
 	updatedAt  *time.Time
 }
@@ -18,6 +19,7 @@ type UserParams struct {
 	Name       string
 	Email      string
 	PasswdHash string
+	ImagePath  *string
 	CreatedAt  time.Time
 	UpdatedAt  *time.Time
 }
@@ -28,6 +30,7 @@ func NewUser(p UserParams) *User {
 		name:       p.Name,
 		email:      p.Email,
 		passwdhash: p.PasswdHash,
+		imagePath:  p.ImagePath,
 		createdAt:  p.CreatedAt,
 		updatedAt:  p.UpdatedAt,
 	}
@@ -51,4 +54,15 @@ func (u User) GetPasswdHash() string {
 
 func (u User) GetCreatedAt() time.Time {
 	return u.createdAt
+}
+
+func (u User) GetImagePath() (imagePath string, ok bool) {
+	if u.imagePath == nil {
+		return "", false
+	}
+	return *u.imagePath, true
+}
+
+func (u *User) SetImagePath(imagePath string) {
+	u.imagePath = &imagePath
 }
