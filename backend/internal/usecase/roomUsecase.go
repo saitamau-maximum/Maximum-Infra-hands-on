@@ -83,11 +83,11 @@ func (r *RoomUseCase) CreateRoom(ctx context.Context, req CreateRoomRequest) (Cr
 		Name:    req.Name,
 		Members: []entity.UserID{},
 	})
-	savedRoomID, err := r.roomRepo.SaveRoom(room)
+	savedRoomID, err := r.roomRepo.SaveRoom(ctx, room)
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
-	res, err := r.roomRepo.GetRoomByID(savedRoomID)
+	res, err := r.roomRepo.GetRoomByID(ctx, savedRoomID)
 	if err != nil {
 		return CreateRoomResponse{nil}, err
 	}
@@ -107,7 +107,7 @@ type GetRoomByIDResponse struct {
 
 // GetRoomByID: 公開IDを使用して部屋を取得
 func (r *RoomUseCase) GetRoomByID(ctx context.Context, req GetRoomByIDRequest) (GetRoomByIDResponse, error) {
-	room, err := r.roomRepo.GetRoomByID(req.ID)
+	room, err := r.roomRepo.GetRoomByID(ctx, req.ID)
 	if err != nil {
 		return GetRoomByIDResponse{}, err
 	}
@@ -119,7 +119,7 @@ func (r *RoomUseCase) GetRoomByID(ctx context.Context, req GetRoomByIDRequest) (
 
 // GetAllRooms: 全ての部屋を取得
 func (r *RoomUseCase) GetAllRooms(ctx context.Context) ([]*entity.Room, error) {
-	rooms, err := r.roomRepo.GetAllRooms()
+	rooms, err := r.roomRepo.GetAllRooms(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ type GetUsersInRoomResponse struct {
 
 // GetUsersInRoom: 部屋内のユーザーを取得
 func (r *RoomUseCase) GetUsersInRoom(ctx context.Context, req GetUsersInRoomRequest) (GetUsersInRoomResponse, error) {
-	users, err := r.roomRepo.GetUsersInRoom(req.ID)
+	users, err := r.roomRepo.GetUsersInRoom(ctx, req.ID)
 	if err != nil {
 		return GetUsersInRoomResponse{}, err
 	}
@@ -154,7 +154,7 @@ type JoinRoomRequest struct {
 
 // JoinRoom: 部屋にユーザーを参加させる
 func (r *RoomUseCase) JoinRoom(ctx context.Context, req JoinRoomRequest) error {
-	err := r.roomRepo.AddMemberToRoom(req.RoomID, req.UserID)
+	err := r.roomRepo.AddMemberToRoom(ctx, req.RoomID, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ type LeaveRoomRequest struct {
 
 // LeaveRoom: 部屋からユーザーを退出させる
 func (r *RoomUseCase) LeaveRoom(ctx context.Context, req LeaveRoomRequest) error {
-	err := r.roomRepo.RemoveMemberFromRoom(req.RoomID, req.UserID)
+	err := r.roomRepo.RemoveMemberFromRoom(ctx, req.RoomID, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ type SearchRoomResponse struct {
 
 // SearchRoom: 部屋を名前で検索
 func (r *RoomUseCase) SearchRoom(ctx context.Context, req SearchRoomRequest) (SearchRoomResponse, error) {
-	rooms, err := r.roomRepo.GetRoomByNameLike(req.Name)
+	rooms, err := r.roomRepo.GetRoomByNameLike(ctx, req.Name)
 	if err != nil {
 		return SearchRoomResponse{}, err
 	}
@@ -206,7 +206,7 @@ type UpdateRoomNameRequest struct {
 
 // UpdateRoomName: 部屋名を更新
 func (r *RoomUseCase) UpdateRoomName(ctx context.Context, req UpdateRoomNameRequest) error {
-	err := r.roomRepo.UpdateRoomName(req.RoomID, req.NewName)
+	err := r.roomRepo.UpdateRoomName(ctx, req.RoomID, req.NewName)
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ type DeleteRoomRequest struct {
 
 // DeleteRoom: 部屋を削除
 func (r *RoomUseCase) DeleteRoom(ctx context.Context, req DeleteRoomRequest) error {
-	err := r.roomRepo.DeleteRoom(req.RoomID)
+	err := r.roomRepo.DeleteRoom(ctx, req.RoomID)
 	if err != nil {
 		return err
 	}
