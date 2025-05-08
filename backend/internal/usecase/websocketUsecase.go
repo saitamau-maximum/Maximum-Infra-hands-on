@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -12,13 +13,13 @@ import (
 
 type WebsocketUseCaseInterface interface {
 	// 接続・参加処理
-	ConnectUserToRoom(req ConnectUserToRoomRequest) error
+	ConnectUserToRoom(ctx context.Context, req ConnectUserToRoomRequest) error
 
 	// メッセージ送信
-	SendMessage(req SendMessageRequest) error
+	SendMessage(ctx context.Context, req SendMessageRequest) error
 
 	// 切断処理
-	DisconnectUser(req DisconnectUserRequest) error
+	DisconnectUser(ctx context.Context, req DisconnectUserRequest) error
 }
 
 type WebsocketUseCase struct {
@@ -97,7 +98,7 @@ type ConnectUserToRoomRequest struct {
 }
 
 // ConnectUserToRoom 接続・参加処理
-func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error {
+func (w *WebsocketUseCase) ConnectUserToRoom(ctx context.Context, req ConnectUserToRoomRequest) error {
 	user, err := w.userRepo.GetUserByID(req.UserID)
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ type SendMessageRequest struct {
 }
 
 // SendMessage メッセージ送信
-func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
+func (w *WebsocketUseCase) SendMessage(ctx context.Context, req SendMessageRequest) error {
 	id, err := w.msgIDFactory.NewMessageID()
 	if err != nil {
 		return err
@@ -171,7 +172,7 @@ type DisconnectUserRequest struct {
 }
 
 // DisconnectUser 切断処理
-func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
+func (w *WebsocketUseCase) DisconnectUser(ctx context.Context, req DisconnectUserRequest) error {
 	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
 	if err != nil {
 		return err

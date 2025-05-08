@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -95,7 +96,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.NoError(t, err)
@@ -110,7 +111,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -126,7 +127,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -143,7 +144,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -161,7 +162,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -190,7 +191,7 @@ func TestSendMessage(t *testing.T) {
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.NoError(t, err)
 	})
@@ -207,7 +208,7 @@ func TestSendMessage(t *testing.T) {
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -226,7 +227,7 @@ func TestSendMessage(t *testing.T) {
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -246,7 +247,7 @@ func TestSendMessage(t *testing.T) {
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -267,7 +268,7 @@ func TestSendMessage(t *testing.T) {
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -294,7 +295,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WsClientRepo.EXPECT().DeleteClient(mockClient.GetID()).Return(nil)
 
 		request := usecase.DisconnectUserRequest{UserID: userID}
-		err := useCase.DisconnectUser(request)
+		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.NoError(t, err)
 	})
@@ -305,7 +306,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(nil, assert.AnError)
 
 		request := usecase.DisconnectUserRequest{UserID: userID}
-		err := useCase.DisconnectUser(request)
+		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)
 	})

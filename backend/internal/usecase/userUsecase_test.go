@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -51,7 +52,7 @@ func TestSignUp(t *testing.T) {
 				return u, nil
 			})
 
-		response, err := userUseCase.SignUp(signUpRequest)
+		response, err := userUseCase.SignUp(context.Background(), signUpRequest)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -71,7 +72,7 @@ func TestSignUp(t *testing.T) {
 
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return("", expectedErr)
 
-		response, err := userUseCase.SignUp(signUpRequest)
+		response, err := userUseCase.SignUp(context.Background(), signUpRequest)
 
 		assert.Error(t, err)
 		assert.Nil(t, response.User)
@@ -90,7 +91,7 @@ func TestSignUp(t *testing.T) {
 		mockHasher.EXPECT().HashPassword(signUpRequest.Password).Return(hashedPassword, nil)
 		mockUserIDFactory.EXPECT().NewUserID().Return(entity.UserID(""), expectedErr)
 
-		response, err := userUseCase.SignUp(signUpRequest)
+		response, err := userUseCase.SignUp(context.Background(), signUpRequest)
 
 		assert.Error(t, err)
 		assert.Nil(t, response.User)
@@ -144,7 +145,7 @@ func TestAuthenticateUser(t *testing.T) {
 		mockTokenSvc.EXPECT().GenerateToken(user.GetID()).Return(token, nil)
 		mockTokenSvc.EXPECT().GetExpireAt(token).Return(1, nil)
 
-		response, err := userUseCase.AuthenticateUser(req)
+		response, err := userUseCase.AuthenticateUser(context.Background(), req)
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, response.GetToken(), token)
@@ -161,7 +162,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 		mockUserRepo.EXPECT().GetUserByEmail(email).Return(nil, errors.New("user not found"))
 
-		response, err := userUseCase.AuthenticateUser(req)
+		response, err := userUseCase.AuthenticateUser(context.Background(), req)
 		assert.Error(t, err)
 		assert.Equal(t, "", response.GetToken())
 	})
@@ -188,7 +189,7 @@ func TestAuthenticateUser(t *testing.T) {
 		mockUserRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
 		mockHasher.EXPECT().ComparePassword(hashedPassword, password).Return(false, nil)
 
-		response, err := userUseCase.AuthenticateUser(req)
+		response, err := userUseCase.AuthenticateUser(context.Background(), req)
 		assert.Error(t, err)
 		assert.Equal(t, "", response.GetToken())
 	})

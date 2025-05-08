@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -45,7 +46,7 @@ func TestCreateRoom(t *testing.T) {
 			Members: []entity.UserID{},
 		}), nil)
 
-		resp, err := roomUseCase.CreateRoom(req)
+		resp, err := roomUseCase.CreateRoom(context.Background(), req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp.Room)
@@ -60,7 +61,7 @@ func TestCreateRoom(t *testing.T) {
 
 		mockRoomIDFactory.EXPECT().NewRoomID().Return(roomID, expectedErr)
 
-		resp, err := roomUseCase.CreateRoom(req)
+		resp, err := roomUseCase.CreateRoom(context.Background(), req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Room)
@@ -76,7 +77,7 @@ func TestCreateRoom(t *testing.T) {
 
 		mockRoomIDFactory.EXPECT().NewRoomID().Return(publicID, expectedErr)
 
-		resp, err := roomUseCase.CreateRoom(req)
+		resp, err := roomUseCase.CreateRoom(context.Background(), req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Room)
@@ -111,7 +112,7 @@ func TestGetRoomByID(t *testing.T) {
 
 		mockRoomRepo.EXPECT().GetRoomByID(roomID).Return(room, nil)
 
-		resp, err := roomUseCase.GetRoomByID(usecase.GetRoomByIDParams{ID: roomID})
+		resp, err := roomUseCase.GetRoomByID(context.Background() ,usecase.GetRoomByIDRequest{ID: roomID})
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp.Room)
@@ -122,7 +123,7 @@ func TestGetRoomByID(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
 		mockRoomRepo.EXPECT().GetRoomByID(publicID).Return(nil, errors.New("room not found"))
-		resp, err := roomUseCase.GetRoomByID(usecase.GetRoomByIDParams{ID: publicID})
+		resp, err := roomUseCase.GetRoomByID(context.Background(), usecase.GetRoomByIDRequest{ID: publicID})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Room)
@@ -152,7 +153,7 @@ func TestGetAllRooms(t *testing.T) {
 
 		mockRoomRepo.EXPECT().GetAllRooms().Return(rooms, nil)
 
-		result, err := roomUseCase.GetAllRooms()
+		result, err := roomUseCase.GetAllRooms(context.Background())
 
 		assert.NoError(t, err)
 		assert.Equal(t, rooms, result)
@@ -163,7 +164,7 @@ func TestGetAllRooms(t *testing.T) {
 
 		mockRoomRepo.EXPECT().GetAllRooms().Return(nil, expectedErr)
 
-		result, err := roomUseCase.GetAllRooms()
+		result, err := roomUseCase.GetAllRooms(context.Background())
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -209,7 +210,7 @@ func TestGetUsersInRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().GetUsersInRoom(roomID).Return(users, nil)
 
-		resp, err := roomUseCase.GetUsersInRoom(usecase.GetUsersInRoomRequest{ID: roomID})
+		resp, err := roomUseCase.GetUsersInRoom(context.Background(), usecase.GetUsersInRoomRequest{ID: roomID})
 
 		assert.NoError(t, err)
 		assert.Equal(t, users, resp.Users)
@@ -219,7 +220,7 @@ func TestGetUsersInRoom(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
 		mockRoomRepo.EXPECT().GetUsersInRoom(publicID).Return(nil, errors.New("room not found"))
-		resp, err := roomUseCase.GetUsersInRoom(usecase.GetUsersInRoomRequest{ID: publicID})
+		resp, err := roomUseCase.GetUsersInRoom(context.Background(), usecase.GetUsersInRoomRequest{ID: publicID})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Users)
@@ -247,7 +248,7 @@ func TestJoinRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().AddMemberToRoom(roomID, userID).Return(nil)
 
-		err := roomUseCase.JoinRoom(usecase.JoinRoomRequest{
+		err := roomUseCase.JoinRoom(context.Background(), usecase.JoinRoomRequest{
 			RoomID: roomID,
 			UserID: userID,
 		})
@@ -276,7 +277,7 @@ func TestLeaveRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().RemoveMemberFromRoom(roomID, userID).Return(nil)
 
-		err := roomUseCase.LeaveRoom(usecase.LeaveRoomRequest{
+		err := roomUseCase.LeaveRoom(context.Background(), usecase.LeaveRoomRequest{
 			RoomID: roomID,
 			UserID: userID,
 		})
@@ -305,7 +306,7 @@ func TestUpdateRoomName(t *testing.T) {
 
 		mockRoomRepo.EXPECT().UpdateRoomName(roomID, newName).Return(nil)
 
-		err := roomUseCase.UpdateRoomName(usecase.UpdateRoomNameRequest{RoomID: roomID, NewName: newName})
+		err := roomUseCase.UpdateRoomName(context.Background(), usecase.UpdateRoomNameRequest{RoomID: roomID, NewName: newName})
 
 		assert.NoError(t, err)
 	})
@@ -330,7 +331,7 @@ func TestDeleteRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().DeleteRoom(roomID).Return(nil)
 
-		err := roomUseCase.DeleteRoom(usecase.DeleteRoomRequest{RoomID: roomID})
+		err := roomUseCase.DeleteRoom(context.Background(), usecase.DeleteRoomRequest{RoomID: roomID})
 
 		assert.NoError(t, err)
 	})

@@ -54,6 +54,7 @@ type RegisterUserRequest struct {
 }
 
 func (h *UserHandler) RegisterUser(c echo.Context) error {
+	ctx := c.Request().Context()
 	var req RegisterUserRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -72,7 +73,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 		Password: req.Password,
 	}
 
-	_, err := h.UserUseCase.SignUp(signUpReq)
+	_, err := h.UserUseCase.SignUp(ctx, signUpReq)
 	if err != nil {
 		h.Logger.Error("SignUp error: ", err)
 		return c.JSON(500, echo.Map{"error": "Internal server error"})
@@ -84,7 +85,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	}
 
 	// ログインまで済ませてしまう
-	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
+	authRes, err := h.UserUseCase.AuthenticateUser(ctx, authReq)
 	if err != nil {
 		h.Logger.Error("Authentication error: ", err)
 		return c.JSON(500, echo.Map{"error": err.Error()})
@@ -109,6 +110,7 @@ type LoginRequest struct {
 }
 
 func (h *UserHandler) Login(c echo.Context) error {
+	ctx := c.Request().Context()
 	var req LoginRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -124,7 +126,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		Password: req.Password,
 	}
 
-	authRes, err := h.UserUseCase.AuthenticateUser(authReq)
+	authRes, err := h.UserUseCase.AuthenticateUser(ctx, authReq)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authentication failed"})
 	}
@@ -162,6 +164,7 @@ type GetMeResponse struct {
 }
 
 func (h *UserHandler) GetMe(c echo.Context) error {
+	ctx := c.Request().Context()
 	uidRaw := c.Get("user_id")
 	if uidRaw == nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Unauthorized"})
@@ -171,7 +174,7 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
 	}
 
-	user, err := h.UserUseCase.GetUserByID(entity.UserID(userID))
+	user, err := h.UserUseCase.GetUserByID(ctx, entity.UserID(userID))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Internal server error"})
 	}

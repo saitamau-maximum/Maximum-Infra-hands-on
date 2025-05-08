@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -9,15 +10,15 @@ import (
 )
 
 type RoomUseCaseInterface interface {
-	CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error)
-	GetRoomByID(params GetRoomByIDParams) (GetRoomByIDResponse, error)
-	GetAllRooms() ([]*entity.Room, error)
-	GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomResponse, error)
-	JoinRoom(req JoinRoomRequest) error
-	LeaveRoom(req LeaveRoomRequest) error
-	SearchRoom(req SearchRoomRequest) (SearchRoomResponse, error)
-	UpdateRoomName(req UpdateRoomNameRequest) error
-	DeleteRoom(req DeleteRoomRequest) error
+	CreateRoom(ctx context.Context, req CreateRoomRequest) (CreateRoomResponse, error)
+	GetRoomByID(ctx context.Context, params GetRoomByIDRequest) (GetRoomByIDResponse, error)
+	GetAllRooms(ctx context.Context) ([]*entity.Room, error)
+	GetUsersInRoom(ctx context.Context, req GetUsersInRoomRequest) (GetUsersInRoomResponse, error)
+	JoinRoom(ctx context.Context, req JoinRoomRequest) error
+	LeaveRoom(ctx context.Context, req LeaveRoomRequest) error
+	SearchRoom(ctx context.Context, req SearchRoomRequest) (SearchRoomResponse, error)
+	UpdateRoomName(ctx context.Context, req UpdateRoomNameRequest) error
+	DeleteRoom(ctx context.Context, req DeleteRoomRequest) error
 }
 
 // RoomUseCase構造体: 部屋に関するユースケースを管理
@@ -71,7 +72,7 @@ type CreateRoomResponse struct {
 }
 
 // CreateRoom: 新しい部屋を作成
-func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error) {
+func (r *RoomUseCase) CreateRoom(ctx context.Context, req CreateRoomRequest) (CreateRoomResponse, error) {
 	id, err := r.roomIDFactory.NewRoomID()
 	if err != nil {
 		return CreateRoomResponse{nil}, err
@@ -95,7 +96,7 @@ func (r *RoomUseCase) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, err
 }
 
 // GetRoomByIDParams構造体: 公開IDで部屋を取得するためのパラメータ
-type GetRoomByIDParams struct {
+type GetRoomByIDRequest struct {
 	ID entity.RoomID `json:"id"`
 }
 
@@ -105,8 +106,8 @@ type GetRoomByIDResponse struct {
 }
 
 // GetRoomByID: 公開IDを使用して部屋を取得
-func (r *RoomUseCase) GetRoomByID(params GetRoomByIDParams) (GetRoomByIDResponse, error) {
-	room, err := r.roomRepo.GetRoomByID(params.ID)
+func (r *RoomUseCase) GetRoomByID(ctx context.Context, req GetRoomByIDRequest) (GetRoomByIDResponse, error) {
+	room, err := r.roomRepo.GetRoomByID(req.ID)
 	if err != nil {
 		return GetRoomByIDResponse{}, err
 	}
@@ -117,7 +118,7 @@ func (r *RoomUseCase) GetRoomByID(params GetRoomByIDParams) (GetRoomByIDResponse
 }
 
 // GetAllRooms: 全ての部屋を取得
-func (r *RoomUseCase) GetAllRooms() ([]*entity.Room, error) {
+func (r *RoomUseCase) GetAllRooms(ctx context.Context) ([]*entity.Room, error) {
 	rooms, err := r.roomRepo.GetAllRooms()
 	if err != nil {
 		return nil, err
@@ -136,7 +137,7 @@ type GetUsersInRoomResponse struct {
 }
 
 // GetUsersInRoom: 部屋内のユーザーを取得
-func (r *RoomUseCase) GetUsersInRoom(req GetUsersInRoomRequest) (GetUsersInRoomResponse, error) {
+func (r *RoomUseCase) GetUsersInRoom(ctx context.Context, req GetUsersInRoomRequest) (GetUsersInRoomResponse, error) {
 	users, err := r.roomRepo.GetUsersInRoom(req.ID)
 	if err != nil {
 		return GetUsersInRoomResponse{}, err
@@ -152,7 +153,7 @@ type JoinRoomRequest struct {
 }
 
 // JoinRoom: 部屋にユーザーを参加させる
-func (r *RoomUseCase) JoinRoom(req JoinRoomRequest) error {
+func (r *RoomUseCase) JoinRoom(ctx context.Context, req JoinRoomRequest) error {
 	err := r.roomRepo.AddMemberToRoom(req.RoomID, req.UserID)
 	if err != nil {
 		return err
@@ -168,7 +169,7 @@ type LeaveRoomRequest struct {
 }
 
 // LeaveRoom: 部屋からユーザーを退出させる
-func (r *RoomUseCase) LeaveRoom(req LeaveRoomRequest) error {
+func (r *RoomUseCase) LeaveRoom(ctx context.Context, req LeaveRoomRequest) error {
 	err := r.roomRepo.RemoveMemberFromRoom(req.RoomID, req.UserID)
 	if err != nil {
 		return err
@@ -188,7 +189,7 @@ type SearchRoomResponse struct {
 }
 
 // SearchRoom: 部屋を名前で検索
-func (r *RoomUseCase) SearchRoom(req SearchRoomRequest) (SearchRoomResponse, error) {
+func (r *RoomUseCase) SearchRoom(ctx context.Context, req SearchRoomRequest) (SearchRoomResponse, error) {
 	rooms, err := r.roomRepo.GetRoomByNameLike(req.Name)
 	if err != nil {
 		return SearchRoomResponse{}, err
@@ -204,7 +205,7 @@ type UpdateRoomNameRequest struct {
 }
 
 // UpdateRoomName: 部屋名を更新
-func (r *RoomUseCase) UpdateRoomName(req UpdateRoomNameRequest) error {
+func (r *RoomUseCase) UpdateRoomName(ctx context.Context, req UpdateRoomNameRequest) error {
 	err := r.roomRepo.UpdateRoomName(req.RoomID, req.NewName)
 	if err != nil {
 		return err
@@ -218,7 +219,7 @@ type DeleteRoomRequest struct {
 }
 
 // DeleteRoom: 部屋を削除
-func (r *RoomUseCase) DeleteRoom(req DeleteRoomRequest) error {
+func (r *RoomUseCase) DeleteRoom(ctx context.Context, req DeleteRoomRequest) error {
 	err := r.roomRepo.DeleteRoom(req.RoomID)
 	if err != nil {
 		return err

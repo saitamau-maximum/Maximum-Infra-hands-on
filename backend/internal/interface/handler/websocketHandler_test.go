@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -71,17 +72,17 @@ func TestConnectToChatRoom(t *testing.T) {
 
 		mockWsUpGrader.EXPECT().Upgrade(gomock.Any(), gomock.Any()).Return(mockConnRaw, nil)
 		mockWsConnFactory.EXPECT().CreateWebSocketConnection(mockConnRaw).Return(mockConn, nil)
-		mockWsUseCase.EXPECT().ConnectUserToRoom(gomock.Any()).Return(nil)
+		mockWsUseCase.EXPECT().ConnectUserToRoom(context.Background(), gomock.Any()).Return(nil)
 		time.Sleep(100 * time.Millisecond) // goroutine内の処理を待つためのスリープ
 		// ここからゴルーチン内の処理
 		mockConn.EXPECT().ReadMessage().Return(1, testMessage, nil)
-		mockWsUseCase.EXPECT().SendMessage(gomock.Any()).Return(nil)
+		mockWsUseCase.EXPECT().SendMessage(context.Background(), gomock.Any()).Return(nil)
 
 		// 少し待つ
 		time.Sleep(100 * time.Millisecond)
 		mockConn.EXPECT().ReadMessage().Return(0, nil, assert.AnError)
 		mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any())
-		mockWsUseCase.EXPECT().DisconnectUser(gomock.Any()).DoAndReturn(func(req usecase.DisconnectUserRequest) error {
+		mockWsUseCase.EXPECT().DisconnectUser(context.Background(), gomock.Any()).DoAndReturn(func(req usecase.DisconnectUserRequest) error {
 			wg.Done() // goroutine終了の合図
 			return nil
 		})
