@@ -87,7 +87,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
-		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
+		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(nil)
 
 		// テスト実行
@@ -137,7 +137,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
-		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(assert.AnError)
+		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
 			UserID: userID,
@@ -154,7 +154,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
-		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
+		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
@@ -290,9 +290,9 @@ func TestDisconnectUser(t *testing.T) {
 		})
 
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(mockConn, nil)
-		mocks.WsClientRepo.EXPECT().GetClientsByUserID(userID).Return(mockClient, nil)
+		mocks.WsClientRepo.EXPECT().GetClientsByUserID(context.Background(), userID).Return(mockClient, nil)
 		mocks.WebsocketManager.EXPECT().Unregister(mockConn).Return(nil)
-		mocks.WsClientRepo.EXPECT().DeleteClient(mockClient.GetID()).Return(nil)
+		mocks.WsClientRepo.EXPECT().DeleteClient(context.Background(), mockClient.GetID()).Return(nil)
 
 		request := usecase.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)

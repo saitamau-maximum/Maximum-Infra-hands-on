@@ -1,6 +1,7 @@
 package inmemorywsclientrepoimpl
 
 import (
+	"context"
 	"errors"
 	"sync"
 
@@ -25,7 +26,7 @@ func NewInMemoryWebsocketClientRepository(_ NewInMemoryWebsocketClientRepository
 	}
 }
 
-func (r *InMemoryWebsocketClientRepository) CreateClient(client *entity.WebsocketClient) error {
+func (r *InMemoryWebsocketClientRepository) CreateClient(ctx context.Context, client *entity.WebsocketClient) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -49,7 +50,7 @@ func (r *InMemoryWebsocketClientRepository) CreateClient(client *entity.Websocke
 	return nil
 }
 
-func (r *InMemoryWebsocketClientRepository) DeleteClient(id entity.WsClientID) error {
+func (r *InMemoryWebsocketClientRepository) DeleteClient(ctx context.Context, id entity.WsClientID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -74,7 +75,7 @@ func (r *InMemoryWebsocketClientRepository) DeleteClient(id entity.WsClientID) e
 	return nil
 }
 
-func (r *InMemoryWebsocketClientRepository) GetClientByID(id entity.WsClientID) (*entity.WebsocketClient, error) {
+func (r *InMemoryWebsocketClientRepository) GetClientByID(ctx context.Context, id entity.WsClientID) (*entity.WebsocketClient, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -85,7 +86,7 @@ func (r *InMemoryWebsocketClientRepository) GetClientByID(id entity.WsClientID) 
 	return client, nil
 }
 
-func (r *InMemoryWebsocketClientRepository) GetClientsByRoomID(roomID entity.RoomID) ([]*entity.WebsocketClient, error) {
+func (r *InMemoryWebsocketClientRepository) GetClientsByRoomID(ctx context.Context, roomID entity.RoomID) ([]*entity.WebsocketClient, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -101,7 +102,7 @@ func (r *InMemoryWebsocketClientRepository) GetClientsByRoomID(roomID entity.Roo
 	return result, nil
 }
 
-func (r *InMemoryWebsocketClientRepository) GetClientsByUserID(userID entity.UserID) (*entity.WebsocketClient, error) {
+func (r *InMemoryWebsocketClientRepository) GetClientsByUserID(ctx context.Context, userID entity.UserID) (*entity.WebsocketClient, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

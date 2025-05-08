@@ -115,7 +115,7 @@ func (w *WebsocketUseCase) ConnectUserToRoom(ctx context.Context, req ConnectUse
 		RoomID: req.RoomID,
 	})
 
-	err = w.wsClientRepo.CreateClient(client)
+	err = w.wsClientRepo.CreateClient(ctx, client)
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func (w *WebsocketUseCase) DisconnectUser(ctx context.Context, req DisconnectUse
 		return err
 	}
 
-	user, err := w.wsClientRepo.GetClientsByUserID(req.UserID)
+	user, err := w.wsClientRepo.GetClientsByUserID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (w *WebsocketUseCase) DisconnectUser(ctx context.Context, req DisconnectUse
 		return err
 	}
 
-	err = w.wsClientRepo.DeleteClient(user.GetID())
+	err = w.wsClientRepo.DeleteClient(ctx, user.GetID())
 	if err != nil {
 		return err
 	}
