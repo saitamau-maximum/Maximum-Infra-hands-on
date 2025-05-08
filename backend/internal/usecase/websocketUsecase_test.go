@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -84,10 +85,10 @@ func TestConnectUserToRoom(t *testing.T) {
 	mockConn := mock_service.NewMockWebSocketConnection(ctrl)
 	t.Run("正常系", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
-		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
-		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(nil)
+		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().Register(context.Background(), mockConn, userID, roomID).Return(nil)
 
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
@@ -95,7 +96,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.NoError(t, err)
@@ -103,14 +104,14 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：ユーザ取得失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(nil, assert.AnError)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(nil, assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -118,7 +119,7 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：クライアントID生成失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(entity.WsClientID(""), assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
@@ -126,7 +127,7 @@ func TestConnectUserToRoom(t *testing.T) {
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -134,16 +135,16 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：クライアント作成失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
-		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(assert.AnError)
+		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -151,17 +152,17 @@ func TestConnectUserToRoom(t *testing.T) {
 
 	t.Run("異常系：WebSocket登録失敗", func(t *testing.T) {
 		// モックの期待値設定
-		mocks.UserRepo.EXPECT().GetUserByID(userID).Return(testUser, nil)
+		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
-		mocks.WsClientRepo.EXPECT().CreateClient(gomock.Any()).Return(nil)
-		mocks.WebsocketManager.EXPECT().Register(mockConn, userID, roomID).Return(assert.AnError)
+		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().Register(context.Background(), mockConn, userID, roomID).Return(assert.AnError)
 		// テスト実行
 		request := usecase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
 		}
-		err := useCase.ConnectUserToRoom(request)
+		err := useCase.ConnectUserToRoom(context.Background(), request)
 
 		// 検証
 		assert.Error(t, err)
@@ -181,16 +182,16 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
-		mocks.MsgCache.EXPECT().AddMessage(roomID ,gomock.Any()).Return(nil)
-		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID ,gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().BroadcastToRoom(context.Background(), roomID, gomock.Any()).Return(nil)
 
 		request := usecase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.NoError(t, err)
 	})
@@ -207,7 +208,7 @@ func TestSendMessage(t *testing.T) {
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -219,14 +220,14 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(assert.AnError)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(assert.AnError)
 
 		request := usecase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -238,15 +239,15 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
-		mocks.MsgCache.EXPECT().AddMessage(roomID, gomock.Any()).Return(assert.AnError)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(assert.AnError)
 
 		request := usecase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -258,16 +259,16 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
-		mocks.MsgCache.EXPECT().AddMessage(roomID, gomock.Any()).Return(nil)
-		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(assert.AnError)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(nil)
+		mocks.WebsocketManager.EXPECT().BroadcastToRoom(context.Background(), roomID, gomock.Any()).Return(assert.AnError)
 
 		request := usecase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
 		}
-		err := useCase.SendMessage(request)
+		err := useCase.SendMessage(context.Background(), request)
 
 		assert.Error(t, err)
 	})
@@ -288,13 +289,13 @@ func TestDisconnectUser(t *testing.T) {
 			RoomID: entity.RoomID("room123"),
 		})
 
-		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(mockConn, nil)
-		mocks.WsClientRepo.EXPECT().GetClientsByUserID(userID).Return(mockClient, nil)
-		mocks.WebsocketManager.EXPECT().Unregister(mockConn).Return(nil)
-		mocks.WsClientRepo.EXPECT().DeleteClient(mockClient.GetID()).Return(nil)
+		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(context.Background(), userID).Return(mockConn, nil)
+		mocks.WsClientRepo.EXPECT().GetClientsByUserID(context.Background(), userID).Return(mockClient, nil)
+		mocks.WebsocketManager.EXPECT().Unregister(context.Background(), mockConn).Return(nil)
+		mocks.WsClientRepo.EXPECT().DeleteClient(context.Background(), mockClient.GetID()).Return(nil)
 
 		request := usecase.DisconnectUserRequest{UserID: userID}
-		err := useCase.DisconnectUser(request)
+		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.NoError(t, err)
 	})
@@ -302,10 +303,10 @@ func TestDisconnectUser(t *testing.T) {
 	t.Run("異常系：接続取得失敗", func(t *testing.T) {
 		userID := entity.UserID("user123")
 
-		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(userID).Return(nil, assert.AnError)
+		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(context.Background(), userID).Return(nil, assert.AnError)
 
 		request := usecase.DisconnectUserRequest{UserID: userID}
-		err := useCase.DisconnectUser(request)
+		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)
 	})

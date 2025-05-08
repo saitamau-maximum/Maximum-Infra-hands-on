@@ -1,6 +1,7 @@
 package inmemorymsgcacheimpl_test
 
 import (
+	"context"
 	"strconv"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
+
 // TODO: テストの充実
 func TestMessageCache(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -29,12 +31,12 @@ func TestMessageCache(t *testing.T) {
 			Content: "message " + string(strconv.Itoa(i)),
 			SentAt:  time.Now().Add(time.Duration(i) * time.Second),
 		})
-		err := cache.AddMessage(roomID, msg)
+		err := cache.AddMessage(context.Background(), roomID, msg)
 		assert.NoError(t, err)
 	}
 
 	// 取得して件数チェック（20件であること）
-	messages, err := cache.GetRecentMessages(roomID)
+	messages, err := cache.GetRecentMessages(context.Background(), roomID)
 	assert.NoError(t, err)
 	assert.Len(t, messages, service.DefaultRecentMessageLimit())
 

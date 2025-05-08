@@ -1,6 +1,7 @@
 package sqliteuserrepoimpl_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -65,11 +66,11 @@ func TestSaveUser(t *testing.T) {
 	})
 
 	// ユーザーを保存
-	savedUser, err := userRepo.SaveUser(user)
+	savedUser, err := userRepo.SaveUser(context.Background(), user)
 	require.NoError(t, err)
 
 	// 保存されたユーザーを取得して確認
-	fetchedUser, err := userRepo.GetUserByID(savedUser.GetID())
+	fetchedUser, err := userRepo.GetUserByID(context.Background(), savedUser.GetID())
 	require.NoError(t, err)
 
 	// fetchedUserとsavedUserが一致することを確認
@@ -96,11 +97,11 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 
 	// ユーザーを保存
-	savedUser, err := userRepo.SaveUser(user)
+	savedUser, err := userRepo.SaveUser(context.Background(), user)
 	require.NoError(t, err)
 
 	// 保存したユーザーをEmailで取得
-	fetchedUser, err := userRepo.GetUserByEmail(savedUser.GetEmail())
+	fetchedUser, err := userRepo.GetUserByEmail(context.Background(), savedUser.GetEmail())
 	require.NoError(t, err)
 
 	// fetchedUserとsavedUserが一致することを確認

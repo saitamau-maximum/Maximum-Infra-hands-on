@@ -1,6 +1,7 @@
 package sqlitemsgrepoimpl
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -33,11 +34,11 @@ func NewMessageRepositoryImpl(params *NewMessageRepositoryImplParams) repository
 	}
 }
 
-func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
+func (r *MessageRepositoryImpl) CreateMessage(ctx context.Context, message *entity.Message) error {
 	var Message model.MessageModel
 	Message.FromEntity(message)
 
-	_, err := r.DB.NamedExec("INSERT INTO messages (id, room_id, user_id, content, sent_at) VALUES (:id, :room_id, :user_id, :content, :sent_at)", &Message)
+	_, err := r.DB.NamedExecContext(ctx, "INSERT INTO messages (id, room_id, user_id, content, sent_at) VALUES (:id, :room_id, :user_id, :content, :sent_at)", &Message)
 	if err != nil {
 		return err
 	}
@@ -46,13 +47,14 @@ func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
 }
 
 func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
+	ctx context.Context,
 	roomID entity.RoomID,
 	limit int,
 	beforeSentAt time.Time,
 ) (messages []*entity.Message, nextBeforeSentAt time.Time, hasNext bool, err error) {
 	var MessageModels []model.MessageModel
 	query := "SELECT * FROM messages WHERE room_id = ? AND sent_at < ? ORDER BY sent_at DESC LIMIT ?"
-	err = r.DB.Select(&MessageModels, query, roomID, beforeSentAt, limit)
+	err = r.DB.SelectContext(ctx, &MessageModels, query, roomID, beforeSentAt, limit)
 	if err != nil {
 		return nil, time.Now(), false, err
 	}

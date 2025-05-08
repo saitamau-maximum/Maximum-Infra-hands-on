@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -58,7 +59,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	}
 
 	mockUseCase.EXPECT().
-		GetMessageHistoryInRoom(gomock.Any()).
+		GetMessageHistoryInRoom(context.Background(), gomock.Any()).
 		Return(mockResponse, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/messages/"+roomID, nil)
@@ -66,25 +67,6 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	c := e.NewContext(req, rec)
 	c.SetParamNames("room_public_id")
 	c.SetParamValues(roomID)
-
-	mockUseCase.EXPECT().FormatMessage(mockMessages[0]).Return(
-		usecase.FormatMessageResponse{
-			ID:      string(mockMessages[0].GetID()),
-			RoomID:  "test-room",
-			UserID:  "user1",
-			Content: mockMessages[0].GetContent(),
-			SentAt:  mockMessages[0].GetSentAt(),
-		}, nil,
-	)
-	mockUseCase.EXPECT().FormatMessage(mockMessages[1]).Return(
-		usecase.FormatMessageResponse{
-			ID:      string(mockMessages[1].GetID()),
-			RoomID:  "test-room",
-			UserID:  "user2",
-			Content: mockMessages[1].GetContent(),
-			SentAt:  mockMessages[1].GetSentAt(),
-		}, nil,
-	)
 
 	err := handler.GetMessageHistoryInRoom(c)
 	assert.NoError(t, err)

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -12,13 +13,13 @@ import (
 
 type WebsocketUseCaseInterface interface {
 	// 接続・参加処理
-	ConnectUserToRoom(req ConnectUserToRoomRequest) error
+	ConnectUserToRoom(ctx context.Context, req ConnectUserToRoomRequest) error
 
 	// メッセージ送信
-	SendMessage(req SendMessageRequest) error
+	SendMessage(ctx context.Context, req SendMessageRequest) error
 
 	// 切断処理
-	DisconnectUser(req DisconnectUserRequest) error
+	DisconnectUser(ctx context.Context, req DisconnectUserRequest) error
 }
 
 type WebsocketUseCase struct {
@@ -97,8 +98,8 @@ type ConnectUserToRoomRequest struct {
 }
 
 // ConnectUserToRoom 接続・参加処理
-func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error {
-	user, err := w.userRepo.GetUserByID(req.UserID)
+func (w *WebsocketUseCase) ConnectUserToRoom(ctx context.Context, req ConnectUserToRoomRequest) error {
+	user, err := w.userRepo.GetUserByID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -114,12 +115,12 @@ func (w *WebsocketUseCase) ConnectUserToRoom(req ConnectUserToRoomRequest) error
 		RoomID: req.RoomID,
 	})
 
-	err = w.wsClientRepo.CreateClient(client)
+	err = w.wsClientRepo.CreateClient(ctx, client)
 	if err != nil {
 		return err
 	}
 
-	err = w.websocketManager.Register(req.Conn, req.UserID, req.RoomID)
+	err = w.websocketManager.Register(ctx, req.Conn, req.UserID, req.RoomID)
 	if err != nil {
 		return err
 	}
@@ -135,7 +136,7 @@ type SendMessageRequest struct {
 }
 
 // SendMessage メッセージ送信
-func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
+func (w *WebsocketUseCase) SendMessage(ctx context.Context, req SendMessageRequest) error {
 	id, err := w.msgIDFactory.NewMessageID()
 	if err != nil {
 		return err
@@ -149,15 +150,15 @@ func (w *WebsocketUseCase) SendMessage(req SendMessageRequest) error {
 		SentAt:  time.Now(),
 	})
 
-	if err := w.msgRepo.CreateMessage(msg); err != nil {
+	if err := w.msgRepo.CreateMessage(ctx, msg); err != nil {
 		return err
 	}
 
-	if err := w.msgCache.AddMessage(req.RoomID, msg); err != nil {
+	if err := w.msgCache.AddMessage(ctx, req.RoomID, msg); err != nil {
 		return err
 	}
 
-	err = w.websocketManager.BroadcastToRoom(req.RoomID, msg)
+	err = w.websocketManager.BroadcastToRoom(ctx, req.RoomID, msg)
 	if err != nil {
 		return err
 	}
@@ -171,23 +172,23 @@ type DisconnectUserRequest struct {
 }
 
 // DisconnectUser 切断処理
-func (w *WebsocketUseCase) DisconnectUser(req DisconnectUserRequest) error {
-	conn, err := w.websocketManager.GetConnectionByUserID(req.UserID)
+func (w *WebsocketUseCase) DisconnectUser(ctx context.Context, req DisconnectUserRequest) error {
+	conn, err := w.websocketManager.GetConnectionByUserID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	user, err := w.wsClientRepo.GetClientsByUserID(req.UserID)
+	user, err := w.wsClientRepo.GetClientsByUserID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	err = w.websocketManager.Unregister(conn)
+	err = w.websocketManager.Unregister(ctx, conn)
 	if err != nil {
 		return err
 	}
 
-	err = w.wsClientRepo.DeleteClient(user.GetID())
+	err = w.wsClientRepo.DeleteClient(ctx, user.GetID())
 	if err != nil {
 		return err
 	}

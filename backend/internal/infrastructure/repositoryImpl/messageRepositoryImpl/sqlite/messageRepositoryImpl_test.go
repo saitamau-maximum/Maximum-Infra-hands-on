@@ -1,6 +1,7 @@
 package sqlitemsgrepoimpl_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -48,11 +49,12 @@ func TestMessageRepositoryImpl_CreateAndGetMessageHistoryInRoom(t *testing.T) {
 		SentAt:   now,
 	})
 
-	err := repo.CreateMessage(message)
+	err := repo.CreateMessage(context.Background(), message)
 	assert.NoError(t, err)
 
 	// メッセージ履歴を取得
 	messages, nextBeforeSentAt, hasNext, err := repo.GetMessageHistoryInRoom(
+		context.Background(),
 		entity.RoomID("test-room-id"),
 		10,
 		time.Now().Add(1*time.Hour), // 未来時間を指定しているので、登録したメッセージが対象になる

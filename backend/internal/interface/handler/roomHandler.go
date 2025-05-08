@@ -59,6 +59,7 @@ type CreateRoomRequest struct {
 }
 
 func (h *RoomHandler) CreateRoom(c echo.Context) error {
+	ctx := c.Request().Context()
 	var req CreateRoomRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -78,14 +79,14 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 	}
 
 	// 部屋作成
-	createRoomRes, err := h.RoomUseCase.CreateRoom(usecase.CreateRoomRequest{Name: req.Name})
+	createRoomRes, err := h.RoomUseCase.CreateRoom(ctx, usecase.CreateRoomRequest{Name: req.Name})
 	if err != nil {
 		h.Logger.Error("Failed to create room", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to create room"})
 	}
 	room := createRoomRes.Room
 
-	if err = h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
+	if err = h.RoomUseCase.JoinRoom(ctx, usecase.JoinRoomRequest{
 		RoomID: room.GetID(),
 		UserID: entity.UserID(userID),
 	}); err != nil {
@@ -107,6 +108,7 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 }
 
 func (h *RoomHandler) JoinRoom(c echo.Context) error {
+	ctx := c.Request().Context()
 	userID, ok := c.Get("user_id").(string)
 	if !ok || userID == "" {
 		// user_id が存在しない、もしくは型アサーションに失敗した場合
@@ -122,7 +124,7 @@ func (h *RoomHandler) JoinRoom(c echo.Context) error {
 	}
 
 	// 部屋に参加
-	err := h.RoomUseCase.JoinRoom(usecase.JoinRoomRequest{
+	err := h.RoomUseCase.JoinRoom(ctx, usecase.JoinRoomRequest{
 		RoomID: entity.RoomID(roomID),
 		UserID: entity.UserID(userID),
 	})
@@ -142,6 +144,7 @@ func (h *RoomHandler) JoinRoom(c echo.Context) error {
 }
 
 func (h *RoomHandler) LeaveRoom(c echo.Context) error {
+	ctx := c.Request().Context()
 	userID, ok := c.Get("user_id").(string)
 	if !ok || userID == "" {
 		h.Logger.Error("User ID is missing or invalid")
@@ -155,7 +158,7 @@ func (h *RoomHandler) LeaveRoom(c echo.Context) error {
 	}
 
 	// 部屋から退出
-	if err := h.RoomUseCase.LeaveRoom(usecase.LeaveRoomRequest{
+	if err := h.RoomUseCase.LeaveRoom(ctx, usecase.LeaveRoomRequest{
 		RoomID: entity.RoomID(roomID),
 		UserID: entity.UserID(userID),
 	}); err != nil {
@@ -183,13 +186,14 @@ type MemberID struct {
 }
 
 func (h *RoomHandler) GetRoom(c echo.Context) error {
+	ctx := c.Request().Context()
 	roomID := c.Param("public_id")
 	if roomID == "" {
 		h.Logger.Error("Room public ID is missing")
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
 	}
 
-	GetRoomRes, err := h.RoomUseCase.GetRoomByID(usecase.GetRoomByIDParams{
+	GetRoomRes, err := h.RoomUseCase.GetRoomByID(ctx, usecase.GetRoomByIDRequest{
 		ID: entity.RoomID(roomID),
 	})
 	if err != nil {
@@ -226,7 +230,8 @@ type GetRoomsResponse struct {
 }
 
 func (h *RoomHandler) GetRooms(c echo.Context) error {
-	rooms, err := h.RoomUseCase.GetAllRooms()
+	ctx := c.Request().Context()
+	rooms, err := h.RoomUseCase.GetAllRooms(ctx)
 	if err != nil {
 		h.Logger.Error("Failed to get rooms", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get rooms"})

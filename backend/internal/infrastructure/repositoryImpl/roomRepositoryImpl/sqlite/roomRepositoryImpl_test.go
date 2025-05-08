@@ -1,6 +1,7 @@
 package sqliteroomrepoimpl_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -74,7 +75,7 @@ func TestRoomRepositoryImpl_GetUsersInRoom(t *testing.T) {
 	require.NoError(t, err)
 
 	// テスト対象呼び出し
-	users, err := repo.GetUsersInRoom(entity.RoomID("room-public-1"))
+	users, err := repo.GetUsersInRoom(context.Background(), entity.RoomID("room-public-1"))
 	require.NoError(t, err)
 	require.Len(t, users, 2)
 

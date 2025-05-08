@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -51,8 +52,8 @@ func TestRegisterUser(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserUseCase.EXPECT().SignUp(gomock.Any()).Return(usecase.SignUpResponse{}, nil)
-	mockUserUseCase.EXPECT().AuthenticateUser(gomock.Any()).Return(tokenRes, nil)
+	mockUserUseCase.EXPECT().SignUp(context.Background(), gomock.Any()).Return(usecase.SignUpResponse{}, nil)
+	mockUserUseCase.EXPECT().AuthenticateUser(context.Background(), gomock.Any()).Return(tokenRes, nil)
 
 	if assert.NoError(t, handler.RegisterUser(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -90,7 +91,7 @@ func TestLogin(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserUseCase.EXPECT().AuthenticateUser(gomock.Any()).Return(tokenRes, nil)
+	mockUserUseCase.EXPECT().AuthenticateUser(context.Background(), gomock.Any()).Return(tokenRes, nil)
 
 	if assert.NoError(t, handler.Login(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -133,7 +134,7 @@ func TestGetMe(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserUseCase.EXPECT().GetUserByID(entity.UserID("mockUserID")).Return(user, nil)
+	mockUserUseCase.EXPECT().GetUserByID(context.Background(), entity.UserID("mockUserID")).Return(user, nil)
 
 	if assert.NoError(t, handler.GetMe(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)

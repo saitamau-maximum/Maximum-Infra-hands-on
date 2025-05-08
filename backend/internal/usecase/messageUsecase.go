@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -11,9 +12,7 @@ import (
 
 type MessageUseCaseInterface interface {
 	// メッセージ取得
-	GetMessageHistoryInRoom(req GetMessageHistoryInRoomRequest) (GetMessageHistoryInRoomResponse, error)
-	// 内部のMessageを外部用に整形
-	FormatMessage(msg *entity.Message) (FormatMessageResponse, error)
+	GetMessageHistoryInRoom(ctx context.Context, req GetMessageHistoryInRoomRequest) (GetMessageHistoryInRoomResponse, error)
 }
 
 type MessageUseCase struct {
@@ -70,9 +69,9 @@ type GetMessageHistoryInRoomResponse struct {
 	HasNext          bool
 }
 
-func (uc *MessageUseCase) GetMessageHistoryInRoom(req GetMessageHistoryInRoomRequest) (GetMessageHistoryInRoomResponse, error) {
+func (uc *MessageUseCase) GetMessageHistoryInRoom(ctx context.Context, req GetMessageHistoryInRoomRequest) (GetMessageHistoryInRoomResponse, error) {
 	// まずはキャッシュからの取得を試みる
-	messages, err := uc.msgCache.GetRecentMessages(req.RoomID)
+	messages, err := uc.msgCache.GetRecentMessages(ctx, req.RoomID)
 	if err != nil {
 		return GetMessageHistoryInRoomResponse{}, err
 	}
@@ -101,6 +100,7 @@ func (uc *MessageUseCase) GetMessageHistoryInRoom(req GetMessageHistoryInRoomReq
 	
 	// メッセージ履歴を取得
 	messages, nextBeforeSentAt, hasNext, err := uc.msgRepo.GetMessageHistoryInRoom(
+		ctx,
 		req.RoomID,
 		req.Limit,
 		req.BeforeSentAt,
@@ -113,27 +113,5 @@ func (uc *MessageUseCase) GetMessageHistoryInRoom(req GetMessageHistoryInRoomReq
 		Messages:         messages,
 		NextBeforeSentAt: nextBeforeSentAt,
 		HasNext:          hasNext,
-	}, nil
-}
-
-type FormatMessageResponse struct {
-	ID      string    `json:"id"`
-	RoomID  string    `json:"room_id"`
-	UserID  string    `json:"user_id"`
-	Content string    `json:"content"`
-	SentAt  time.Time `json:"sent_at"`
-}
-
-func (uc *MessageUseCase) FormatMessage(msg *entity.Message) (FormatMessageResponse, error) {
-	if msg == nil {
-		return FormatMessageResponse{}, errors.New("message is nil")
-	}
-
-	return FormatMessageResponse{
-		ID:      string(msg.GetID()),
-		RoomID:  string(msg.GetRoomID()),
-		UserID:  string(msg.GetUserID()),
-		Content: msg.GetContent(),
-		SentAt:  msg.GetSentAt(),
 	}, nil
 }

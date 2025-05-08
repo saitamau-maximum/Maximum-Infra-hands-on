@@ -1,6 +1,7 @@
 package sqliteroomrepoimpl
 
 import (
+	"context"
 	"errors"
 	"strconv"
 
@@ -35,14 +36,14 @@ func NewRoomRepositoryImpl(params *NewRoomRepositoryImplParams) repository.RoomR
 	}
 }
 
-func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) {
-	_, err := r.db.Exec(`INSERT INTO rooms (id, name) VALUES (?, ?)`, room.GetID(), room.GetName())
+func (r *RoomRepositoryImpl) SaveRoom(ctx context.Context, room *entity.Room) (entity.RoomID, error) {
+	_, err := r.db.ExecContext(ctx, `INSERT INTO rooms (id, name) VALUES (?, ?)`, room.GetID(), room.GetName())
 	if err != nil {
 		return entity.RoomID(""), err
 	}
 
 	var roomID entity.RoomID
-	err = r.db.Get(&roomID, `SELECT id FROM rooms WHERE id = ?`, room.GetID())
+	err = r.db.GetContext(ctx, &roomID, `SELECT id FROM rooms WHERE id = ?`, room.GetID())
 	if err != nil {
 		return entity.RoomID(""), err
 	}
@@ -50,16 +51,16 @@ func (r *RoomRepositoryImpl) SaveRoom(room *entity.Room) (entity.RoomID, error) 
 	return roomID, nil
 }
 
-func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error) {
+func (r *RoomRepositoryImpl) GetRoomByID(ctx context.Context, id entity.RoomID) (*entity.Room, error) {
 	roomModel := model.RoomModel{}
-	err := r.db.Get(&roomModel, `SELECT id, name FROM rooms WHERE id = ?`, id)
+	err := r.db.GetContext(ctx, &roomModel, `SELECT id, name FROM rooms WHERE id = ?`, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// ルームに所属しているユーザーを取得
 	roomMembers := []model.RoomMemberModel{}
-	err = r.db.Select(&roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, id)
+	err = r.db.SelectContext(ctx, &roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +73,9 @@ func (r *RoomRepositoryImpl) GetRoomByID(id entity.RoomID) (*entity.Room, error)
 	return room, nil
 }
 
-func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
+func (r *RoomRepositoryImpl) GetAllRooms(ctx context.Context) ([]*entity.Room, error) {
 	roomModels := []model.RoomModel{}
-	err := r.db.Select(&roomModels, `SELECT id, name FROM rooms`)
+	err := r.db.SelectContext(ctx, &roomModels, `SELECT id, name FROM rooms`)
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +92,10 @@ func (r *RoomRepositoryImpl) GetAllRooms() ([]*entity.Room, error) {
 	return rooms, nil
 }
 
-func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.User, error) {
+func (r *RoomRepositoryImpl) GetUsersInRoom(ctx context.Context, roomID entity.RoomID) ([]*entity.User, error) {
 	// まず中間テーブルから対象のuser_id一覧を取得
 	var roomMembers []model.RoomMemberModel
-	err := r.db.Select(&roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, roomID)
+	err := r.db.SelectContext(ctx, &roomMembers, `SELECT user_id FROM room_members WHERE room_id = ?`, roomID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +123,7 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	query = r.db.Rebind(query)
 
 	var userModels []model.UserModel
-	err = r.db.Select(&userModels, query, args...)
+	err = r.db.SelectContext(ctx, &userModels, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -142,25 +143,25 @@ func (r *RoomRepositoryImpl) GetUsersInRoom(roomID entity.RoomID) ([]*entity.Use
 	return users, nil
 }
 
-func (r *RoomRepositoryImpl) AddMemberToRoom(roomID entity.RoomID, userID entity.UserID) error {
-	_, err := r.db.Exec(`INSERT INTO room_members (room_id, user_id) VALUES (?, ?)`, roomID, userID)
+func (r *RoomRepositoryImpl) AddMemberToRoom(ctx context.Context, roomID entity.RoomID, userID entity.UserID) error {
+	_, err := r.db.ExecContext(ctx, `INSERT INTO room_members (room_id, user_id) VALUES (?, ?)`, roomID, userID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RoomRepositoryImpl) RemoveMemberFromRoom(roomID entity.RoomID, userID entity.UserID) error {
-	_, err := r.db.Exec(`DELETE FROM room_members WHERE room_id = ? AND user_id = ?`, roomID, userID)
+func (r *RoomRepositoryImpl) RemoveMemberFromRoom(ctx context.Context, roomID entity.RoomID, userID entity.UserID) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM room_members WHERE room_id = ? AND user_id = ?`, roomID, userID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, error) {
+func (r *RoomRepositoryImpl) GetRoomByNameLike(ctx context.Context, name string) ([]*entity.Room, error) {
 	roomModels := []model.RoomModel{}
-	err := r.db.Select(&roomModels, `SELECT id, name FROM rooms WHERE name LIKE ?`, "%"+name+"%")
+	err := r.db.SelectContext(ctx, &roomModels, `SELECT id, name FROM rooms WHERE name LIKE ?`, "%"+name+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -177,16 +178,16 @@ func (r *RoomRepositoryImpl) GetRoomByNameLike(name string) ([]*entity.Room, err
 	return rooms, nil
 }
 
-func (r *RoomRepositoryImpl) UpdateRoomName(roomID entity.RoomID, name string) error {
-	_, err := r.db.Exec(`UPDATE rooms SET name = ? WHERE id = ?`, name, roomID)
+func (r *RoomRepositoryImpl) UpdateRoomName(ctx context.Context, roomID entity.RoomID, name string) error {
+	_, err := r.db.ExecContext(ctx, `UPDATE rooms SET name = ? WHERE id = ?`, name, roomID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RoomRepositoryImpl) DeleteRoom(roomID entity.RoomID) error {
-	_, err := r.db.Exec(`DELETE FROM rooms WHERE id = ?`, roomID)
+func (r *RoomRepositoryImpl) DeleteRoom(ctx context.Context, roomID entity.RoomID) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM rooms WHERE id = ?`, roomID)
 	if err != nil {
 		return err
 	}

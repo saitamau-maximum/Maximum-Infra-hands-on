@@ -1,9 +1,13 @@
 package repository
 
-import "example.com/infrahandson/internal/domain/entity"
+import (
+	"context"
+
+	"example.com/infrahandson/internal/domain/entity"
+)
 
 type UserRepository interface {
-	SaveUser(*entity.User) (*entity.User, error)
-	GetUserByID(id entity.UserID) (*entity.User, error)
-	GetUserByEmail(email string) (*entity.User, error)
+	SaveUser(context.Context, *entity.User) (*entity.User, error)
+	GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 }

@@ -50,18 +50,13 @@ type GetMessageHistoryInRoomRequest struct {
 }
 
 type GetMessageHistoryInRoomResponse struct {
-	Messages         []MessageResponse `json:"messages"`
+	Messages         []*entity.Message `json:"messages"`
 	NextBeforeSentAt string            `json:"next_before_sent_at"`
 	HasNext          bool              `json:"has_next"`
 }
-type MessageResponse struct {
-	ID      string `json:"id"`
-	UserID  string `json:"user_id"`
-	SentAt  string `json:"sent_at"`
-	Content string `json:"content"`
-}
 
 func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
+	ctx := c.Request().Context()
 	h.Logger.Info("GetMessageHistoryInRoom called")
 	var req GetMessageHistoryInRoomRequest
 	roomIDStr := c.Param("room_public_id")
@@ -100,7 +95,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	}
 
 	// Usecase呼び出し
-	res, err := h.MsgUseCase.GetMessageHistoryInRoom(usecase.GetMessageHistoryInRoomRequest{
+	res, err := h.MsgUseCase.GetMessageHistoryInRoom(ctx, usecase.GetMessageHistoryInRoomRequest{
 		RoomID:       req.RoomID,
 		Limit:        req.Limit,
 		BeforeSentAt: req.BeforeSentAt,
@@ -110,25 +105,9 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get message history")
 	}
 
-	// メッセージ整形
-	messages := make([]MessageResponse, len(res.Messages))
-	for i, msg := range res.Messages {
-		formatedMsg, err := h.MsgUseCase.FormatMessage(msg)
-		if err != nil {
-			h.Logger.Error("failed to format message: %v", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to format message")
-		}
-		messages[i] = MessageResponse{
-			ID:      formatedMsg.ID,
-			UserID:  formatedMsg.UserID,
-			SentAt:  formatedMsg.SentAt.Format(time.RFC3339),
-			Content: formatedMsg.Content,
-		}
-	}
-
 	// レスポンス構築
 	return c.JSON(http.StatusOK, GetMessageHistoryInRoomResponse{
-		Messages:         messages,
+		Messages:         res.Messages,
 		NextBeforeSentAt: res.NextBeforeSentAt.Format(time.RFC3339),
 		HasNext:          res.HasNext,
 	})

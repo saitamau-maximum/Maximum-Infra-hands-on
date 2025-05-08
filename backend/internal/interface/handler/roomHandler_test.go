@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -47,14 +48,14 @@ func TestCreateRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().CreateRoom(gomock.Any()).Return(usecase.CreateRoomResponse{
+	mockRoomUseCase.EXPECT().CreateRoom(context.Background(), gomock.Any()).Return(usecase.CreateRoomResponse{
 		Room: entity.NewRoom(entity.RoomParams{
 			ID:      "mockRoomID",
 			Name:    "testRoom",
 			Members: []entity.UserID{"mockUserID"},
 		}),
 	}, nil)
-	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
+	mockRoomUseCase.EXPECT().JoinRoom(context.Background(), gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.CreateRoom(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -89,7 +90,7 @@ func TestJoinRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().JoinRoom(gomock.Any()).Return(nil)
+	mockRoomUseCase.EXPECT().JoinRoom(context.Background(), gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.JoinRoom(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -125,7 +126,7 @@ func TestLeaveRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().LeaveRoom(gomock.Any()).Return(nil)
+	mockRoomUseCase.EXPECT().LeaveRoom(context.Background(), gomock.Any()).Return(nil)
 
 	if assert.NoError(t, handler.LeaveRoom(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -160,7 +161,7 @@ func TestGetRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().GetRoomByID(gomock.Any()).Return(usecase.GetRoomByIDResponse{
+	mockRoomUseCase.EXPECT().GetRoomByID(context.Background(), gomock.Any()).Return(usecase.GetRoomByIDResponse{
 		Room: entity.NewRoom(entity.RoomParams{
 			ID:      "mockRoomID",
 			Name:    "testRoom",
@@ -200,7 +201,7 @@ func TestGetRooms(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().GetAllRooms().Return([]*entity.Room{
+	mockRoomUseCase.EXPECT().GetAllRooms(context.Background()).Return([]*entity.Room{
 		entity.NewRoom(entity.RoomParams{
 			ID:      "room1",
 			Name:    "Room 1",

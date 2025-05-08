@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -20,7 +21,7 @@ import (
 * 2. DBから取得される正常系
 * 3. DBから取得されるが、エラーになる
 * 4. キャッシュから取得されるが、エラーになる
-*/
+ */
 
 func TestGetMessageHistoryInRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -79,7 +80,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		}
 
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 
 		req := usecase.GetMessageHistoryInRoomRequest{
@@ -88,7 +89,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			BeforeSentAt: time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC), // キャッシュより新しい
 		}
 
-		resp, err := messageUseCase.GetMessageHistoryInRoom(req)
+		resp, err := messageUseCase.GetMessageHistoryInRoom(context.Background(), req)
 
 		assert.NoError(t, err)
 		assert.Equal(t, cachedMessages, resp.Messages)
@@ -107,10 +108,10 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		}
 		
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 		mockMsgRepo.EXPECT().
-			GetMessageHistoryInRoom(roomID, defaultLimit, beforeSentAt).
+			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
 			Return(messages, nextBeforeSentAt, hasNext, nil)
 
 		req := usecase.GetMessageHistoryInRoomRequest{
@@ -119,7 +120,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			BeforeSentAt: beforeSentAt,
 		}
 
-		resp, err := messageUseCase.GetMessageHistoryInRoom(req)
+		resp, err := messageUseCase.GetMessageHistoryInRoom(context.Background(), req)
 
 		assert.NoError(t, err)
 		assert.Equal(t, messages, resp.Messages)
@@ -139,11 +140,11 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			}),
 		}
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 
 		mockMsgRepo.EXPECT().
-			GetMessageHistoryInRoom(roomID, defaultLimit, beforeSentAt).
+			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
 			Return(nil, time.Time{}, false, expectedErr)
 
 		req := usecase.GetMessageHistoryInRoomRequest{
@@ -152,7 +153,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			BeforeSentAt: beforeSentAt,
 		}
 
-		resp, err := messageUseCase.GetMessageHistoryInRoom(req)
+		resp, err := messageUseCase.GetMessageHistoryInRoom(context.Background(), req)
 
 		assert.Error(t, err)
 		assert.Empty(t, resp.Messages)
@@ -161,7 +162,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 
 	t.Run("4. キャッシュエラー", func(t *testing.T) {
 		mockMsgCache.EXPECT().
-			GetRecentMessages(roomID).
+			GetRecentMessages(context.Background(), roomID).
 			Return(nil, errors.New("cache error"))
 
 		req := usecase.GetMessageHistoryInRoomRequest{
@@ -170,7 +171,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			BeforeSentAt: beforeSentAt, // キャッシュより古い
 		}
 
-		resp, err := messageUseCase.GetMessageHistoryInRoom(req)
+		resp, err := messageUseCase.GetMessageHistoryInRoom(context.Background(), req)
 		assert.Error(t, err)
 		assert.Empty(t, resp.Messages)
 	})

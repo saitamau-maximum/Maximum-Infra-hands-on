@@ -1,15 +1,19 @@
 package repository
 
-import "example.com/infrahandson/internal/domain/entity"
+import (
+	"context"
+
+	"example.com/infrahandson/internal/domain/entity"
+)
 
 type RoomRepository interface {
-	SaveRoom(*entity.Room) (entity.RoomID, error)
-	GetRoomByID(id entity.RoomID) (*entity.Room, error)
-	GetAllRooms() ([]*entity.Room, error)
-	GetUsersInRoom(entity.RoomID) ([]*entity.User, error)
-	AddMemberToRoom(entity.RoomID, entity.UserID) error
-	RemoveMemberFromRoom(entity.RoomID, entity.UserID) error
-	GetRoomByNameLike(name string) ([]*entity.Room, error)
-	UpdateRoomName(entity.RoomID, string) error
-	DeleteRoom(entity.RoomID) error
+	SaveRoom(context.Context, *entity.Room) (entity.RoomID, error)
+	GetRoomByID(ctx context.Context, id entity.RoomID) (*entity.Room, error)
+	GetAllRooms(context.Context) ([]*entity.Room, error)
+	GetUsersInRoom(context.Context, entity.RoomID) ([]*entity.User, error)
+	AddMemberToRoom(context.Context, entity.RoomID, entity.UserID) error
+	RemoveMemberFromRoom(context.Context, entity.RoomID, entity.UserID) error
+	GetRoomByNameLike(ctx context.Context, name string) ([]*entity.Room, error)
+	UpdateRoomName(context.Context, entity.RoomID, string) error
+	DeleteRoom(context.Context, entity.RoomID) error
 }

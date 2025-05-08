@@ -1,6 +1,7 @@
 package mysqlmsgrepoimpl
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -34,12 +35,12 @@ func NewMessageRepositoryImpl(params *NewMessageRepositoryImplParams) repository
 	}
 }
 
-func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
+func (r *MessageRepositoryImpl) CreateMessage(ctx context.Context, message *entity.Message) error {
 	var msg model.MessageModel
 	msg.FromEntity(message)
 
 	// UUIDを文字列で扱い、DB側でUUID_TO_BINに変換
-	_, err := r.db.Exec(`
+	_, err := r.db.ExecContext(ctx, `
 		INSERT INTO messages (id, room_id, user_id, content, sent_at)
 		VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)`,
 		msg.ID, msg.RoomID, msg.UserID, msg.Content, msg.SentAt)
@@ -48,6 +49,7 @@ func (r *MessageRepositoryImpl) CreateMessage(message *entity.Message) error {
 }
 
 func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
+	ctx context.Context,
 	roomID entity.RoomID,
 	limit int,
 	beforeSentAt time.Time,
@@ -71,7 +73,7 @@ func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
 	if err != nil {
 		return nil, time.Now(), false, err
 	}
-	err = r.db.Select(&msgModels, query, roomIDUUID, beforeSentAt, limit)
+	err = r.db.SelectContext(ctx, &msgModels, query, roomIDUUID, beforeSentAt, limit)
 	if err != nil {
 		return nil, time.Now(), false, err
 	}
