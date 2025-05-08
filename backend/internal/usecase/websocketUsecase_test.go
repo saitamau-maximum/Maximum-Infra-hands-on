@@ -182,7 +182,7 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
 		mocks.MsgCache.EXPECT().AddMessage(roomID ,gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(nil)
 
@@ -220,7 +220,7 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(assert.AnError)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(assert.AnError)
 
 		request := usecase.SendMessageRequest{
 			RoomID:  roomID,
@@ -239,7 +239,7 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
 		mocks.MsgCache.EXPECT().AddMessage(roomID, gomock.Any()).Return(assert.AnError)
 
 		request := usecase.SendMessageRequest{
@@ -259,7 +259,7 @@ func TestSendMessage(t *testing.T) {
 		messageID := entity.MessageID("msg123")
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
-		mocks.MsgRepo.EXPECT().CreateMessage(gomock.Any()).Return(nil)
+		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
 		mocks.MsgCache.EXPECT().AddMessage(roomID, gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(roomID, gomock.Any()).Return(assert.AnError)
 

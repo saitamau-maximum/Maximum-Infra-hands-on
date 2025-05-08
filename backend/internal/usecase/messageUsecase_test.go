@@ -111,7 +111,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			GetRecentMessages(roomID).
 			Return(cachedMessages, nil)
 		mockMsgRepo.EXPECT().
-			GetMessageHistoryInRoom(roomID, defaultLimit, beforeSentAt).
+			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
 			Return(messages, nextBeforeSentAt, hasNext, nil)
 
 		req := usecase.GetMessageHistoryInRoomRequest{
@@ -144,7 +144,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			Return(cachedMessages, nil)
 
 		mockMsgRepo.EXPECT().
-			GetMessageHistoryInRoom(roomID, defaultLimit, beforeSentAt).
+			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
 			Return(nil, time.Time{}, false, expectedErr)
 
 		req := usecase.GetMessageHistoryInRoomRequest{

@@ -150,7 +150,7 @@ func (w *WebsocketUseCase) SendMessage(ctx context.Context, req SendMessageReque
 		SentAt:  time.Now(),
 	})
 
-	if err := w.msgRepo.CreateMessage(msg); err != nil {
+	if err := w.msgRepo.CreateMessage(ctx, msg); err != nil {
 		return err
 	}
 

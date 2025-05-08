@@ -100,6 +100,7 @@ func (uc *MessageUseCase) GetMessageHistoryInRoom(ctx context.Context, req GetMe
 	
 	// メッセージ履歴を取得
 	messages, nextBeforeSentAt, hasNext, err := uc.msgRepo.GetMessageHistoryInRoom(
+		ctx,
 		req.RoomID,
 		req.Limit,
 		req.BeforeSentAt,
