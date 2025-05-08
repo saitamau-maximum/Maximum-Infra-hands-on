@@ -63,6 +63,6 @@ func (u User) GetImagePath() (imagePath string, ok bool) {
 	return *u.imagePath, true
 }
 
-func (u *User) SetImagePath(imagePath string) {
-	u.imagePath = &imagePath
+func (u *User) SetImagePath(imagePath *string) {
+	u.imagePath = imagePath
 }
