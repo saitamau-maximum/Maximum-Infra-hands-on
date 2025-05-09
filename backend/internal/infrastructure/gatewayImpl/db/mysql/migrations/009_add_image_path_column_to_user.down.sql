@@ -1,1 +1,1 @@
-ALTER TABLE users DROP CULUMN image_path;
+ALTER TABLE users DROP COLUMN image_path;
