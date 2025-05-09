@@ -62,7 +62,7 @@ func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id entity.UserID) 
 	}
 
 	row := r.db.QueryRowxContext(ctx, `
-		SELECT id, name, email, password_hash, created_at, updated_at
+		SELECT id, name, email, password_hash, image_path, created_at, updated_at
 		FROM users
 		WHERE id = ?`, id)
 
@@ -80,7 +80,7 @@ func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	}
 
 	row := r.db.QueryRowxContext(ctx, `
-		SELECT id, name, email, password_hash, created_at, updated_at
+		SELECT id, name, email, password_hash, image_path, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)
 
@@ -129,7 +129,7 @@ func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *entity.User) 
 			password_hash = :password_hash,
 			image_path = :image_path,
 			updated_at = :updated_at
-			WHERE id = :id`, &userModel)
+			WHERE id = :id`, userModel)
 
 	if err != nil {
 		return err

@@ -73,7 +73,7 @@ func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id entity.UserID) 
 	}
 	// UUID -> BIN
 	row := r.db.QueryRowxContext(ctx, `
-		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
+		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, image_path, created_at, updated_at
 		FROM users
 		WHERE id = UUID_TO_BIN(?)`, idUUID)
 
@@ -91,7 +91,7 @@ func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	}
 
 	row := r.db.QueryRowxContext(ctx, `
-		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
+		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, image_path, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)
 
