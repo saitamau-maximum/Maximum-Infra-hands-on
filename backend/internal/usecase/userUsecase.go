@@ -16,6 +16,7 @@ type UserUseCaseInterface interface {
 	SignUp(ctx context.Context, req SignUpRequest) (SignUpResponse, error)
 	AuthenticateUser(ctx context.Context, req AuthenticateUserRequest) (AuthenticateUserResponse, error)
 	GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error)
+	UpdateUser(ctx context.Context, req UpdateUserRequest) error
 }
 
 type UserUseCase struct {
@@ -159,4 +160,34 @@ func (u *UserUseCase) GetUserByID(ctx context.Context, id entity.UserID) (*entit
 		return nil, err
 	}
 	return user, nil
+}
+
+type UpdateUserRequest struct {
+	ID        entity.UserID
+	Name      string
+	Email     string
+	ImagePath *string
+}
+
+func (u *UserUseCase) UpdateUser(ctx context.Context, req UpdateUserRequest) error {
+	user, err := u.userRepo.GetUserByID(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	updatedUser := entity.NewUser(entity.UserParams{
+		ID:         user.GetID(),
+		Name:       req.Name,
+		Email:      user.GetEmail(),
+		PasswdHash: user.GetPasswdHash(),
+		ImagePath:  req.ImagePath,
+		CreatedAt:  user.GetCreatedAt(),
+		UpdatedAt:  nil,
+	})
+
+	err = u.userRepo.UpdateUser(ctx, updatedUser)
+	if err != nil {
+		return err
+	}
+	return nil
 }
