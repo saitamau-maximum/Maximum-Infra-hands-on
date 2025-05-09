@@ -3,6 +3,7 @@ package mysqluserrepoimpl
 import (
 	"context"
 	"errors"
+	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/repository"
@@ -100,4 +101,46 @@ func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	}
 
 	return userModel.ToEntity(), nil
+}
+
+func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *entity.User) error {
+	if user == nil {
+		return errors.New("user cannot be nil")
+	}
+	//UserID -> UUID
+	id := user.GetID()
+	userUUID, err := id.UserID2UUID()
+	if err != nil {
+		return err
+	}
+	// 現在時刻取得
+	time := time.Now()
+	var imagePath *string
+	path, ok := user.GetImagePath()
+	if !ok {
+		imagePath = nil
+	} else {
+		imagePath = &path
+	}
+
+	userModel := model.UserModel{
+		ID: userUUID,
+		Name: user.GetName(),
+		Email: user.GetEmail(),
+		PasswordHash: user.GetPasswdHash(),
+		ImagePath: imagePath,
+		CreatedAt: user.GetCreatedAt(),
+		UpdatedAt: &time,
+	}
+
+	_, err = r.db.NamedExecContext(ctx,`
+		UPDATE users
+		SET name = :name, email = :email, password_hash = :password_hash, image_path = :image_path, updated_at = :updated_at
+		WHERE id = UUID_TO_BIN(:id)`,
+		userModel,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
