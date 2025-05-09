@@ -96,7 +96,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 		Value:    authRes.GetToken(),
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   false, 
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   authRes.GetExp(),
 	})
@@ -136,7 +136,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		Value:    authRes.GetToken(),
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   false, 
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   authRes.GetExp(),
 	})
@@ -150,7 +150,7 @@ func (h *UserHandler) Logout(c echo.Context) error {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, 
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 	})
 
@@ -158,9 +158,10 @@ func (h *UserHandler) Logout(c echo.Context) error {
 }
 
 type GetMeResponse struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	ImagePath *string `json:"image_path,omitempty"`
 }
 
 func (h *UserHandler) GetMe(c echo.Context) error {
@@ -183,6 +184,66 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 		ID:    string(user.GetID()),
 		Name:  user.GetName(),
 		Email: user.GetEmail(),
+	}
+
+	if path, ok := user.GetImagePath(); ok {
+		res.ImagePath = &path
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
+
+type UpdateUserRequest struct {
+	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	ImagePath *string `json:"image_path,omitempty"`
+}
+
+type UpdateUserResponse struct {
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	ImagePath *string `json:"image_path,omitempty"`
+}
+
+func (h *UserHandler) UpdateUser(c echo.Context) error {
+	ctx := c.Request().Context()
+	var req UpdateUserRequest
+	
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
+	}
+	if err := c.Validate(req); err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "Validation failed"})
+	}
+
+	uidRaw := c.Get("user_id")
+	if uidRaw == nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Unauthorized"})
+	}
+
+	userID, ok := uidRaw.(string)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
+	}
+	err := h.UserUseCase.UpdateUser(ctx, usecase.UpdateUserRequest{
+		ID:        entity.UserID(userID),
+		Name:      req.Name,
+		Email:     req.Email,
+		ImagePath: req.ImagePath,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Internal server error"})
+	}
+
+	res := UpdateUserResponse{
+		ID:    userID,
+		Name:  req.Name,
+		Email: req.Email,
+	}
+	
+	if req.ImagePath != nil {
+		res.ImagePath = req.ImagePath
 	}
 
 	return c.JSON(http.StatusOK, res)
