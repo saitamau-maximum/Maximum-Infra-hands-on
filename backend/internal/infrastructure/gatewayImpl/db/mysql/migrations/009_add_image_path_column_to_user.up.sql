@@ -1,0 +1,1 @@
+ALTER TABLE users ADD image_path TEXT AFTER password_hash;
