@@ -172,6 +172,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 		}
 
 		resp, err := messageUseCase.GetMessageHistoryInRoom(context.Background(), req)
+
 		assert.Error(t, err)
 		assert.Empty(t, resp.Messages)
 	})

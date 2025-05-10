@@ -11,6 +11,7 @@ package mock_service
 
 import (
 	context "context"
+
 	reflect "reflect"
 
 	entity "example.com/infrahandson/internal/domain/entity"
@@ -45,6 +46,7 @@ func (m *MockMessageCacheService) EXPECT() *MockMessageCacheServiceMockRecorder 
 func (m *MockMessageCacheService) AddMessage(ctx context.Context, roomID entity.RoomID, message *entity.Message) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddMessage", ctx, roomID, message)
+
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -59,6 +61,7 @@ func (mr *MockMessageCacheServiceMockRecorder) AddMessage(ctx, roomID, message a
 func (m *MockMessageCacheService) GetRecentMessages(ctx context.Context, roomID entity.RoomID) ([]*entity.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecentMessages", ctx, roomID)
+
 	ret0, _ := ret[0].([]*entity.Message)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
