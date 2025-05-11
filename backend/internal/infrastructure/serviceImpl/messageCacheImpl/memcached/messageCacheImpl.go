@@ -90,6 +90,7 @@ func (m *messageCache) GetRecentMessages(ctx context.Context, roomID entity.Room
 			return nil, err
 		}
 		data, err := serializeMessages(ctx, messages)
+
 		if err != nil {
 			return nil, err
 		}
