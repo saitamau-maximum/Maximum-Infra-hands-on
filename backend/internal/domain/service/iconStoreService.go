@@ -14,8 +14,16 @@ type IconData struct {
 	MimeType string
 }
 
+func NewIconData(reader io.Reader, size int64, mimeType string) *IconData {
+	return &IconData{
+		Reader:   reader,
+		Size:     size,
+		MimeType: mimeType,
+	}
+}
+
 type IconStoreService interface {
-	SaceIcon(ctx context.Context, iconData IconData, userID entity.UserID) error
+	SaceIcon(ctx context.Context, iconData *IconData, userID entity.UserID) error
 	// 環境変数＋返り値pathにリダイレクトすることで画像を返す機構を想定
 	GetIconPath(ctx context.Context, userID entity.UserID) (path string, err error)
 }
