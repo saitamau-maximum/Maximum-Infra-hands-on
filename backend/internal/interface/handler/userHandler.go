@@ -96,7 +96,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 		Value:    authRes.GetToken(),
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   false, 
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   authRes.GetExp(),
 	})
@@ -136,7 +136,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		Value:    authRes.GetToken(),
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   false, 
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   authRes.GetExp(),
 	})
@@ -150,7 +150,7 @@ func (h *UserHandler) Logout(c echo.Context) error {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, 
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 	})
 
@@ -186,4 +186,49 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
+}
+
+func (h *UserHandler) SaveUserIcon(c echo.Context) error {
+	ctx := c.Request().Context()
+	uidRaw := c.Get("user_id")
+	if uidRaw == nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Unauthorized"})
+	}
+	userIDStr, ok := uidRaw.(string)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
+	}
+	userID := entity.UserID(userIDStr)
+
+	file, err := c.FormFile("icon")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid file"})
+	}
+
+	err = h.UserUseCase.SaveUserIcon(ctx, file, userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save icon"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Icon saved successfully"})
+}
+
+func (h *UserHandler) GetUserIcon(c echo.Context) error {
+	ctx := c.Request().Context()
+	uidRaw := c.Get("user_id")
+	if uidRaw == nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Unauthorized"})
+	}
+	userIDStr, ok := uidRaw.(string)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
+	}
+	userID := entity.UserID(userIDStr)
+
+	iconURL, err := h.UserUseCase.GetUserIconPath(ctx, userID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Icon not found"})
+	}
+
+	return c.Redirect(http.StatusFound, iconURL)
 }
