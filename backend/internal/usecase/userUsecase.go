@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"mime/multipart"
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -17,8 +18,8 @@ type UserUseCaseInterface interface {
 	SignUp(ctx context.Context, req SignUpRequest) (SignUpResponse, error)
 	AuthenticateUser(ctx context.Context, req AuthenticateUserRequest) (AuthenticateUserResponse, error)
 	GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error)
-	SaveUserIcon(ctx context.Context, icon service.IconData, id entity.UserID) error
-	GetUserIcon(ctx context.Context, id entity.UserID) (path string, err error)
+	SaveUserIcon(ctx context.Context, fh *multipart.FileHeader, id entity.UserID) error
+	GetUserIconPath(ctx context.Context, id entity.UserID) (path string, err error)
 }
 
 type UserUseCase struct {
@@ -167,11 +168,19 @@ func (u *UserUseCase) GetUserByID(ctx context.Context, id entity.UserID) (*entit
 	return user, nil
 }
 
-func (u *UserUseCase) SaveUserIcon(ctx context.Context, icon service.IconData, id entity.UserID) error {
-	return u.iconSvc.SaceIcon(ctx, icon, id)
+func (u *UserUseCase) SaveUserIcon(ctx context.Context, fh *multipart.FileHeader, id entity.UserID) error {
+	file, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	iconData := service.NewIconData(file, fh.Size, fh.Header.Get("Content-Type"))
+
+	return u.iconSvc.SaceIcon(ctx, iconData, id)
 }
 
-func (u *UserUseCase) GetUserIcon(ctx context.Context, id entity.UserID) (path string, err error) {
+func (u *UserUseCase) GetUserIconPath(ctx context.Context, id entity.UserID) (path string, err error) {
 	path, err = u.iconSvc.GetIconPath(ctx, id)
 	if err != nil {
 		return "", err
