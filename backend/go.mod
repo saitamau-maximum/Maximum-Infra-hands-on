@@ -10,6 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.3
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.0
 )

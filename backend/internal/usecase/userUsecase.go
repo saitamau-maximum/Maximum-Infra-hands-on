@@ -177,7 +177,7 @@ func (u *UserUseCase) SaveUserIcon(ctx context.Context, fh *multipart.FileHeader
 
 	iconData := service.NewIconData(file, fh.Size, fh.Header.Get("Content-Type"))
 
-	return u.iconSvc.SaceIcon(ctx, iconData, id)
+	return u.iconSvc.SaveIcon(ctx, iconData, id)
 }
 
 func (u *UserUseCase) GetUserIconPath(ctx context.Context, id entity.UserID) (path string, err error) {
