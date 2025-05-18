@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"io"
 
 	"example.com/infrahandson/internal/domain/entity"
 )
@@ -11,14 +10,14 @@ const MAX_ICON_SIZE = 5 * 1024 * 1024 // 5MB
 
 // iconデータやり取りのための構造体
 type IconData struct {
-	Reader   io.Reader
+	Icon   []byte
 	Size     int64
 	MimeType string
 }
 
-func NewIconData(reader io.Reader, size int64, mimeType string) *IconData {
+func NewIconData(reader []byte, size int64, mimeType string) *IconData {
 	return &IconData{
-		Reader:   reader,
+		Icon:   reader,
 		Size:     size,
 		MimeType: mimeType,
 	}

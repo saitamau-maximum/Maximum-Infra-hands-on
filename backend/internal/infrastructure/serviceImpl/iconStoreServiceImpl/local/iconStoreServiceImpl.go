@@ -1,8 +1,10 @@
 package localiconstoreimpl
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"os"
 	"path/filepath"
@@ -11,6 +13,9 @@ import (
 	"example.com/infrahandson/internal/domain/service"
 
 	"github.com/chai2010/webp"
+
+	_ "image/jpeg"
+	_ "image/png"
 )
 
 type localiconstoreimpl struct {
@@ -58,19 +63,19 @@ func (l *localiconstoreimpl) SaveIcon(ctx context.Context, iconData *service.Ico
 	fileName := string(userID) + ".webp"
 	path := filepath.Join(l.dirPath, fileName)
 
-	// イメージをデコード
-	img, _, err := image.Decode(iconData.Reader)
+	// イメージをデコード（[]byte を io.Reader に変換）
+	img, _, err := image.Decode(bytes.NewReader(iconData.Icon))
 	if err != nil {
-		return err
+		return errors.New("failed to decode image: " + err.Error())
 	}
-
+	fmt.Println("デコード完了")
 	// 書き込み先のファイルを開く
 	dst, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
-
+	fmt.Println("ファイル作成完了")
 	/*
 		書き込み先のファイルにエンコード
 		参考: https://github.com/chai2010/webp?tab=readme-ov-file#example
@@ -78,7 +83,7 @@ func (l *localiconstoreimpl) SaveIcon(ctx context.Context, iconData *service.Ico
 	if err := webp.Encode(dst, img, &webp.Options{Quality: 75}); err != nil {
 		return err
 	}
-
+	fmt.Println("エンコード完了")
 	return nil
 }
 

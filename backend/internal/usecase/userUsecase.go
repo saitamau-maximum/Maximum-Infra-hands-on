@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"io"
 	"mime/multipart"
 	"time"
 
@@ -169,14 +170,23 @@ func (u *UserUseCase) GetUserByID(ctx context.Context, id entity.UserID) (*entit
 }
 
 func (u *UserUseCase) SaveUserIcon(ctx context.Context, fh *multipart.FileHeader, id entity.UserID) error {
+	// ファイルを開く
 	file, err := fh.Open()
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	iconData := service.NewIconData(file, fh.Size, fh.Header.Get("Content-Type"))
+	// []byte に読み込む
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
 
+	// IconData を作成
+	iconData := service.NewIconData(data, int64(len(data)), fh.Header.Get("Content-Type"))
+
+	// 保存処理を呼ぶ
 	return u.iconSvc.SaveIcon(ctx, iconData, id)
 }
 

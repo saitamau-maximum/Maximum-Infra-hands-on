@@ -202,12 +202,12 @@ func (h *UserHandler) SaveUserIcon(c echo.Context) error {
 
 	file, err := c.FormFile("icon")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid file"})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
 	}
 
 	err = h.UserUseCase.SaveUserIcon(ctx, file, userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save icon"})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error/saveIcon ": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "Icon saved successfully"})

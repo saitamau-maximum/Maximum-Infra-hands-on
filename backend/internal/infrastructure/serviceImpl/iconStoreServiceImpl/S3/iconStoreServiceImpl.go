@@ -88,10 +88,11 @@ func (s *S3IconStoreImpl) SaveIcon(ctx context.Context, iconData *service.IconDa
 	//　アイコンをwebp形式に変換
 	// イメージをデコード
 	// 参考：https://pkg.go.dev/image#Decode
-	img, _, err := image.Decode(iconData.Reader)
+	img, _, err := image.Decode(bytes.NewReader(iconData.Icon))  // bytes.NewReaderで[]byteをReader化
 	if err != nil {
 		return err
 	}
+
 	var buf bytes.Buffer
 	if err = webp.Encode(&buf, img, &webp.Options{Lossless: true}); err != nil {
 		return err
