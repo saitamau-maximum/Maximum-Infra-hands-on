@@ -59,10 +59,10 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	ctx := c.Request().Context()
 	h.Logger.Info("GetMessageHistoryInRoom called")
 	var req GetMessageHistoryInRoomRequest
-	roomIDStr := c.Param("room_public_id")
+	roomIDStr := c.Param("room_id")
 	if roomIDStr == "" {
-		h.Logger.Error("room_public_id is required")
-		return echo.NewHTTPError(http.StatusBadRequest, "room_public_id is required")
+		h.Logger.Error("room_id is required")
+		return echo.NewHTTPError(http.StatusBadRequest, "room_id is required")
 	}
 	req.RoomID = entity.RoomID(roomIDStr)
 
