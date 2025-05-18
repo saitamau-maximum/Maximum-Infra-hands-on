@@ -25,12 +25,13 @@ func SetupRoutes(
 	RegisterMsgRoutes(msgGroup, &msgHansler)
 }
 
-// routes/user_routes.go
 func RegisterUserRoutes(g *echo.Group, h *handler.UserHandler, authMiddleware echo.MiddlewareFunc) {
 	g.POST("/register", h.RegisterUser)
 	g.POST("/login", h.Login)
 	g.POST("/logout", h.Logout, authMiddleware)
+	g.POST("/icon", h.SaveUserIcon, authMiddleware)
 	g.GET("/me", h.GetMe, authMiddleware)
+	g.GET("/icon/:user_id", h.GetUserIcon)
 }
 
 func RegisterRoomRoutes(g *echo.Group, h *handler.RoomHandler) {
