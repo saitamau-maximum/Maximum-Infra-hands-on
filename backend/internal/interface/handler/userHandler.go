@@ -215,13 +215,9 @@ func (h *UserHandler) SaveUserIcon(c echo.Context) error {
 
 func (h *UserHandler) GetUserIcon(c echo.Context) error {
 	ctx := c.Request().Context()
-	uidRaw := c.Get("user_id")
-	if uidRaw == nil {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Unauthorized"})
-	}
-	userIDStr, ok := uidRaw.(string)
-	if !ok {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid user ID"})
+	userIDStr := c.Param("user_id")
+	if userIDStr == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "user_id is required"})
 	}
 	userID := entity.UserID(userIDStr)
 
