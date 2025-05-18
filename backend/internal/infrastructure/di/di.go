@@ -21,6 +21,8 @@ import (
 	mysqluserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/mysql"
 	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
 	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
+	s3iconstoreimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/iconStoreServiceImpl/S3"
+	localiconstoreimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/iconStoreServiceImpl/local"
 	inmemorymsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/Inmemory"
 	memcachedmsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/memcached"
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
@@ -115,6 +117,20 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	} else {
 		msgCache = inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{MsgRepo: msgRepository})
 	}
+	
+	var iconSvc service.IconStoreService
+	if cfg.IconStoreBaseURL != nil && cfg.IconStoreBucket != nil && cfg.IconStorePrefix != nil {
+		iconSvc = s3iconstoreimpl.NewS3IconStoreImpl(s3iconstoreimpl.NewS3IconStoreImplParams{
+			BaseURL: *cfg.IconStoreBaseURL,
+			Client:  nil,
+			Bucket:  *cfg.IconStoreBucket,
+			Prefix:  *cfg.IconStorePrefix,
+		})
+	} else {
+		iconSvc = localiconstoreimpl.NewLocalIconStoreImpl(&localiconstoreimpl.NewLocalIconStoreImplParams{
+			DirPath: cfg.LocalIconDir,
+		})
+	}
 
 	// AdapterとServiceの初期化
 	hasher := bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{
@@ -130,6 +146,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		UserRepo:      userRepository,
 		Hasher:        hasher,
 		TokenSvc:      tokenService,
+		IconSvc:       iconSvc,
 		UserIDFactory: userIDFactory,
 	})
 	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
