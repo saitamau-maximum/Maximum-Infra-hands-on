@@ -2,7 +2,7 @@ import apiClient from "../../utils/apiClient";
 import { MessageResponse } from "../type";
 
 type GetMessageHistoryParams = {
-  roomPublicId: string;
+  roomId: string;
   limit?: number;
   beforeSentAt?: string; // RFC3339形式
 };
@@ -15,13 +15,13 @@ type GetMessageHistoryResponse = {
 };
 
 export const getMessageHistory = async ({
-  roomPublicId,
+  roomId,
   limit,
   beforeSentAt,
 }: GetMessageHistoryParams) => {
   try {
     const response = await apiClient.get(
-      `/api/message/${roomPublicId}?limit=${limit}&before_sent_at=${beforeSentAt}`
+      `/api/message/${roomId}?limit=${limit}&before_sent_at=${beforeSentAt}`
     )
 
     const data = await response.json();

@@ -15,7 +15,7 @@ export const useRooms = () => {
         const roomsData = await getAllRoomsApi(); // API呼び出し
 
         const rooms: GetAllRoomsResponse[] = roomsData.map((room: any) => ({
-          id: room.public_id,
+          id: room.room_id,
           name: room.name,
         })); // 型を指定
         
