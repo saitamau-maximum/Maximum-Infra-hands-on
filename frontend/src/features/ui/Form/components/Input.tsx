@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import styles from './Input.module.css';
 
-type InputType = 'text' | 'email' | 'password' | 'number';
+type InputType = 'text' | 'email' | 'password' | 'number' | 'file';
 
 type InputProps = {
   type?: InputType;

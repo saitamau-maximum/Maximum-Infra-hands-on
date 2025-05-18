@@ -4,6 +4,7 @@ import { Layout } from "../features/layout";
 import { LoginPage, RegisterPage } from "../features/auth";
 import { CreateRoomPage, RoomListPage } from "../features/room";
 import { RoomPage } from "../features/chatRoom"; 
+import { ImageUploadPage } from "../features/icon/pages";
 
 export const appRouter = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ export const appRouter = createBrowserRouter([
           {
             path: "login",
             element: <LoginPage />,
+          },
+          {
+            path: "icon",
+            element: <ImageUploadPage />
           }
         ]
       },
