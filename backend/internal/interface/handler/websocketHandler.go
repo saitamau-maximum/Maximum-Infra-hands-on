@@ -74,13 +74,13 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "User ID is required")
 	}
 
-	roomID := c.Param("room_public_id")
+	roomID := c.Param("room_id")
 	if roomID == "" {
 		h.Logger.Warn("Room public ID is missing")
-		return echo.NewHTTPError(http.StatusBadRequest, "Room public ID is required")
+		return echo.NewHTTPError(http.StatusBadRequest, "Room ID is required")
 	}
 
-	h.Logger.Info("Upgrading WebSocket connection", "room_public_id", roomID, "user_id", userID)
+	h.Logger.Info("Upgrading WebSocket connection", "room_id", roomID, "user_id", userID)
 	connRaw, err := h.WsUpgrader.Upgrade(c.Response().Writer, c.Request())
 	if err != nil {
 		h.Logger.Error("Failed to upgrade connection", "error", err)
@@ -102,10 +102,10 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to connect user to room")
 	}
 
-	h.Logger.Info("User connected to room", "room_public_id", roomID, "user_id", userID)
+	h.Logger.Info("User connected to room", "room_id", roomID, "user_id", userID)
 
 	go func() {
-		h.Logger.Info("Starting message loop", "room_public_id", roomID, "user_id", userID)
+		h.Logger.Info("Starting message loop", "room_id", roomID, "user_id", userID)
 		var userID = userID
 		var roomID = roomID
 		defer conn.Close()
@@ -119,7 +119,7 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 				return
 			}
 
-			h.Logger.Info("Message received", "room_public_id", roomID, "user_id", userID)
+			h.Logger.Info("Message received", "room_id", roomID, "user_id", userID)
 			h.WsUseCase.SendMessage(ctx, usecase.SendMessageRequest{
 				RoomID:  entity.RoomID(roomID),
 				Sender:  entity.UserID(userID),

@@ -43,7 +43,7 @@ func RegisterRoomRoutes(g *echo.Group, h *handler.RoomHandler) {
 }
 
 func RegisterWsRoutes(g *echo.Group, h *handler.WebSocketHandler) {
-	g.GET("/:room_public_id", h.ConnectToChatRoom)
+	g.GET("/:room_id", h.ConnectToChatRoom)
 }
 
 func RegisterMsgRoutes(g *echo.Group, h *handler.MessageHandler) {
