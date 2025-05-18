@@ -76,7 +76,7 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 
 	roomID := c.Param("room_id")
 	if roomID == "" {
-		h.Logger.Warn("Room public ID is missing")
+		h.Logger.Warn("Room ID is missing")
 		return echo.NewHTTPError(http.StatusBadRequest, "Room ID is required")
 	}
 

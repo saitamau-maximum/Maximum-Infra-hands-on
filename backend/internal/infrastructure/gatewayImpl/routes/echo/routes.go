@@ -36,9 +36,9 @@ func RegisterUserRoutes(g *echo.Group, h *handler.UserHandler, authMiddleware ec
 
 func RegisterRoomRoutes(g *echo.Group, h *handler.RoomHandler) {
 	g.POST("", h.CreateRoom)
-	g.POST("/:room_public_id/join", h.JoinRoom)
-	g.POST("/:room_public_id/leave", h.LeaveRoom)
-	g.GET("/:room_public_id", h.GetRoom)
+	g.POST("/:room_id/join", h.JoinRoom)
+	g.POST("/:room_id/leave", h.LeaveRoom)
+	g.GET("/:room_id", h.GetRoom)
 	g.GET("", h.GetRooms)
 }
 
