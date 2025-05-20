@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"example.com/infrahandson/internal/domain/entity"
@@ -106,6 +107,9 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 
 	go func() {
 		h.Logger.Info("Starting message loop", "room_public_id", roomID, "user_id", userID)
+		// 新しいキャンセラブルな context を作成
+		wsCtx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 		var userID = userID
 		var roomID = roomID
 		defer conn.Close()
@@ -113,14 +117,14 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 			message, err := conn.ReadMessage()
 			if err != nil {
 				h.Logger.Warn("Connection closed or error reading message", "error", err)
-				_ = h.WsUseCase.DisconnectUser(ctx, usecase.DisconnectUserRequest{
+				_ = h.WsUseCase.DisconnectUser(wsCtx, usecase.DisconnectUserRequest{
 					UserID: entity.UserID(userID),
 				})
 				return
 			}
 
 			h.Logger.Info("Message received", "room_public_id", roomID, "user_id", userID)
-			h.WsUseCase.SendMessage(ctx, usecase.SendMessageRequest{
+			h.WsUseCase.SendMessage(wsCtx, usecase.SendMessageRequest{
 				RoomID:  entity.RoomID(roomID),
 				Sender:  entity.UserID(userID),
 				Content: message.GetContent(),

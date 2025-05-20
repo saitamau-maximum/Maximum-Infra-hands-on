@@ -65,14 +65,6 @@ source ~/.bashrc
 nvm install --lts
 ```
 
-そのあと、環境変数の設定をします。`frontend`の直下にある`.env`ファイルの`localhost`の部分をサーバーのIPアドレスにしてください
-
-例
-```
-VITE_API_BASE_URL=http://localhost:8080
-↓
-VITE_API_BASE_URL=http://192.168.123.8:8080
-```
 ここまでできたら、
 ```bash
 cd ~/Maximum-Infra-hands-on/frontend
@@ -82,7 +74,7 @@ npm install
 
 次にバックエンドです
 
-Goのinsatllは、Ubuntuのバージョンなどによって異なるようなので、公式ページをご覧ください。
+Goのinstallは、Ubuntuのバージョンなどによって異なるようなので、公式ページをご覧ください。
 
 [https://go.dev/doc/install](https://go.dev/doc/install)
 
@@ -118,6 +110,21 @@ sudo apt install build-essential
 これで環境構築はバッチリです。
 
 ## 動作確認
+
+
+**もしVMを使っている場合、動かすためにはポートフォワーディングをする必要があります。**
+
+sshトンネルでやります。
+
+既にsshをしていると思いますが、一旦手元のPCに戻って（ログアウトして）から
+
+```bash
+ssh -L 8080:localhost:8080 -L 5173:localhost:5173 [user]@[IP]
+```
+で、フロントエンド、バックエンドのポートフォワーディングをしましょう。
+
+（なぜこれで解決するのか・原因が何なのかは余白が足りないので割愛します。Hyper-VでWSLを動かして、そのうえでVMを動かしている入れ子構造が原因です。）
+
 `~/Maximum-Infra-hands-on`で
 ```bash
 bash ./script/start-dev
