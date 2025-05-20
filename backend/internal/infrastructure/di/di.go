@@ -119,7 +119,8 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	}
 	
 	var iconSvc service.IconStoreService
-	if cfg.IconStoreBaseURL != nil && cfg.IconStoreBucket != nil && cfg.IconStorePrefix != nil {
+	isS3, errs := cfg.IsS3()
+	if isS3{
 		iconSvc = s3iconstoreimpl.NewS3IconStoreImpl(s3iconstoreimpl.NewS3IconStoreImplParams{
 			BaseURL: *cfg.IconStoreBaseURL,
 			Client:  nil,
@@ -127,6 +128,13 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 			Prefix:  *cfg.IconStorePrefix,
 		})
 	} else {
+		// S3関連のすべてがnilではない場合は、不足している旨を表示
+		if len(errs) != 6 {
+			fmt.Println("S3の初期化に必要な情報が不足しています。")
+			for _, err := range errs {
+				fmt.Println(err)
+			}
+		}
 		iconSvc = localiconstoreimpl.NewLocalIconStoreImpl(&localiconstoreimpl.NewLocalIconStoreImplParams{
 			DirPath: cfg.LocalIconDir,
 		})
