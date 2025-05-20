@@ -74,7 +74,7 @@ npm install
 
 次にバックエンドです
 
-Goのinsatllは、Ubuntuのバージョンなどによって異なるようなので、公式ページをご覧ください。
+Goのinstallは、Ubuntuのバージョンなどによって異なるようなので、公式ページをご覧ください。
 
 [https://go.dev/doc/install](https://go.dev/doc/install)
 
