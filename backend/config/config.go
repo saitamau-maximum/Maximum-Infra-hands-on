@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"time"
@@ -42,15 +43,42 @@ func LoadConfig() *Config {
 		// Cache
 		MemcachedAddr: parseStringPointer(getEnv("MEMCACHED_ADDR", "")),
 		//IconStore
-		LocalIconDir: getEnv("LOCAL_ICON_DIR", "./images/icons"),
-		IconStoreEndpoint: parseStringPointer(getEnv("ICON_STORE_ENDPOINT", "")),
-		IconStoreBucket:  parseStringPointer(getEnv("ICON_STORE_BUCKET", "")),
+		LocalIconDir:       getEnv("LOCAL_ICON_DIR", "./images/icons"),
+		IconStoreEndpoint:  parseStringPointer(getEnv("ICON_STORE_ENDPOINT", "")),
+		IconStoreBucket:    parseStringPointer(getEnv("ICON_STORE_BUCKET", "")),
 		IconStoreAccessKey: parseStringPointer(getEnv("ICON_STORE_ACCESS_KEY", "")),
 		IconStoreSecretKey: parseStringPointer(getEnv("ICON_STORE_SECRET_KEY", "")),
 		IconStoreSecure:    parseStringPointer(getEnv("ICON_STORE_SECURE", "")),
-		IconStoreBaseURL: parseStringPointer(getEnv("ICON_STORE_BASE_URL", "")),
-		IconStorePrefix:  parseStringPointer(getEnv("ICON_STORE_PREFIX", "")),
+		IconStoreBaseURL:   parseStringPointer(getEnv("ICON_STORE_BASE_URL", "")),
+		IconStorePrefix:    parseStringPointer(getEnv("ICON_STORE_PREFIX", "")),
 	}
+}
+
+func (c *Config) IsS3() (bool, []error) {
+	var err []error
+	if c.IconStoreEndpoint == nil {
+		err = append(err, errors.New("IconStoreEndpoint is nil"))
+	}
+	if c.IconStoreBucket == nil {
+		err = append(err, errors.New("IconStoreBucket is nil"))
+	}
+	if c.IconStoreAccessKey == nil {
+		err = append(err, errors.New("IconStoreAccessKey is nil"))
+	}
+	if c.IconStoreSecretKey == nil {
+		err = append(err, errors.New("IconStoreSecretKey is nil"))
+	}
+	if c.IconStoreBaseURL == nil {
+		err = append(err, errors.New("IconStoreBaseURL is nil"))
+	}
+	if c.IconStorePrefix == nil {
+		err = append(err, errors.New("IconStorePrefix is nil"))
+	}
+	
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func getEnv(key, fallback string) string {
