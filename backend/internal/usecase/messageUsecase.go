@@ -75,30 +75,33 @@ func (uc *MessageUseCase) GetMessageHistoryInRoom(ctx context.Context, req GetMe
 	if err != nil {
 		return GetMessageHistoryInRoomResponse{}, err
 	}
-	// キャッシュが使えるか判断
-	// キャッシュの中で最も新しいメッセージの時刻を調べる（降順・昇順によらない）
-	earliest := messages[0].GetSentAt()
-	latest := messages[0].GetSentAt()
-	for _, t := range messages[1:] {
-		temp := t.GetSentAt()
-		if temp.Before(earliest) {
-			earliest = temp
+
+	// キャッシュが空の場合、キャッシュ利用をスキップしてDBへ
+	if len(messages) > 0 {
+		// キャッシュの中で最も新しい・古いメッセージの時刻を調べる
+		earliest := messages[0].GetSentAt()
+		latest := messages[0].GetSentAt()
+		for _, t := range messages[1:] {
+			temp := t.GetSentAt()
+			if temp.Before(earliest) {
+				earliest = temp
+			}
+			if temp.After(latest) {
+				latest = temp
+			}
 		}
-		if temp.After(latest) {
-			latest = temp
+
+		// キャッシュが使えるか判定（キャッシュの最新が BeforeSentAt よりも古い）
+		if latest.Before(req.BeforeSentAt) {
+			return GetMessageHistoryInRoomResponse{
+				Messages:         messages,
+				NextBeforeSentAt: earliest,
+				HasNext:          len(messages) >= req.Limit,
+			}, nil
 		}
 	}
-	// キャッシュの最も新しいメッセージがリクエストのBeforeSentAtよりも古い場合はキャッシュを使う
-	if latest.Before(req.BeforeSentAt) {
-		// キャッシュが使える場合はキャッシュのメッセージを返す
-		return GetMessageHistoryInRoomResponse{
-			Messages:         messages,
-			NextBeforeSentAt: earliest,
-			HasNext:          len(messages) >= req.Limit,
-		}, nil
-	}
-	
-	// メッセージ履歴を取得
+
+	// メッセージ履歴を取得（キャッシュが使えない場合）
 	messages, nextBeforeSentAt, hasNext, err := uc.msgRepo.GetMessageHistoryInRoom(
 		ctx,
 		req.RoomID,
@@ -115,3 +118,4 @@ func (uc *MessageUseCase) GetMessageHistoryInRoom(ctx context.Context, req GetMe
 		HasNext:          hasNext,
 	}, nil
 }
+
