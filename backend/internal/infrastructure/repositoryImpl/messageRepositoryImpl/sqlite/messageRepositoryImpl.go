@@ -35,10 +35,18 @@ func NewMessageRepositoryImpl(params *NewMessageRepositoryImplParams) repository
 }
 
 func (r *MessageRepositoryImpl) CreateMessage(ctx context.Context, message *entity.Message) error {
-	var Message model.MessageModel
-	Message.FromEntity(message)
+	if message == nil {
+		return errors.New("message cannot be nil")
+	}
 
-	_, err := r.DB.NamedExecContext(ctx, "INSERT INTO messages (id, room_id, user_id, content, sent_at) VALUES (:id, :room_id, :user_id, :content, :sent_at)", &Message)
+	_, err := r.DB.ExecContext(ctx, "INSERT INTO messages (id, room_id, user_id, content, sent_at) VALUES (?, ?, ?, ?, ?)",
+		string(message.GetID()),
+		string(message.GetRoomID()),
+		string(message.GetUserID()),
+		message.GetContent(),
+		message.GetSentAt(),
+	)
+
 	if err != nil {
 		return err
 	}
@@ -70,6 +78,5 @@ func (r *MessageRepositoryImpl) GetMessageHistoryInRoom(
 
 	nextBeforeSentAt = MessageModels[len(MessageModels)-1].SentAt
 	hasNext = len(messages) == limit
-
 	return messages, nextBeforeSentAt, hasNext, nil
 }

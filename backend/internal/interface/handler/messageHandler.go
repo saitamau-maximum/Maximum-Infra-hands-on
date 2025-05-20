@@ -50,9 +50,17 @@ type GetMessageHistoryInRoomRequest struct {
 }
 
 type GetMessageHistoryInRoomResponse struct {
-	Messages         []*entity.Message `json:"messages"`
-	NextBeforeSentAt string            `json:"next_before_sent_at"`
-	HasNext          bool              `json:"has_next"`
+	Messages         []MessageResponse `json:"messages"`
+	NextBeforeSentAt string           `json:"next_before_sent_at"`
+	HasNext          bool             `json:"has_next"`
+}
+
+type MessageResponse struct {
+	ID        string    `json:"id"`
+	RoomID    string    `json:"room_id"`
+	UserID    string    `json:"user_id"`
+	Content   string    `json:"content"`
+	SentAt    time.Time `json:"sent_at"`
 }
 
 func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
@@ -104,10 +112,20 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 		h.Logger.Error("failed to get message history: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get message history")
 	}
-
+	
 	// レスポンス構築
+	messages := make([]MessageResponse, len(res.Messages))
+	for i, msg := range res.Messages {
+		messages[i] = MessageResponse{
+			ID:      string(msg.GetID()),
+			RoomID:  string(msg.GetRoomID()),
+			UserID:  string(msg.GetUserID()),
+			Content: msg.GetContent(),
+			SentAt:  msg.GetSentAt(),
+		}
+	}
 	return c.JSON(http.StatusOK, GetMessageHistoryInRoomResponse{
-		Messages:         res.Messages,
+		Messages:         messages,
 		NextBeforeSentAt: res.NextBeforeSentAt.Format(time.RFC3339),
 		HasNext:          res.HasNext,
 	})

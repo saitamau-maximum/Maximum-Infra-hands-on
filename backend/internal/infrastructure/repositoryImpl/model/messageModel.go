@@ -8,9 +8,9 @@ import (
 )
 
 type MessageModel struct {
-	ID      uuid.UUID    `db:"id"`
-	RoomID  uuid.UUID    `db:"room_id"`
-	UserID  uuid.UUID    `db:"user_id"`
+	ID      uuid.UUID `db:"id"`
+	RoomID  uuid.UUID `db:"room_id"`
+	UserID  uuid.UUID `db:"user_id"`
 	Content string    `db:"content"`
 	SentAt  time.Time `db:"sent_at"`
 }
