@@ -78,16 +78,6 @@ Goのinstallは、Ubuntuのバージョンなどによって異なるような�
 
 [https://go.dev/doc/install](https://go.dev/doc/install)
 
-入れられたら、まずは変数をいじりましょう。
-
-`backend/config/config.go`の、`CORSOrigin`のデフォルト値を変えてください。
-
-例
-```
-CORSOrigin:  getEnv("CORS_ORIGIN", "http://localhost:5173"),
-↓
-CORSOrigin:  getEnv("CORS_ORIGIN", "http://192.168.123.8:5173"),
-```
 これができたら、次に動かす準備をします。
 ```bash
 cd ~/Maximum-Infra-hands-on/backend
