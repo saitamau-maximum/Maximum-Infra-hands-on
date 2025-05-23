@@ -71,8 +71,15 @@ MySQLでは、可変長バイナリ・charを扱えるBLOBやTEXTという方法
 今回は、ローカルで使えるオブジェクト・ストレージの`MinIO`を使ってみましょう。
 
 ## MinIO導入
+<<<<<<< HEAD
 まずはMinIOのサーバー（単一ノードのやり方）を導入しましょう。
 
 [https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd](https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd)
 
 このサイトに従って行います。
+=======
+[https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd](https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd)
+
+このサイトに従って行います。
+
+>>>>>>> 9e98878ce1894dcfc84c96f60ab347a42599cebd
