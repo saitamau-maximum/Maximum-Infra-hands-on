@@ -226,5 +226,7 @@ func (h *UserHandler) GetUserIcon(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Icon not found"})
 	}
 
+	h.Logger.Info(iconURL)
+
 	return c.Redirect(http.StatusFound, iconURL)
 }
