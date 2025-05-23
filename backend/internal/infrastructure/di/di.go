@@ -14,6 +14,7 @@ import (
 	"example.com/infrahandson/internal/infrastructure/gatewayImpl/cache"
 	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
+	"example.com/infrahandson/internal/infrastructure/gatewayImpl/s3client"
 	mysqlmsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/mysql"
 	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
 	mysqlroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/mysql"
@@ -29,6 +30,7 @@ import (
 	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/usecase"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
 )
@@ -119,11 +121,24 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	}
 	
 	var iconSvc service.IconStoreService
-	isS3, errs := cfg.IsS3()
-	if isS3{
+	isS3, Type, errs := cfg.IsS3()
+	if isS3 {
+		var StorageClient *s3.Client
+		if Type == "aws_s3" {
+
+		} else if Type == "minio" {
+			StorageClient = s3client.NewMinIOClient(s3client.NewMinIOClientParams{
+				Endpoint:  *cfg.IconStoreEndpoint,
+				AccessKey: *cfg.IconStoreAccessKey,
+				SecretKey: *cfg.IconStoreSecretKey,
+			})
+		} else {
+			panic("invalid storage type")
+		}
+
 		iconSvc = s3iconstoreimpl.NewS3IconStoreImpl(s3iconstoreimpl.NewS3IconStoreImplParams{
 			BaseURL: *cfg.IconStoreBaseURL,
-			Client:  nil,
+			Client:  StorageClient,
 			Bucket:  *cfg.IconStoreBucket,
 			Prefix:  *cfg.IconStorePrefix,
 		})

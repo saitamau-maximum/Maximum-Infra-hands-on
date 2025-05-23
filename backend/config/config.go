@@ -26,6 +26,7 @@ type Config struct {
 	IconStoreAccessKey *string // ユーザーアイコンの保存先アクセスキー
 	IconStoreSecretKey *string // ユーザーアイコンの保存先シークレットキー
 	IconStoreSecure    *string // ユーザーアイコンの保存先セキュアフラグ
+	IconStoreRegion    string
 	IconStoreBaseURL   *string // ユーザーアイコンの保存先URL
 	IconStorePrefix    *string // ユーザーアイコンの保存先プレフィックス
 }
@@ -49,16 +50,14 @@ func LoadConfig() *Config {
 		IconStoreAccessKey: parseStringPointer(getEnv("ICON_STORE_ACCESS_KEY", "")),
 		IconStoreSecretKey: parseStringPointer(getEnv("ICON_STORE_SECRET_KEY", "")),
 		IconStoreSecure:    parseStringPointer(getEnv("ICON_STORE_SECURE", "")),
+		IconStoreRegion:    getEnv("ICON_STORE_REGION", "us-east-1"),
 		IconStoreBaseURL:   parseStringPointer(getEnv("ICON_STORE_BASE_URL", "")),
 		IconStorePrefix:    parseStringPointer(getEnv("ICON_STORE_PREFIX", "")),
 	}
 }
 
-func (c *Config) IsS3() (bool, []error) {
+func (c *Config) IsS3() (bool, string, []error) {
 	var err []error
-	if c.IconStoreEndpoint == nil {
-		err = append(err, errors.New("IconStoreEndpoint is nil"))
-	}
 	if c.IconStoreBucket == nil {
 		err = append(err, errors.New("IconStoreBucket is nil"))
 	}
@@ -74,11 +73,16 @@ func (c *Config) IsS3() (bool, []error) {
 	if c.IconStorePrefix == nil {
 		err = append(err, errors.New("IconStorePrefix is nil"))
 	}
-	
+
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
-	return true, nil
+
+	if c.IconStoreEndpoint == nil {
+		return true, "aws_s3", nil
+	}
+
+	return true, "minio", nil
 }
 
 func getEnv(key, fallback string) string {
