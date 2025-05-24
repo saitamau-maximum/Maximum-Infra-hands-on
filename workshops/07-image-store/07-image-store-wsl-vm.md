@@ -3,9 +3,9 @@
 - MinIOをセットアップしてみる
 
 ## アイコンがないと、チャットがつまらん
-開発をしているうちに、Nさんは「インフラチャット」の虜になってしまいました。
+開発をしているうちに、Nさんは「インフラチャット」の虜になってしまったようです。
 
-「会社用アカウント」「趣味用アカウント」「愚痴用アカウント」の３つを使ってチャットを最大限楽しんでいましたが…
+「会社用アカウント」「趣味用アカウント」「愚痴用アカウント」の３つを使ってチャットを最大限楽しんでいるようでしたが……
 
 > N「やっぱり、アイコンがないとどのアカウントでログインしているか分かりづらいよ。社用アカウントで愚痴を吐かないためにも、早急に実装の必要があるね」
 
@@ -14,7 +14,7 @@
 ## データベースに入れる？　ご乱心ですか
 あなたは最初に、MySQLの中に画像データを入れることができないか、と考えました。
 
-Nさんに早速提案しましたが、どうも反応が芳しくありません。
+さっそくNさんに提案しましたが、どうも反応が芳しくありません。
 
 > Nさん「できれば、他のストレージサービスを使ってほしいかも」
 
@@ -71,15 +71,35 @@ MySQLでは、可変長バイナリ・charを扱えるBLOBやTEXTという方法
 今回は、ローカルで使えるオブジェクト・ストレージの`MinIO`を使ってみましょう。
 
 ## MinIO導入
-<<<<<<< HEAD
 まずはMinIOのサーバー（単一ノードのやり方）を導入しましょう。
 
 [https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd](https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd)
 
 このサイトに従って行います。
-=======
-[https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd](https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd)
 
-このサイトに従って行います。
+まずは、サーバーをインストールします。Debian系（Ubuntuなど）の場合は以下のようにしてインストールできます。
+```bash
+# インストール実行ファイルをminio.debという名前でURLから取得
+wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20250422221226.0.0_amd64.deb -O minio.deb
+# ファイル実行
+sudo dpkg -i minio.deb
+```
 
->>>>>>> 9e98878ce1894dcfc84c96f60ab347a42599cebd
+公式ドキュメントには、バイナリでインストールした人用に`.service`ファイルの作り方が書いてありますが、上記のやり方をした場合には不要です。
+
+一応、正しくサービスが動いているか確認しましょう
+```bash
+sudo systemctl status minio.service
+```
+何かしら表示されたらOKです。
+
+次に、環境変数を設定していきます。`/etc/default/minio`というファイルを作ると、中の環境変数を読み取ってくれるようになります。
+
+おもにサーバーのルートユーザーとそのパスワードを設定していきます。
+
+`MINIO_ROOT_USER`にはルートユーザー名、`MINIO_ROOT_PASSWORD`にはそのパスワードを入れてください。
+
+基本的に何でもいいですが、必ず例示のモノとは変えてください。
+
+（デフォルトのものは攻撃を受けやすいため）
+
