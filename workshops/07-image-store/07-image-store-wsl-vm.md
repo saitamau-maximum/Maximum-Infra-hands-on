@@ -70,7 +70,7 @@ MySQLでは、可変長バイナリ・charを扱えるBLOBやTEXTという方法
 
 今回は、ローカルで使えるオブジェクト・ストレージの`MinIO`を使ってみましょう。
 
-## MinIO導入
+## MinIOサーバー導入
 まずはMinIOのサーバー（単一ノードのやり方）を導入しましょう。
 
 [https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd](https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html#minio-snsd)
@@ -93,7 +93,7 @@ sudo systemctl status minio.service
 ```
 何かしら表示されたらOKです。
 
-次に、環境変数を設定していきます。`/etc/default/minio`というファイルを作ると、中の環境変数を読み取ってくれるようになります。
+次に、環境変数を設定していきます。`/etc/default/minio`というファイルを作ると、中の環境変数を読み取ってくれるようになります。（ファイルのテンプレートはこのファイルと同じディレクトリにあります）
 
 おもにサーバーのルートユーザーとそのパスワードを設定していきます。
 
@@ -102,4 +102,63 @@ sudo systemctl status minio.service
 基本的に何でもいいですが、必ず例示のモノとは変えてください。
 
 （デフォルトのものは攻撃を受けやすいため）
+
+また、デフォルトで保存に使うディレクトリを`MINIO_VOLUMES="/mnt/data"`として設定しています。このディレクトリを作り、場合によっては権限を付与しておく必要があります
+
+ここまでできたら、MinIOサーバーを起動しましょう。
+
+```bash
+sudo systemctl start minio.service
+```
+
+正しく起動できたか状態を確認しましょう
+
+```bash
+sudo systemctl status minio.service
+```
+
+動いていたら、PC起動時に自動で立ち上がるようにしましょう
+
+```bash
+sudo systemctl enable minio.service
+```
+ここまでできたらサーバーの導入は完了です。
+
+## MinIOクライアント導入
+次に、MinIOサーバーを使うためのクライアントを導入します。
+
+GUIでの設定方法もありますが、あえてCLIでの方法をとります。GUIが気になる方はサイトを見ながらやってみてください。
+
+まずはMinIOクライアント（mc）をインストールしていきましょう。
+
+[https://min.io/docs/minio/linux/reference/minio-mc.html#minio-client](https://min.io/docs/minio/linux/reference/minio-mc.html#minio-client)
+
+こちらのサイトをもとにやっていきます。
+
+インテルなら、
+```bash
+curl https://dl.min.io/client/mc/release/linux-amd64/mc \
+  --create-dirs \
+  -o $HOME/minio-binaries/mc
+
+chmod +x $HOME/minio-binaries/mc
+```
+これでインストール＋権限付与が完了します。
+
+次にパスを通しましょう。
+
+```bash
+export PATH=$PATH:$HOME/minio-binaries/
+```
+を~/.bashrcなどに書き込んで、再度読み込みをしましょう。
+
+次に、サーバーに司令を送るための準備（ログイン？）を行います
+
+ログインキーが履歴に残ってしまわないように、ちょっと工夫しつつ行います
+
+```bash
+bash +o history
+mc alias set myminio http://localhost:9000 [あなたが設定したrootユーザー] [あなたが設定したパスワード]
+bash -o history
+```
 
