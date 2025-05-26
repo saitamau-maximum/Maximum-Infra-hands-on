@@ -1,3 +1,5 @@
+import { Icon } from "../../../ui/icon";
+import apiClient from "../../../utils/apiClient";
 import { MessageResponse } from "../../type";
 
 import styles from "./MessageListItem.module.css";
@@ -12,7 +14,10 @@ export const MessageListItem = ({ message, isOdd }: MessageListItemProps) => {
 
   return (
     <div className={className}>
-      <p className={styles.message}>{message.content}</p>
+      <div className={styles.item}>
+        <Icon src={`${apiClient.baseUrl}/api/user/icon/${message.user_id}`} size={24}/>
+        <p className={styles.message}>{message.content}</p>
+      </div>
     </div>
   );
 };

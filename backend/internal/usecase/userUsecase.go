@@ -3,10 +3,13 @@ package usecase
 import (
 	"context"
 	"errors"
+	"io"
+	"mime/multipart"
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/repository"
+	"example.com/infrahandson/internal/domain/service"
 	"example.com/infrahandson/internal/interface/adapter"
 	"example.com/infrahandson/internal/interface/factory"
 )
@@ -16,12 +19,15 @@ type UserUseCaseInterface interface {
 	SignUp(ctx context.Context, req SignUpRequest) (SignUpResponse, error)
 	AuthenticateUser(ctx context.Context, req AuthenticateUserRequest) (AuthenticateUserResponse, error)
 	GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error)
+	SaveUserIcon(ctx context.Context, fh *multipart.FileHeader, id entity.UserID) error
+	GetUserIconPath(ctx context.Context, id entity.UserID) (path string, err error)
 }
 
 type UserUseCase struct {
 	userRepo      repository.UserRepository
 	hasher        adapter.HasherAdapter
 	tokenSvc      adapter.TokenServiceAdapter
+	iconSvc       service.IconStoreService
 	userIDFactory factory.UserIDFactory
 }
 
@@ -29,14 +35,16 @@ type NewUserUseCaseParams struct {
 	UserRepo      repository.UserRepository
 	Hasher        adapter.HasherAdapter
 	TokenSvc      adapter.TokenServiceAdapter
+	IconSvc       service.IconStoreService
 	UserIDFactory factory.UserIDFactory
 }
 
-func NewUserUseCase(p NewUserUseCaseParams) *UserUseCase {
+func NewUserUseCase(p NewUserUseCaseParams) UserUseCaseInterface {
 	return &UserUseCase{
 		userRepo:      p.UserRepo,
 		hasher:        p.Hasher,
 		tokenSvc:      p.TokenSvc,
+		iconSvc:       p.IconSvc,
 		userIDFactory: p.UserIDFactory,
 	}
 }
@@ -159,4 +167,33 @@ func (u *UserUseCase) GetUserByID(ctx context.Context, id entity.UserID) (*entit
 		return nil, err
 	}
 	return user, nil
+}
+
+func (u *UserUseCase) SaveUserIcon(ctx context.Context, fh *multipart.FileHeader, id entity.UserID) error {
+	// ファイルを開く
+	file, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// []byte に読み込む
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	// IconData を作成
+	iconData := service.NewIconData(data, int64(len(data)), fh.Header.Get("Content-Type"))
+
+	// 保存処理を呼ぶ
+	return u.iconSvc.SaveIcon(ctx, iconData, id)
+}
+
+func (u *UserUseCase) GetUserIconPath(ctx context.Context, id entity.UserID) (path string, err error) {
+	path, err = u.iconSvc.GetIconPath(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
 }

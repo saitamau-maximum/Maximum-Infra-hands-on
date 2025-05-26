@@ -22,21 +22,16 @@ const apiClient = {
   },
 
   // POSTリクエスト専用
-  post: async (endpoint: string, body: any) => {
-    console.log(body);
-    if (body == null) {
-      return apiClient.request(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      // Cookieを送信
-      });
-    }
-    
+  post: async (endpoint: string, body: any, customHeaders?: HeadersInit) => {
+    // FormData のときは Content-Type を指定しない（自動設定）
+    const isFormData = body instanceof FormData;
+
     return apiClient.request(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: isFormData
+        ? undefined
+        : customHeaders ?? { "Content-Type": "application/json" },
+      body: isFormData ? body : JSON.stringify(body),
     });
   },
 

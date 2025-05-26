@@ -144,10 +144,6 @@ sudo mkdir -p /var/www/InfraHandsOn
 
 では早速build……の前に。先程あげた、Nginxにやってもらうことその２をするために、`.env`ファイルの中で、IPを指定している部分を削除してください
 
-BASE_URLをから文字列にすることで、`/api/...`のようにループバックにリクエストを送るようになります。
-
-今回はNginxでバックエンドへの送信先変換ができるのでこれで十分です。
-
 例
 ```bash
 VITE_API_BASE_URL=http://192.168.123.8:8080
@@ -172,7 +168,10 @@ sudo cp -r ~/Maximum-Infra-hands-on/frontend/dist/* /var/www/InfraHandsOn/
 
 `root`の部分は、例のままで大丈夫です。
 
-`server_name`の部分は自分のサーバーのIPアドレスにしましょう。
+`server_name`の部分は`localhost`にします。これはポートフォワーディングによってリクエストurlがlocalhostになってしまうからです。
+
+外部サーバーなどにデプロイするときは、この部分を自身のIPアドレスにします。
+
 
 おけたら、
 ```bash
@@ -186,7 +185,18 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 再起動できたら、あなたのサーバーにアクセスしてみてください。
-`http://[あなたのサーバーのIPまたはドメイン]`にアクセスすると……？
+
+ポートフォワーディングは変える必要があります。
+
+Nginxは80番のポートでリッスンしているので、VMの80番を8080にフォワーディングするために、
+
+```bash
+ssh -L 8080:localhost:80 [いつもsshするときにやってるやつ]
+```
+
+をしましょう。そして、
+
+`http://localhost:8080`にアクセスすると……？
 
 フロントエンドが見れましたか？
 

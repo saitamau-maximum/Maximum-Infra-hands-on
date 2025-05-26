@@ -116,11 +116,11 @@ func (h *RoomHandler) JoinRoom(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
 	}
 
-	roomID := c.Param("public_id")
+	roomID := c.Param("room_id")
 	if roomID == "" {
-		// public_id がリクエストパラメータに含まれていない場合
-		h.Logger.Error("Room public ID is missing")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
+		// room_id がリクエストパラメータに含まれていない場合
+		h.Logger.Error("Room ID is missing")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room ID is missing"})
 	}
 
 	// 部屋に参加
@@ -151,10 +151,10 @@ func (h *RoomHandler) LeaveRoom(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
 	}
 
-	roomID := c.Param("public_id")
+	roomID := c.Param("room_id")
 	if roomID == "" {
-		h.Logger.Error("Room public ID is missing")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
+		h.Logger.Error("Room ID is missing")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room ID is missing"})
 	}
 
 	// 部屋から退出
@@ -177,7 +177,7 @@ func (h *RoomHandler) LeaveRoom(c echo.Context) error {
 }
 
 type GetRoomResponse struct {
-	PubID   string     `json:"public_id"`
+	ID      string     `json:"room_id"`
 	Name    string     `json:"name"`
 	Members []MemberID `json:"members"`
 }
@@ -187,10 +187,10 @@ type MemberID struct {
 
 func (h *RoomHandler) GetRoom(c echo.Context) error {
 	ctx := c.Request().Context()
-	roomID := c.Param("public_id")
+	roomID := c.Param("room_id")
 	if roomID == "" {
-		h.Logger.Error("Room public ID is missing")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room public ID is missing"})
+		h.Logger.Error("Room ID is missing")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room ID is missing"})
 	}
 
 	GetRoomRes, err := h.RoomUseCase.GetRoomByID(ctx, usecase.GetRoomByIDRequest{
@@ -204,7 +204,7 @@ func (h *RoomHandler) GetRoom(c echo.Context) error {
 	room := GetRoomRes.Room
 
 	res := GetRoomResponse{
-		PubID:   string(room.GetID()),
+		ID:      string(room.GetID()),
 		Name:    room.GetName(),
 		Members: []MemberID{},
 	}
@@ -225,8 +225,8 @@ func (h *RoomHandler) GetRoom(c echo.Context) error {
 }
 
 type GetRoomsResponse struct {
-	PubID string `json:"public_id"`
-	Name  string `json:"name"`
+	ID   string `json:"room_id"`
+	Name string `json:"name"`
 }
 
 func (h *RoomHandler) GetRooms(c echo.Context) error {
@@ -240,8 +240,8 @@ func (h *RoomHandler) GetRooms(c echo.Context) error {
 	res := []GetRoomsResponse{}
 	for _, room := range rooms {
 		res = append(res, GetRoomsResponse{
-			PubID: string(room.GetID()),
-			Name:  room.GetName(),
+			ID:   string(room.GetID()),
+			Name: room.GetName(),
 		})
 	}
 

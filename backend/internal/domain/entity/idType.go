@@ -1,4 +1,10 @@
-// IDの生成方法を隠蔽するためのラッパー
+/*
+IDのタイプを分け、隠蔽するための構造体
+現在はすべてのIDがUUIDを用いている。
+MySQLの内部でUUIDをBinaryで保存するために変換メソッドを用意している。
+作成ロジックは/backend/internal/interface/factory/idFactory.goにinterfaceが定義され、
+/backend/internal/infrastructure/factoryImpl/idFactoryImpl.goでDI用の実装がされている。
+ */
 package entity
 
 import "github.com/google/uuid"

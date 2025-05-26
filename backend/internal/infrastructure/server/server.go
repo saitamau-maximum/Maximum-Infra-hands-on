@@ -23,6 +23,7 @@ import (
 // - *sqlx.DB: The database connection initialized with the provided configuration.
 func ServerStart(cfg *config.Config) (*echo.Echo, *sqlx.DB, *memcache.Client) {
 	e := echo.New()
+	e.Static("/images/icons", "./images/icons")
 	e.Validator = validator.NewEchoValidator()
 
 	// 依存関係の初期化

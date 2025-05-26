@@ -11,6 +11,7 @@ package mock_usecase
 
 import (
 	context "context"
+	multipart "mime/multipart"
 	reflect "reflect"
 
 	entity "example.com/infrahandson/internal/domain/entity"
@@ -70,6 +71,35 @@ func (m *MockUserUseCaseInterface) GetUserByID(ctx context.Context, id entity.Us
 func (mr *MockUserUseCaseInterfaceMockRecorder) GetUserByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockUserUseCaseInterface)(nil).GetUserByID), ctx, id)
+}
+
+// GetUserIconPath mocks base method.
+func (m *MockUserUseCaseInterface) GetUserIconPath(ctx context.Context, id entity.UserID) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserIconPath", ctx, id)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserIconPath indicates an expected call of GetUserIconPath.
+func (mr *MockUserUseCaseInterfaceMockRecorder) GetUserIconPath(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserIconPath", reflect.TypeOf((*MockUserUseCaseInterface)(nil).GetUserIconPath), ctx, id)
+}
+
+// SaveUserIcon mocks base method.
+func (m *MockUserUseCaseInterface) SaveUserIcon(ctx context.Context, fh *multipart.FileHeader, id entity.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveUserIcon", ctx, fh, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveUserIcon indicates an expected call of SaveUserIcon.
+func (mr *MockUserUseCaseInterfaceMockRecorder) SaveUserIcon(ctx, fh, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveUserIcon", reflect.TypeOf((*MockUserUseCaseInterface)(nil).SaveUserIcon), ctx, fh, id)
 }
 
 // SignUp mocks base method.

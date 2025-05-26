@@ -14,6 +14,7 @@ import (
 	"example.com/infrahandson/internal/infrastructure/gatewayImpl/cache"
 	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
+	"example.com/infrahandson/internal/infrastructure/gatewayImpl/s3client"
 	mysqlmsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/mysql"
 	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
 	mysqlroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/mysql"
@@ -21,12 +22,15 @@ import (
 	mysqluserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/mysql"
 	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
 	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
+	s3iconstoreimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/iconStoreServiceImpl/S3"
+	localiconstoreimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/iconStoreServiceImpl/local"
 	inmemorymsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/Inmemory"
 	memcachedmsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/memcached"
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
 	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/usecase"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
 )
@@ -115,6 +119,41 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	} else {
 		msgCache = inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{MsgRepo: msgRepository})
 	}
+	
+	var iconSvc service.IconStoreService
+	isS3, Type, errs := cfg.IsS3()
+	if isS3 {
+		var StorageClient *s3.Client
+		if Type == "aws_s3" {
+
+		} else if Type == "minio" {
+			StorageClient = s3client.NewMinIOClient(s3client.NewMinIOClientParams{
+				Endpoint:  *cfg.IconStoreEndpoint,
+				AccessKey: *cfg.IconStoreAccessKey,
+				SecretKey: *cfg.IconStoreSecretKey,
+			})
+		} else {
+			panic("invalid storage type")
+		}
+
+		iconSvc = s3iconstoreimpl.NewS3IconStoreImpl(s3iconstoreimpl.NewS3IconStoreImplParams{
+			BaseURL: *cfg.IconStoreBaseURL,
+			Client:  StorageClient,
+			Bucket:  *cfg.IconStoreBucket,
+			Prefix:  *cfg.IconStorePrefix,
+		})
+	} else {
+		// S3関連のすべてがnilではない場合は、不足している旨を表示
+		if len(errs) != 6 {
+			fmt.Println("S3の初期化に必要な情報が不足しています。")
+			for _, err := range errs {
+				fmt.Println(err)
+			}
+		}
+		iconSvc = localiconstoreimpl.NewLocalIconStoreImpl(&localiconstoreimpl.NewLocalIconStoreImplParams{
+			DirPath: cfg.LocalIconDir,
+		})
+	}
 
 	// AdapterとServiceの初期化
 	hasher := bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{
@@ -130,6 +169,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		UserRepo:      userRepository,
 		Hasher:        hasher,
 		TokenSvc:      tokenService,
+		IconSvc:       iconSvc,
 		UserIDFactory: userIDFactory,
 	})
 	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
