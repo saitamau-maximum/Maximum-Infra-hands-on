@@ -13,7 +13,7 @@ type NewMinIOClientParams struct {
 	AccessKey string
 	SecretKey string
 }
-
+// 参考：MinIOによるローカルS3環境の構築　https://zenn.dev/rescuenow/articles/54d54469aa2349
 func NewMinIOClient(p NewMinIOClientParams) *s3.Client {
 	creds := credentials.NewStaticCredentialsProvider(p.AccessKey, p.SecretKey, "")
 	

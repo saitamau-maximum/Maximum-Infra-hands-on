@@ -73,10 +73,9 @@ func (l *localiconstoreimpl) SaveIcon(ctx context.Context, iconData *service.Ico
 		return err
 	}
 	defer dst.Close()
-	/*
-		書き込み先のファイルにエンコード
-		参考: https://github.com/chai2010/webp?tab=readme-ov-file#example
-	*/
+
+	// 書き込み先のファイルにエンコード
+	// 参考: https://github.com/chai2010/webp?tab=readme-ov-file#example
 	if err := webp.Encode(dst, img, &webp.Options{Quality: 75}); err != nil {
 		return err
 	}
@@ -91,6 +90,7 @@ func (l *localiconstoreimpl) GetIconPath(ctx context.Context, userID entity.User
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return "", errors.New("file not found")
 	}
+	// リダイレクトを絶対パスにする
 	path = "/" + path
 	return path, nil
 }
