@@ -1,3 +1,4 @@
+// ユーザーのエンティティ
 package entity
 
 import (

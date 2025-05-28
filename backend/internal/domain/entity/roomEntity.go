@@ -1,3 +1,4 @@
+// チャットルームのエンティティ
 package entity
 
 type Room struct {
