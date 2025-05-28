@@ -1,4 +1,5 @@
 // チャットメッセージの永続化のメソッドを先に定義
+// infrastructure/repositoryImplで具体実装
 package repository
 
 import (

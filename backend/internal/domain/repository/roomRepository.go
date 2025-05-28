@@ -1,3 +1,5 @@
+// Roomエンティティの永続化のためのインターフェース
+// infrastructure/repositoryImplで具体実装
 package repository
 
 import (
@@ -6,14 +8,33 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 )
 
+// RoomRepository defines the interface for managing chat rooms and their members.
 type RoomRepository interface {
-	SaveRoom(context.Context, *entity.Room) (entity.RoomID, error)
+	// SaveRoom persists a new room and returns its ID.
+	SaveRoom(ctx context.Context, room *entity.Room) (entity.RoomID, error)
+
+	// GetRoomByID retrieves a room by its unique ID.
 	GetRoomByID(ctx context.Context, id entity.RoomID) (*entity.Room, error)
-	GetAllRooms(context.Context) ([]*entity.Room, error)
-	GetUsersInRoom(context.Context, entity.RoomID) ([]*entity.User, error)
-	AddMemberToRoom(context.Context, entity.RoomID, entity.UserID) error
-	RemoveMemberFromRoom(context.Context, entity.RoomID, entity.UserID) error
+
+	// GetAllRooms returns a list of all rooms.
+	GetAllRooms(ctx context.Context) ([]*entity.Room, error)
+
+	// GetUsersInRoom retrieves all users who are members of the specified room.
+	GetUsersInRoom(ctx context.Context, roomID entity.RoomID) ([]*entity.User, error)
+
+	// AddMemberToRoom adds a user to the specified room.
+	AddMemberToRoom(ctx context.Context, roomID entity.RoomID, userID entity.UserID) error
+
+	// RemoveMemberFromRoom removes a user from the specified room.
+	RemoveMemberFromRoom(ctx context.Context, roomID entity.RoomID, userID entity.UserID) error
+
+	// GetRoomByNameLike performs a partial match search for room names.
 	GetRoomByNameLike(ctx context.Context, name string) ([]*entity.Room, error)
-	UpdateRoomName(context.Context, entity.RoomID, string) error
-	DeleteRoom(context.Context, entity.RoomID) error
+
+	// UpdateRoomName updates the name of the specified room.
+	UpdateRoomName(ctx context.Context, roomID entity.RoomID, name string) error
+
+	// DeleteRoom deletes the specified room and its associations.
+	DeleteRoom(ctx context.Context, roomID entity.RoomID) error
 }
+
