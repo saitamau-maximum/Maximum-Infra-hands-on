@@ -1,0 +1,27 @@
+linters:
+  enable:
+    - errcheck
+    - staticcheck
+    - stylecheck
+    - revive
+    - gocritic
+    - gofmt
+    - goimports
+
+run:
+  tests: true
+
+linters-settings:
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+        severity: warning
+      - name: var-naming
+      - name: indent-error-flow
+      - name: early-return
+  gocritic:
+    enabled-checks:
+      - ifElseChain
+      - captLocal
+      - commentFormatting
