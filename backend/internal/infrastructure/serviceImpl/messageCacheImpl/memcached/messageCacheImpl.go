@@ -13,8 +13,6 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
-
-
 type messageCache struct {
 	client  *memcache.Client
 	msgRepo repository.MessageRepository
@@ -94,11 +92,14 @@ func (m *messageCache) GetRecentMessages(ctx context.Context, roomID entity.Room
 		if err != nil {
 			return nil, err
 		}
-		m.client.Set(&memcache.Item{
+		err = m.client.Set(&memcache.Item{
 			Key:        string(roomID),
 			Value:      data,
 			Expiration: 5 * 60,
 		})
+		if err != nil {
+			return nil, err
+		}
 		return messages, nil
 	} else if err != nil {
 		return nil, err

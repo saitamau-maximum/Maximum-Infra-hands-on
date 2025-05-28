@@ -37,10 +37,13 @@ func NewMessageRepositoryImpl(params *NewMessageRepositoryImplParams) repository
 
 func (r *MessageRepositoryImpl) CreateMessage(ctx context.Context, message *entity.Message) error {
 	var msg model.MessageModel
-	msg.FromEntity(message)
+	err := msg.FromEntity(message)
+	if err != nil {
+		return err
+	}
 
 	// UUIDを文字列で扱い、DB側でUUID_TO_BINに変換
-	_, err := r.db.ExecContext(ctx, `
+	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO messages (id, room_id, user_id, content, sent_at)
 		VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)`,
 		msg.ID, msg.RoomID, msg.UserID, msg.Content, msg.SentAt)

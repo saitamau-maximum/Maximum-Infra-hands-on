@@ -124,11 +124,15 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 			}
 
 			h.Logger.Info("Message received", "room_public_id", roomID, "user_id", userID)
-			h.WsUseCase.SendMessage(wsCtx, usecase.SendMessageRequest{
+			err = h.WsUseCase.SendMessage(wsCtx, usecase.SendMessageRequest{
 				RoomID:  entity.RoomID(roomID),
 				Sender:  entity.UserID(userID),
 				Content: message.GetContent(),
 			})
+			if err != nil {
+				h.Logger.Error("connection closed",err)
+				break;
+			}
 		}
 	}()
 
