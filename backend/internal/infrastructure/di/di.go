@@ -29,10 +29,10 @@ import (
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
 	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
-	"example.com/infrahandson/internal/usecase"
 	messageUC "example.com/infrahandson/internal/usecase/message"
 	roomUC "example.com/infrahandson/internal/usecase/room"
 	userUC "example.com/infrahandson/internal/usecase/user"
+	wsUC "example.com/infrahandson/internal/usecase/websocket"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
@@ -180,7 +180,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		UserRepo:      userRepository,
 		RoomIDFactory: roomIDFactory,
 	})
-	wsUseCase := usecase.NewWebsocketUseCase(usecase.NewWebsocketUseCaseParams{
+	wsUseCase := wsUC.NewWebsocketUseCase(wsUC.NewWebsocketUseCaseParams{
 		UserRepo:         userRepository,
 		RoomRepo:         roomRepository,
 		MsgRepo:          msgRepository,

@@ -11,11 +11,11 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/interface/handler"
-	"example.com/infrahandson/internal/usecase"
+	wsUC "example.com/infrahandson/internal/usecase/websocket"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
 	mock_adapter "example.com/infrahandson/test/mocks/interface/adapter"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
-	mock_usecase "example.com/infrahandson/test/mocks/usecase"
+	mock_websocket "example.com/infrahandson/test/mocks/usecase/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -25,7 +25,7 @@ func TestConnectToChatRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockWsUseCase := mock_usecase.NewMockWebsocketUseCaseInterface(ctrl)
+	mockWsUseCase := mock_websocket.NewMockWebsocketUseCaseInterface(ctrl)
 	mockWsUpGrader := mock_adapter.NewMockWebSocketUpgraderAdapter(ctrl)
 	mockWsConnFactory := mock_factory.NewMockWebSocketConnectionFactory(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
@@ -82,7 +82,7 @@ func TestConnectToChatRoom(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		mockConn.EXPECT().ReadMessage().Return(0, nil, assert.AnError)
 		mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any())
-		mockWsUseCase.EXPECT().DisconnectUser(context.Background(), gomock.Any()).DoAndReturn(func(req usecase.DisconnectUserRequest) error {
+		mockWsUseCase.EXPECT().DisconnectUser(context.Background(), gomock.Any()).DoAndReturn(func(req wsUC.DisconnectUserRequest) error {
 			wg.Done() // goroutine終了の合図
 			return nil
 		})

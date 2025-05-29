@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	"example.com/infrahandson/internal/usecase"
+	wsUC "example.com/infrahandson/internal/usecase/websocket"
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
@@ -27,7 +27,7 @@ type mockDeps struct {
 
 func newTestWebsocketUseCase(
 	ctrl *gomock.Controller,
-) (usecase.WebsocketUseCaseInterface, mockDeps) {
+) (wsUC.WebsocketUseCaseInterface, mockDeps) {
 	// モックの作成
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
@@ -38,7 +38,7 @@ func newTestWebsocketUseCase(
 	mockClientIDFactory := mock_factory.NewMockWsClientIDFactory(ctrl)
 	mockMsgIDFactory := mock_factory.NewMockMessageIDFactory(ctrl)
 
-	params := usecase.NewWebsocketUseCaseParams{
+	params := wsUC.NewWebsocketUseCaseParams{
 		UserRepo:         mockUserRepo,
 		RoomRepo:         mockRoomRepo,
 		MsgRepo:          mockMsgRepo,
@@ -48,7 +48,7 @@ func newTestWebsocketUseCase(
 		MsgIDFactory:     mockMsgIDFactory,
 		ClientIDFactory:  mockClientIDFactory,
 	}
-	useCase := usecase.NewWebsocketUseCase(params)
+	useCase := wsUC.NewWebsocketUseCase(params)
 
 	// モックをテスト内で使いたいため構造体で返す
 	return useCase, mockDeps{
@@ -91,7 +91,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().Register(context.Background(), mockConn, userID, roomID).Return(nil)
 
 		// テスト実行
-		request := usecase.ConnectUserToRoomRequest{
+		request := wsUC.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -106,7 +106,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(nil, assert.AnError)
 		// テスト実行
-		request := usecase.ConnectUserToRoomRequest{
+		request := wsUC.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -122,7 +122,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(entity.WsClientID(""), assert.AnError)
 		// テスト実行
-		request := usecase.ConnectUserToRoomRequest{
+		request := wsUC.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -139,7 +139,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(assert.AnError)
 		// テスト実行
-		request := usecase.ConnectUserToRoomRequest{
+		request := wsUC.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -157,7 +157,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(context.Background(), mockConn, userID, roomID).Return(assert.AnError)
 		// テスト実行
-		request := usecase.ConnectUserToRoomRequest{
+		request := wsUC.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -183,10 +183,10 @@ func TestSendMessage(t *testing.T) {
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
 		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
-		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID ,gomock.Any()).Return(nil)
+		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(context.Background(), roomID, gomock.Any()).Return(nil)
 
-		request := usecase.SendMessageRequest{
+		request := wsUC.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -203,7 +203,7 @@ func TestSendMessage(t *testing.T) {
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(entity.MessageID(""), assert.AnError)
 
-		request := usecase.SendMessageRequest{
+		request := wsUC.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -222,7 +222,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
 		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(assert.AnError)
 
-		request := usecase.SendMessageRequest{
+		request := wsUC.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -242,7 +242,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
 		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(assert.AnError)
 
-		request := usecase.SendMessageRequest{
+		request := wsUC.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -263,7 +263,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(context.Background(), roomID, gomock.Any()).Return(assert.AnError)
 
-		request := usecase.SendMessageRequest{
+		request := wsUC.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -294,7 +294,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().Unregister(context.Background(), mockConn).Return(nil)
 		mocks.WsClientRepo.EXPECT().DeleteClient(context.Background(), mockClient.GetID()).Return(nil)
 
-		request := usecase.DisconnectUserRequest{UserID: userID}
+		request := wsUC.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.NoError(t, err)
@@ -305,7 +305,7 @@ func TestDisconnectUser(t *testing.T) {
 
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(context.Background(), userID).Return(nil, assert.AnError)
 
-		request := usecase.DisconnectUserRequest{UserID: userID}
+		request := wsUC.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)

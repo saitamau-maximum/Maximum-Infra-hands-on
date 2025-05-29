@@ -7,12 +7,12 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/interface/adapter"
 	"example.com/infrahandson/internal/interface/factory"
-	"example.com/infrahandson/internal/usecase"
+	wsUC "example.com/infrahandson/internal/usecase/websocket"
 	"github.com/labstack/echo/v4"
 )
 
 type WebSocketHandler struct {
-	WsUseCase     usecase.WebsocketUseCaseInterface
+	WsUseCase     wsUC.WebsocketUseCaseInterface
 	WsUpgrader    adapter.WebSocketUpgraderAdapter
 	WsConnFactory factory.WebSocketConnectionFactory
 	UserIDFactory factory.UserIDFactory
@@ -21,7 +21,7 @@ type WebSocketHandler struct {
 }
 
 type NewWebSocketHandlerParams struct {
-	WsUseCase     usecase.WebsocketUseCaseInterface
+	WsUseCase     wsUC.WebsocketUseCaseInterface
 	WsUpgrader    adapter.WebSocketUpgraderAdapter
 	WsConnFactory factory.WebSocketConnectionFactory
 	UserIDFactory factory.UserIDFactory
@@ -94,7 +94,7 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create WebSocket connection")
 	}
 
-	if err := h.WsUseCase.ConnectUserToRoom(ctx, usecase.ConnectUserToRoomRequest{
+	if err := h.WsUseCase.ConnectUserToRoom(ctx, wsUC.ConnectUserToRoomRequest{
 		UserID: entity.UserID(userID),
 		RoomID: entity.RoomID(roomID),
 		Conn:   conn,
@@ -117,14 +117,14 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 			message, err := conn.ReadMessage()
 			if err != nil {
 				h.Logger.Warn("Connection closed or error reading message", "error", err)
-				_ = h.WsUseCase.DisconnectUser(wsCtx, usecase.DisconnectUserRequest{
+				_ = h.WsUseCase.DisconnectUser(wsCtx, wsUC.DisconnectUserRequest{
 					UserID: entity.UserID(userID),
 				})
 				return
 			}
 
 			h.Logger.Info("Message received", "room_public_id", roomID, "user_id", userID)
-			err = h.WsUseCase.SendMessage(wsCtx, usecase.SendMessageRequest{
+			err = h.WsUseCase.SendMessage(wsCtx, wsUC.SendMessageRequest{
 				RoomID:  entity.RoomID(roomID),
 				Sender:  entity.UserID(userID),
 				Content: message.GetContent(),
