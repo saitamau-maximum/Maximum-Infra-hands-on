@@ -30,6 +30,7 @@ import (
 	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/usecase"
+	roomUC "example.com/infrahandson/internal/usecase/room"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
@@ -172,7 +173,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		IconSvc:       iconSvc,
 		UserIDFactory: userIDFactory,
 	})
-	roomUseCase := usecase.NewRoomUseCase(usecase.NewRoomUseCaseParams{
+	roomUseCase := roomUC.NewRoomUseCase(roomUC.NewRoomUseCaseParams{
 		RoomRepo:      roomRepository,
 		UserRepo:      userRepository,
 		RoomIDFactory: roomIDFactory,

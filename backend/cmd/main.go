@@ -10,10 +10,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// サーバーの起動
-	e, db, client := server.ServerStart(cfg) // Echoインスタンスを取得
+	e, db, _ := server.ServerStart(cfg) // Echoインスタンスを取得
 	defer db.Close()
-	if client != nil {
-		// No Close method for Memcached client; cleanup logic not required
-	}
 	e.Logger.Fatal(e.Start(":" + cfg.Port)) // サーバーを起動
 }

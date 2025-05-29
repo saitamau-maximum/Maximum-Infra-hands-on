@@ -10,10 +10,10 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/infrastructure/validator"
 	"example.com/infrahandson/internal/interface/handler"
-	"example.com/infrahandson/internal/usecase"
+	roomUC "example.com/infrahandson/internal/usecase/room"
 	mock_adapter "example.com/infrahandson/test/mocks/interface/adapter"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
-	mock_usecase "example.com/infrahandson/test/mocks/usecase"
+	mock_room "example.com/infrahandson/test/mocks/usecase/room"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +24,7 @@ func TestCreateRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
+	mockRoomUseCase := mock_room.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
@@ -48,7 +48,7 @@ func TestCreateRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().CreateRoom(context.Background(), gomock.Any()).Return(usecase.CreateRoomResponse{
+	mockRoomUseCase.EXPECT().CreateRoom(context.Background(), gomock.Any()).Return(roomUC.CreateRoomResponse{
 		Room: entity.NewRoom(entity.RoomParams{
 			ID:      "mockRoomID",
 			Name:    "testRoom",
@@ -67,7 +67,7 @@ func TestJoinRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
+	mockRoomUseCase := mock_room.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
@@ -102,7 +102,7 @@ func TestLeaveRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
+	mockRoomUseCase := mock_room.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
@@ -138,7 +138,7 @@ func TestGetRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
+	mockRoomUseCase := mock_room.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
@@ -161,7 +161,7 @@ func TestGetRoom(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockRoomUseCase.EXPECT().GetRoomByID(context.Background(), gomock.Any()).Return(usecase.GetRoomByIDResponse{
+	mockRoomUseCase.EXPECT().GetRoomByID(context.Background(), gomock.Any()).Return(roomUC.GetRoomByIDResponse{
 		Room: entity.NewRoom(entity.RoomParams{
 			ID:      "mockRoomID",
 			Name:    "testRoom",
@@ -180,7 +180,7 @@ func TestGetRooms(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomUseCase := mock_usecase.NewMockRoomUseCaseInterface(ctrl)
+	mockRoomUseCase := mock_room.NewMockRoomUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
