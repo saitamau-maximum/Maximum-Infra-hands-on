@@ -6,18 +6,18 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/interface/adapter"
 	"example.com/infrahandson/internal/interface/factory"
-	"example.com/infrahandson/internal/usecase"
+	userUC "example.com/infrahandson/internal/usecase/user"
 	"github.com/labstack/echo/v4"
 )
 
 type UserHandler struct {
-	UserUseCase   usecase.UserUseCaseInterface
+	UserUseCase   userUC.UserUseCaseInterface
 	UserIDFactory factory.UserIDFactory
 	Logger        adapter.LoggerAdapter
 }
 
 type NewUserHandlerParams struct {
-	UserUseCase   usecase.UserUseCaseInterface
+	UserUseCase   userUC.UserUseCaseInterface
 	UserIDFactory factory.UserIDFactory
 	Logger        adapter.LoggerAdapter
 }
@@ -67,7 +67,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(400, echo.Map{"error": "Validation failed"})
 	}
 
-	signUpReq := usecase.SignUpRequest{
+	signUpReq := userUC.SignUpRequest{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
@@ -79,7 +79,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(500, echo.Map{"error": "Internal server error"})
 	}
 
-	authReq := usecase.AuthenticateUserRequest{
+	authReq := userUC.AuthenticateUserRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	}
@@ -121,7 +121,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "Validation failed"})
 	}
 
-	authReq := usecase.AuthenticateUserRequest{
+	authReq := userUC.AuthenticateUserRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	}

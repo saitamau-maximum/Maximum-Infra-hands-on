@@ -31,6 +31,7 @@ import (
 	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/usecase"
 	roomUC "example.com/infrahandson/internal/usecase/room"
+	userUC "example.com/infrahandson/internal/usecase/user"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
@@ -166,7 +167,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	})
 
 	// UseCaseの初期化
-	userUseCase := usecase.NewUserUseCase(usecase.NewUserUseCaseParams{
+	userUseCase := userUC.NewUserUseCase(userUC.NewUserUseCaseParams{
 		UserRepo:      userRepository,
 		Hasher:        hasher,
 		TokenSvc:      tokenService,

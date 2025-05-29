@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	"example.com/infrahandson/internal/usecase"
+	userUC "example.com/infrahandson/internal/usecase/user"
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	mock_adapter "example.com/infrahandson/test/mocks/interface/adapter"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
@@ -26,17 +26,17 @@ func TestSignUp(t *testing.T) {
 	mockTokenSvc := mock_adapter.NewMockTokenServiceAdapter(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	params := usecase.NewUserUseCaseParams{
+	params := userUC.NewUserUseCaseParams{
 		UserRepo:      mockUserRepo,
 		Hasher:        mockHasher,
 		TokenSvc:      mockTokenSvc,
 		UserIDFactory: mockUserIDFactory,
 	}
 
-	userUseCase := usecase.NewUserUseCase(params)
+	userUseCase := userUC.NewUserUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
-		signUpRequest := usecase.SignUpRequest{
+		signUpRequest := userUC.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",
@@ -63,7 +63,7 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("ハッシュ化失敗時", func(t *testing.T) {
-		signUpRequest := usecase.SignUpRequest{
+		signUpRequest := userUC.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",
@@ -80,7 +80,7 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("UserID生成失敗時", func(t *testing.T) {
-		signUpRequest := usecase.SignUpRequest{
+		signUpRequest := userUC.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",
@@ -109,14 +109,14 @@ func TestAuthenticateUser(t *testing.T) {
 	mockTokenSvc := mock_adapter.NewMockTokenServiceAdapter(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 
-	params := usecase.NewUserUseCaseParams{
+	params := userUC.NewUserUseCaseParams{
 		UserRepo:      mockUserRepo,
 		Hasher:        mockHasher,
 		TokenSvc:      mockTokenSvc,
 		UserIDFactory: mockUserIDFactory,
 	}
 
-	userUseCase := usecase.NewUserUseCase(params)
+	userUseCase := userUC.NewUserUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
 		email := "test@email.com"
@@ -135,7 +135,7 @@ func TestAuthenticateUser(t *testing.T) {
 		user := entity.NewUser(parms)
 		token := "generated_token"
 
-		req := usecase.AuthenticateUserRequest{
+		req := userUC.AuthenticateUserRequest{
 			Email:    email,
 			Password: password,
 		}
@@ -155,7 +155,7 @@ func TestAuthenticateUser(t *testing.T) {
 		email := "notfound@email.com"
 		password := "password123"
 
-		req := usecase.AuthenticateUserRequest{
+		req := userUC.AuthenticateUserRequest{
 			Email:    email,
 			Password: password,
 		}
@@ -181,7 +181,7 @@ func TestAuthenticateUser(t *testing.T) {
 			UpdatedAt:  nil,
 		})
 
-		req := usecase.AuthenticateUserRequest{
+		req := userUC.AuthenticateUserRequest{
 			Email:    email,
 			Password: password,
 		}

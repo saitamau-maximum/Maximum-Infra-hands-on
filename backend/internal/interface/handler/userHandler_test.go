@@ -11,10 +11,10 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/infrastructure/validator"
 	"example.com/infrahandson/internal/interface/handler"
-	"example.com/infrahandson/internal/usecase"
+	userUC "example.com/infrahandson/internal/usecase/user"
 	mock_adapter "example.com/infrahandson/test/mocks/interface/adapter"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
-	mock_usecase "example.com/infrahandson/test/mocks/usecase"
+	mock_user "example.com/infrahandson/test/mocks/usecase/user"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -25,10 +25,10 @@ func TestRegisterUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	token := "mockToken"
-	var tokenRes usecase.AuthenticateUserResponse
+	var tokenRes userUC.AuthenticateUserResponse
 	tokenRes.SetToken(token)
 
-	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
+	mockUserUseCase := mock_user.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
@@ -52,7 +52,7 @@ func TestRegisterUser(t *testing.T) {
 		Info(gomock.Any(), gomock.Any()).
 		AnyTimes() // ロガーは何回呼ばれてもいい（呼ばれなくても怒らない）設定
 
-	mockUserUseCase.EXPECT().SignUp(context.Background(), gomock.Any()).Return(usecase.SignUpResponse{}, nil)
+	mockUserUseCase.EXPECT().SignUp(context.Background(), gomock.Any()).Return(userUC.SignUpResponse{}, nil)
 	mockUserUseCase.EXPECT().AuthenticateUser(context.Background(), gomock.Any()).Return(tokenRes, nil)
 
 	if assert.NoError(t, handler.RegisterUser(c)) {
@@ -66,10 +66,10 @@ func TestLogin(t *testing.T) {
 	defer ctrl.Finish()
 
 	token := "mockToken"
-	var tokenRes usecase.AuthenticateUserResponse
+	var tokenRes userUC.AuthenticateUserResponse
 	tokenRes.SetToken(token)
 
-	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
+	mockUserUseCase := mock_user.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
@@ -114,7 +114,7 @@ func TestGetMe(t *testing.T) {
 
 	user := entity.NewUser(userParams)
 
-	mockUserUseCase := mock_usecase.NewMockUserUseCaseInterface(ctrl)
+	mockUserUseCase := mock_user.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
 
