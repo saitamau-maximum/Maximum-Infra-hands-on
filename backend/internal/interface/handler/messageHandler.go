@@ -8,18 +8,18 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/interface/adapter"
-	"example.com/infrahandson/internal/usecase"
+	messageUC "example.com/infrahandson/internal/usecase/message"
 
 	"github.com/labstack/echo/v4"
 )
 
 type MessageHandler struct {
-	MsgUseCase usecase.MessageUseCaseInterface
+	MsgUseCase messageUC.MessageUseCaseInterface
 	Logger     adapter.LoggerAdapter
 }
 
 type NewMessageHandlerParams struct {
-	MsgUseCase usecase.MessageUseCaseInterface
+	MsgUseCase messageUC.MessageUseCaseInterface
 	Logger     adapter.LoggerAdapter
 }
 
@@ -103,7 +103,7 @@ func (h *MessageHandler) GetMessageHistoryInRoom(c echo.Context) error {
 	}
 
 	// Usecase呼び出し
-	res, err := h.MsgUseCase.GetMessageHistoryInRoom(ctx, usecase.GetMessageHistoryInRoomRequest{
+	res, err := h.MsgUseCase.GetMessageHistoryInRoom(ctx, messageUC.GetMessageHistoryInRoomRequest{
 		RoomID:       req.RoomID,
 		Limit:        req.Limit,
 		BeforeSentAt: req.BeforeSentAt,

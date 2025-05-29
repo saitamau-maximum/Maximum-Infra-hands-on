@@ -30,6 +30,7 @@ import (
 	"example.com/infrahandson/internal/interface/gateway"
 	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/usecase"
+	messageUC "example.com/infrahandson/internal/usecase/message"
 	roomUC "example.com/infrahandson/internal/usecase/room"
 	userUC "example.com/infrahandson/internal/usecase/user"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -121,7 +122,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	} else {
 		msgCache = inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{MsgRepo: msgRepository})
 	}
-	
+
 	var iconSvc service.IconStoreService
 	isS3, Type, errs := cfg.IsS3()
 	if isS3 {
@@ -189,7 +190,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		MsgIDFactory:     MsgIDFactory,
 		ClientIDFactory:  clientDFactory,
 	})
-	msgUseCase := usecase.NewMessageUseCase(usecase.NewMessageUseCaseParams{
+	msgUseCase := messageUC.NewMessageUseCase(messageUC.NewMessageUseCaseParams{
 		MsgRepo:  msgRepository,
 		MsgCache: msgCache,
 		RoomRepo: roomRepository,

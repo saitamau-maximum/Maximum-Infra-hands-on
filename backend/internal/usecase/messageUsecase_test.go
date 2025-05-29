@@ -8,7 +8,7 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/service"
-	"example.com/infrahandson/internal/usecase"
+	messageUC "example.com/infrahandson/internal/usecase/message"
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
 	"github.com/stretchr/testify/assert"
@@ -54,15 +54,15 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockMsgCache := mock_service.NewMockMessageCacheService(ctrl)
-	
-	params := usecase.NewMessageUseCaseParams{
+
+	params := messageUC.NewMessageUseCaseParams{
 		MsgRepo:  mockMsgRepo,
 		MsgCache: mockMsgCache,
 		RoomRepo: mockRoomRepo,
 		UserRepo: mockUserRepo,
 	}
-	messageUseCase := usecase.NewMessageUseCase(params)
-	
+	messageUseCase := messageUC.NewMessageUseCase(params)
+
 	t.Run("1. キャッシュ内で完結できる場合", func(t *testing.T) {
 		cachedMessages := []*entity.Message{
 			entity.NewMessage(entity.MessageParams{
@@ -83,7 +83,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
 
-		req := usecase.GetMessageHistoryInRoomRequest{
+		req := messageUC.GetMessageHistoryInRoomRequest{
 			RoomID:       roomID,
 			Limit:        service.DefaultRecentMessageLimit(),
 			BeforeSentAt: time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC), // キャッシュより新しい
@@ -103,10 +103,10 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 				ID:      "msg1",
 				RoomID:  roomID,
 				Content: "Hello",
-				SentAt: beforeSentAt.Add(1 * time.Minute),// リクエストよりも新しい
+				SentAt:  beforeSentAt.Add(1 * time.Minute), // リクエストよりも新しい
 			}),
 		}
-		
+
 		mockMsgCache.EXPECT().
 			GetRecentMessages(context.Background(), roomID).
 			Return(cachedMessages, nil)
@@ -114,7 +114,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
 			Return(messages, nextBeforeSentAt, hasNext, nil)
 
-		req := usecase.GetMessageHistoryInRoomRequest{
+		req := messageUC.GetMessageHistoryInRoomRequest{
 			RoomID:       roomID,
 			Limit:        defaultLimit,
 			BeforeSentAt: beforeSentAt,
@@ -136,7 +136,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 				ID:      "msg1",
 				RoomID:  roomID,
 				Content: "Hello",
-				SentAt: beforeSentAt.Add(1 * time.Minute),// リクエストよりも新しい
+				SentAt:  beforeSentAt.Add(1 * time.Minute), // リクエストよりも新しい
 			}),
 		}
 		mockMsgCache.EXPECT().
@@ -147,7 +147,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			GetMessageHistoryInRoom(context.Background(), roomID, defaultLimit, beforeSentAt).
 			Return(nil, time.Time{}, false, expectedErr)
 
-		req := usecase.GetMessageHistoryInRoomRequest{
+		req := messageUC.GetMessageHistoryInRoomRequest{
 			RoomID:       roomID,
 			Limit:        defaultLimit,
 			BeforeSentAt: beforeSentAt,
@@ -165,7 +165,7 @@ func TestGetMessageHistoryInRoom(t *testing.T) {
 			GetRecentMessages(context.Background(), roomID).
 			Return(nil, errors.New("cache error"))
 
-		req := usecase.GetMessageHistoryInRoomRequest{
+		req := messageUC.GetMessageHistoryInRoomRequest{
 			RoomID:       roomID,
 			Limit:        service.DefaultRecentMessageLimit(),
 			BeforeSentAt: beforeSentAt, // キャッシュより古い
