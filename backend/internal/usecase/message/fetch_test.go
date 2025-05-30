@@ -1,4 +1,4 @@
-package usecase_test
+package message_test
 
 import (
 	"context"
@@ -15,13 +15,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-/*
-* パターン４つ
-* 1. キャッシュから取得される正常系
-* 2. DBから取得される正常系
-* 3. DBから取得されるが、エラーになる
-* 4. キャッシュから取得されるが、エラーになる
- */
+// パターン４つ
+// 1. キャッシュから取得される正常系
+// 2. DBから取得される正常系
+// 3. DBから取得されるが、エラーになる
+// 4. キャッシュから取得されるが、エラーになる
 
 func TestGetMessageHistoryInRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
