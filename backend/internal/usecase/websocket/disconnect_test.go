@@ -92,7 +92,7 @@ func TestDisconnectUser(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, expectedErr, err)
 	})
-	
+
 	t.Run("DeleteClient失敗", func(t *testing.T) {
 		userID := entity.UserID("user123")
 		expectedErr := assert.AnError
