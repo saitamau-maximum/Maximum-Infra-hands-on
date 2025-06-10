@@ -11,6 +11,9 @@ type RoomUseCaseInterface interface {
 	// CreateRoom は新しい部屋を作成する(create.go)
 	CreateRoom(ctx context.Context, req CreateRoomRequest) (CreateRoomResponse, error)
 
+	// DeleteRoom は部屋を削除する(delete.go)
+	DeleteRoom(ctx context.Context, req DeleteRoomRequest) error
+
 	// GetRoomByID は公開IDを使用して部屋を取得する(get.go)
 	GetRoomByID(ctx context.Context, params GetRoomByIDRequest) (GetRoomByIDResponse, error)
 

@@ -7,8 +7,6 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	roomUC "example.com/infrahandson/internal/usecase/room"
-	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
-	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -23,18 +21,7 @@ func TestCreateRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	// == Mock dependencies ==
-	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
-	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
-	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-
-	params := roomUC.NewRoomUseCaseParams{
-		RoomRepo:      mockRoomRepo,
-		UserRepo:      mockUserRepo,
-		RoomIDFactory: mockRoomIDFactory,
-	}
-
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
 
 	t.Run("1. 正常系", func(t *testing.T) {
 		req := roomUC.CreateRoomRequest{
@@ -42,9 +29,9 @@ func TestCreateRoom(t *testing.T) {
 		}
 		roomID := entity.RoomID("public_room_1")
 
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(roomID, nil)
-		mockRoomRepo.EXPECT().SaveRoom(context.Background(), gomock.Any()).Return(roomID, nil)
-		mockRoomRepo.EXPECT().GetRoomByID(context.Background(), roomID).Return(entity.NewRoom(entity.RoomParams{
+		mockDeps.RoomIDFactory.EXPECT().NewRoomID().Return(roomID, nil)
+		mockDeps.RoomRepo.EXPECT().SaveRoom(context.Background(), gomock.Any()).Return(roomID, nil)
+		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), roomID).Return(entity.NewRoom(entity.RoomParams{
 			ID:      roomID,
 			Name:    req.Name,
 			Members: []entity.UserID{},
@@ -63,7 +50,7 @@ func TestCreateRoom(t *testing.T) {
 		expectedErr := errors.New("failed to generate room ID")
 		roomID := entity.RoomID("public_room_1")
 
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(roomID, expectedErr)
+		mockDeps.RoomIDFactory.EXPECT().NewRoomID().Return(roomID, expectedErr)
 
 		resp, err := roomUseCase.CreateRoom(context.Background(), req)
 
@@ -78,8 +65,8 @@ func TestCreateRoom(t *testing.T) {
 		}
 		publicID := entity.RoomID("public_room_1")
 		expectedErr := errors.New("failed to save room")
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(publicID, nil)
-		mockRoomRepo.EXPECT().SaveRoom(context.Background(), gomock.Any()).Return(publicID, expectedErr)
+		mockDeps.RoomIDFactory.EXPECT().NewRoomID().Return(publicID, nil)
+		mockDeps.RoomRepo.EXPECT().SaveRoom(context.Background(), gomock.Any()).Return(publicID, expectedErr)
 		resp, err := roomUseCase.CreateRoom(context.Background(), req)
 		assert.Error(t, err)
 		assert.Nil(t, resp.Room)
@@ -93,9 +80,9 @@ func TestCreateRoom(t *testing.T) {
 		publicID := entity.RoomID("public_room_1")
 		expectedErr := errors.New("failed to get room by ID")
 
-		mockRoomIDFactory.EXPECT().NewRoomID().Return(publicID, nil)
-		mockRoomRepo.EXPECT().SaveRoom(context.Background(), gomock.Any()).Return(publicID, nil)
-		mockRoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, expectedErr)
+		mockDeps.RoomIDFactory.EXPECT().NewRoomID().Return(publicID, nil)
+		mockDeps.RoomRepo.EXPECT().SaveRoom(context.Background(), gomock.Any()).Return(publicID, nil)
+		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, expectedErr)
 
 		resp, err := roomUseCase.CreateRoom(context.Background(), req)
 

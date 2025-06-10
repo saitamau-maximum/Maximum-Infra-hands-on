@@ -8,8 +8,6 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	roomUC "example.com/infrahandson/internal/usecase/room"
-	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
-	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -22,18 +20,7 @@ func TestGetRoomByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	// == Mock dependencies ==
-	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
-	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
-	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-
-	params := roomUC.NewRoomUseCaseParams{
-		RoomRepo:      mockRoomRepo,
-		UserRepo:      mockUserRepo,
-		RoomIDFactory: mockRoomIDFactory,
-	}
-
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
 
 	t.Run("1.正常系", func(t *testing.T) {
 		roomID := entity.RoomID("public_room_1")
@@ -43,7 +30,7 @@ func TestGetRoomByID(t *testing.T) {
 			Members: []entity.UserID{"user_1", "user_2"},
 		})
 
-		mockRoomRepo.EXPECT().GetRoomByID(context.Background(), roomID).Return(room, nil)
+		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), roomID).Return(room, nil)
 
 		resp, err := roomUseCase.GetRoomByID(context.Background(), roomUC.GetRoomByIDRequest{ID: roomID})
 
@@ -55,7 +42,7 @@ func TestGetRoomByID(t *testing.T) {
 	t.Run("2.GetRoomByID（Repo）エラー", func(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
-		mockRoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, assert.AnError)
+		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, assert.AnError)
 		resp, err := roomUseCase.GetRoomByID(context.Background(), roomUC.GetRoomByIDRequest{ID: publicID})
 
 		assert.Error(t, err)
@@ -66,7 +53,7 @@ func TestGetRoomByID(t *testing.T) {
 	t.Run("3.GetRoomByID（Repo）の返答がnil", func(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
-		mockRoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, nil)
+		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, nil)
 		resp, err := roomUseCase.GetRoomByID(context.Background(), roomUC.GetRoomByIDRequest{ID: publicID})
 
 		assert.Error(t, err)
@@ -82,15 +69,7 @@ func TestGetAllRooms(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
-	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
-	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	params := roomUC.NewRoomUseCaseParams{
-		RoomRepo:      mockRoomRepo,
-		UserRepo:      mockUserRepo,
-		RoomIDFactory: mockRoomIDFactory,
-	}
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
 
 	t.Run("1.正常系", func(t *testing.T) {
 		rooms := []*entity.Room{
@@ -98,7 +77,7 @@ func TestGetAllRooms(t *testing.T) {
 			entity.NewRoom(entity.RoomParams{ID: "room2", Name: "Room2"}),
 		}
 
-		mockRoomRepo.EXPECT().GetAllRooms(context.Background()).Return(rooms, nil)
+		mockDeps.RoomRepo.EXPECT().GetAllRooms(context.Background()).Return(rooms, nil)
 
 		result, err := roomUseCase.GetAllRooms(context.Background())
 
@@ -109,7 +88,7 @@ func TestGetAllRooms(t *testing.T) {
 	t.Run("2.GetAllRooms（Repo）エラー", func(t *testing.T) {
 		expectedErr := errors.New("failed to fetch rooms")
 
-		mockRoomRepo.EXPECT().GetAllRooms(context.Background()).Return(nil, expectedErr)
+		mockDeps.RoomRepo.EXPECT().GetAllRooms(context.Background()).Return(nil, expectedErr)
 
 		result, err := roomUseCase.GetAllRooms(context.Background())
 
@@ -126,15 +105,7 @@ func TestGetUsersInRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
-	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
-	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	params := roomUC.NewRoomUseCaseParams{
-		RoomRepo:      mockRoomRepo,
-		UserRepo:      mockUserRepo,
-		RoomIDFactory: mockRoomIDFactory,
-	}
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
 	// == Data ==
 	roomID := entity.RoomID("public_room_1")
 	users := []*entity.User{
@@ -158,7 +129,7 @@ func TestGetUsersInRoom(t *testing.T) {
 
 	t.Run("正常系", func(t *testing.T) {
 
-		mockRoomRepo.EXPECT().GetUsersInRoom(context.Background(), roomID).Return(users, nil)
+		mockDeps.RoomRepo.EXPECT().GetUsersInRoom(context.Background(), roomID).Return(users, nil)
 
 		resp, err := roomUseCase.GetUsersInRoom(context.Background(), roomUC.GetUsersInRoomRequest{ID: roomID})
 
@@ -169,7 +140,7 @@ func TestGetUsersInRoom(t *testing.T) {
 	t.Run("2.GetUsersInRoom（Repo）エラー", func(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
-		mockRoomRepo.EXPECT().GetUsersInRoom(context.Background(), publicID).Return(nil, assert.AnError)
+		mockDeps.RoomRepo.EXPECT().GetUsersInRoom(context.Background(), publicID).Return(nil, assert.AnError)
 		resp, err := roomUseCase.GetUsersInRoom(context.Background(), roomUC.GetUsersInRoomRequest{ID: publicID})
 
 		assert.Error(t, err)

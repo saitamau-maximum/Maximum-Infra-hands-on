@@ -57,6 +57,20 @@ func (mr *MockRoomUseCaseInterfaceMockRecorder) CreateRoom(ctx, req any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoom", reflect.TypeOf((*MockRoomUseCaseInterface)(nil).CreateRoom), ctx, req)
 }
 
+// DeleteRoom mocks base method.
+func (m *MockRoomUseCaseInterface) DeleteRoom(ctx context.Context, req room.DeleteRoomRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRoom", ctx, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRoom indicates an expected call of DeleteRoom.
+func (mr *MockRoomUseCaseInterfaceMockRecorder) DeleteRoom(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoom", reflect.TypeOf((*MockRoomUseCaseInterface)(nil).DeleteRoom), ctx, req)
+}
+
 // GetAllRooms mocks base method.
 func (m *MockRoomUseCaseInterface) GetAllRooms(ctx context.Context) ([]*entity.Room, error) {
 	m.ctrl.T.Helper()
