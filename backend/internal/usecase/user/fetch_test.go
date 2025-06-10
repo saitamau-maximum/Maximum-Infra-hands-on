@@ -8,10 +8,6 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	userUC "example.com/infrahandson/internal/usecase/user"
-	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
-	mock_service "example.com/infrahandson/test/mocks/domain/service"
-	mock_adapter "example.com/infrahandson/test/mocks/interface/adapter"
-	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -24,20 +20,7 @@ func TestGetUserByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
-	mockHasher := mock_adapter.NewMockHasherAdapter(ctrl)
-	mockTokenGenerator := mock_adapter.NewMockTokenServiceAdapter(ctrl)
-	mockIconSvc := mock_service.NewMockIconStoreService(ctrl)
-	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
-
-	// Create the user use case with the mock dependencies
-	userUseCase := userUC.NewUserUseCase(userUC.NewUserUseCaseParams{
-		UserRepo:      mockUserRepo,
-		Hasher:        mockHasher,
-		TokenSvc:      mockTokenGenerator,
-		IconSvc:       mockIconSvc,
-		UserIDFactory: mockUserIDFactory,
-	})
+	userUseCase, mockDeps := userUC.NewTestUserUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
 		email := "test@mail.com"
@@ -50,7 +33,7 @@ func TestGetUserByID(t *testing.T) {
 			CreatedAt:  time.Now(),
 			UpdatedAt:  nil,
 		})
-		mockUserRepo.EXPECT().GetUserByID(gomock.Any(), entity.UserID("user_id")).Return(user, nil)
+		mockDeps.UserRepo.EXPECT().GetUserByID(gomock.Any(), entity.UserID("user_id")).Return(user, nil)
 		resp, err := userUseCase.GetUserByID(context.Background(), entity.UserID("user_id"))
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
@@ -62,7 +45,7 @@ func TestGetUserByID(t *testing.T) {
 	})
 
 	t.Run("GetUserByID失敗", func(t *testing.T) {
-		mockUserRepo.EXPECT().GetUserByID(gomock.Any(), entity.UserID("invalid_id")).Return(nil, errors.New("user not found"))
+		mockDeps.UserRepo.EXPECT().GetUserByID(gomock.Any(), entity.UserID("invalid_id")).Return(nil, errors.New("user not found"))
 		resp, err := userUseCase.GetUserByID(context.Background(), entity.UserID("invalid_id"))
 		assert.Error(t, err)
 		assert.Nil(t, resp)

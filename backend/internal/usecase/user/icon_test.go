@@ -11,10 +11,7 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/service"
 	userUC "example.com/infrahandson/internal/usecase/user"
-	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
-	mock_adapter "example.com/infrahandson/test/mocks/interface/adapter"
-	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -118,26 +115,20 @@ func TestSaveUserIcon(t *testing.T) {
 func TestGetUserIconPath(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockIconSvc := mock_service.NewMockIconStoreService(ctrl)
-	params := userUC.NewUserUseCaseParams{
-		IconSvc:       mockIconSvc,
-		UserRepo:      mock_repository.NewMockUserRepository(ctrl),
-		Hasher:        mock_adapter.NewMockHasherAdapter(ctrl),
-		TokenSvc:      mock_adapter.NewMockTokenServiceAdapter(ctrl),
-		UserIDFactory: mock_factory.NewMockUserIDFactory(ctrl),
-	}
-	userUseCase := userUC.NewUserUseCase(params)
+
+	userUseCase, mockDeps := userUC.NewTestUserUseCase(ctrl)
+
 	userID := entity.UserID("user_id")
 
 	t.Run("正常系", func(t *testing.T) {
-		mockIconSvc.EXPECT().GetIconPath(gomock.Any(), userID).Return("/path/to/icon.png", nil)
+		mockDeps.IconSvc.EXPECT().GetIconPath(gomock.Any(), userID).Return("/path/to/icon.png", nil)
 		path, err := userUseCase.GetUserIconPath(context.Background(), userID)
 		assert.NoError(t, err)
 		assert.Equal(t, "/path/to/icon.png", path)
 	})
 
 	t.Run("失敗系", func(t *testing.T) {
-		mockIconSvc.EXPECT().GetIconPath(gomock.Any(), userID).Return("", errors.New("not found"))
+		mockDeps.IconSvc.EXPECT().GetIconPath(gomock.Any(), userID).Return("", errors.New("not found"))
 		path, err := userUseCase.GetUserIconPath(context.Background(), userID)
 		assert.Error(t, err)
 		assert.Empty(t, path)
