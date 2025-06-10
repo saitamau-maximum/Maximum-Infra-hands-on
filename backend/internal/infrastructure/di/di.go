@@ -147,7 +147,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		})
 	} else {
 		// S3関連のすべてがnilではない場合は、不足している旨を表示
-		if len(errs) != 6 {
+		if len(errs) != 5 {
 			fmt.Println("S3の初期化に必要な情報が不足しています。")
 			for _, err := range errs {
 				fmt.Println(err)
