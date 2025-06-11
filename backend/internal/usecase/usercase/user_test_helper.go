@@ -1,4 +1,4 @@
-package user
+package usercase
 
 import (
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"

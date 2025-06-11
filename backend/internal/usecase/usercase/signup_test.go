@@ -1,4 +1,4 @@
-package user_test
+package usercase_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	userUC "example.com/infrahandson/internal/usecase/user"
+	"example.com/infrahandson/internal/usecase/usercase"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -22,10 +22,10 @@ func TestSignUp(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userUseCase, mockDeps := userUC.NewTestUserUseCase(ctrl)
+	userUseCase, mockDeps := usercase.NewTestUserUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
-		signUpRequest := userUC.SignUpRequest{
+		signUpRequest := usercase.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",
@@ -56,7 +56,7 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("ハッシュ化失敗時", func(t *testing.T) {
-		signUpRequest := userUC.SignUpRequest{
+		signUpRequest := usercase.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",
@@ -73,7 +73,7 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("UserID生成失敗時", func(t *testing.T) {
-		signUpRequest := userUC.SignUpRequest{
+		signUpRequest := usercase.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",
@@ -92,7 +92,7 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("ユーザー保存失敗時", func(t *testing.T) {
-		signUpRequest := userUC.SignUpRequest{
+		signUpRequest := usercase.SignUpRequest{
 			Name:     "John Doe",
 			Email:    "test@mail.com",
 			Password: "password123",

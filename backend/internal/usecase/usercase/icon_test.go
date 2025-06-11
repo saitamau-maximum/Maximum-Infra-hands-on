@@ -1,4 +1,4 @@
-package user_test
+package usercase_test
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/service"
-	userUC "example.com/infrahandson/internal/usecase/user"
+	"example.com/infrahandson/internal/usecase/usercase"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -116,7 +116,7 @@ func TestGetUserIconPath(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userUseCase, mockDeps := userUC.NewTestUserUseCase(ctrl)
+	userUseCase, mockDeps := usercase.NewTestUserUseCase(ctrl)
 
 	userID := entity.UserID("user_id")
 
