@@ -1,4 +1,4 @@
-package message
+package messagecase
 
 import "context"
 
