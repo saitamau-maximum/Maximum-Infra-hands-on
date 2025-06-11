@@ -1,4 +1,4 @@
-package room_test
+package roomcase_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	roomUC "example.com/infrahandson/internal/usecase/room"
+	"example.com/infrahandson/internal/usecase/roomcase"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -20,7 +20,7 @@ func TestGetRoomByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
+	roomUseCase, mockDeps := roomcase.NewTestRoomUseCase(ctrl)
 
 	t.Run("1.正常系", func(t *testing.T) {
 		roomID := entity.RoomID("public_room_1")
@@ -32,7 +32,7 @@ func TestGetRoomByID(t *testing.T) {
 
 		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), roomID).Return(room, nil)
 
-		resp, err := roomUseCase.GetRoomByID(context.Background(), roomUC.GetRoomByIDRequest{ID: roomID})
+		resp, err := roomUseCase.GetRoomByID(context.Background(), roomcase.GetRoomByIDRequest{ID: roomID})
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp.Room)
@@ -43,7 +43,7 @@ func TestGetRoomByID(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
 		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, assert.AnError)
-		resp, err := roomUseCase.GetRoomByID(context.Background(), roomUC.GetRoomByIDRequest{ID: publicID})
+		resp, err := roomUseCase.GetRoomByID(context.Background(), roomcase.GetRoomByIDRequest{ID: publicID})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Room)
@@ -54,7 +54,7 @@ func TestGetRoomByID(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
 		mockDeps.RoomRepo.EXPECT().GetRoomByID(context.Background(), publicID).Return(nil, nil)
-		resp, err := roomUseCase.GetRoomByID(context.Background(), roomUC.GetRoomByIDRequest{ID: publicID})
+		resp, err := roomUseCase.GetRoomByID(context.Background(), roomcase.GetRoomByIDRequest{ID: publicID})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Room)
@@ -69,7 +69,7 @@ func TestGetAllRooms(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
+	roomUseCase, mockDeps := roomcase.NewTestRoomUseCase(ctrl)
 
 	t.Run("1.正常系", func(t *testing.T) {
 		rooms := []*entity.Room{
@@ -105,7 +105,7 @@ func TestGetUsersInRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
+	roomUseCase, mockDeps := roomcase.NewTestRoomUseCase(ctrl)
 	// == Data ==
 	roomID := entity.RoomID("public_room_1")
 	users := []*entity.User{
@@ -131,7 +131,7 @@ func TestGetUsersInRoom(t *testing.T) {
 
 		mockDeps.RoomRepo.EXPECT().GetUsersInRoom(context.Background(), roomID).Return(users, nil)
 
-		resp, err := roomUseCase.GetUsersInRoom(context.Background(), roomUC.GetUsersInRoomRequest{ID: roomID})
+		resp, err := roomUseCase.GetUsersInRoom(context.Background(), roomcase.GetUsersInRoomRequest{ID: roomID})
 
 		assert.NoError(t, err)
 		assert.Equal(t, users, resp.Users)
@@ -141,7 +141,7 @@ func TestGetUsersInRoom(t *testing.T) {
 		publicID := entity.RoomID("nonexistent_room")
 
 		mockDeps.RoomRepo.EXPECT().GetUsersInRoom(context.Background(), publicID).Return(nil, assert.AnError)
-		resp, err := roomUseCase.GetUsersInRoom(context.Background(), roomUC.GetUsersInRoomRequest{ID: publicID})
+		resp, err := roomUseCase.GetUsersInRoom(context.Background(), roomcase.GetUsersInRoomRequest{ID: publicID})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp.Users)

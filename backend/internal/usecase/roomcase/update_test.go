@@ -1,11 +1,11 @@
-package room_test
+package roomcase_test
 
 import (
 	"context"
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	roomUC "example.com/infrahandson/internal/usecase/room"
+	"example.com/infrahandson/internal/usecase/roomcase"
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
@@ -19,12 +19,12 @@ func TestUpdateRoomName(t *testing.T) {
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	params := roomUC.NewRoomUseCaseParams{
+	params := roomcase.NewRoomUseCaseParams{
 		RoomRepo:      mockRoomRepo,
 		UserRepo:      mockUserRepo,
 		RoomIDFactory: mockRoomIDFactory,
 	}
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase := roomcase.NewRoomUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
 		roomID := entity.RoomID("public_room_1")
@@ -32,7 +32,7 @@ func TestUpdateRoomName(t *testing.T) {
 
 		mockRoomRepo.EXPECT().UpdateRoomName(context.Background(), roomID, newName).Return(nil)
 
-		err := roomUseCase.UpdateRoomName(context.Background(), roomUC.UpdateRoomNameRequest{RoomID: roomID, NewName: newName})
+		err := roomUseCase.UpdateRoomName(context.Background(), roomcase.UpdateRoomNameRequest{RoomID: roomID, NewName: newName})
 
 		assert.NoError(t, err)
 	})
@@ -44,7 +44,7 @@ func TestUpdateRoomName(t *testing.T) {
 
 		mockRoomRepo.EXPECT().UpdateRoomName(context.Background(), roomID, newName).Return(expectedErr)
 
-		err := roomUseCase.UpdateRoomName(context.Background(), roomUC.UpdateRoomNameRequest{RoomID: roomID, NewName: newName})
+		err := roomUseCase.UpdateRoomName(context.Background(), roomcase.UpdateRoomNameRequest{RoomID: roomID, NewName: newName})
 
 		assert.Error(t, err)
 		assert.Equal(t, expectedErr, err)

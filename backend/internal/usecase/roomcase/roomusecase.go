@@ -1,5 +1,5 @@
 // RoomのUseCaseの構造体
-package room
+package roomcase
 
 import (
 	"example.com/infrahandson/internal/domain/repository"

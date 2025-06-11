@@ -1,4 +1,4 @@
-package room
+package roomcase
 
 import (
 	"errors"
@@ -38,4 +38,3 @@ func NewRoomUseCase(p NewRoomUseCaseParams) *RoomUseCase {
 		roomIDFactory: p.RoomIDFactory,
 	}
 }
-

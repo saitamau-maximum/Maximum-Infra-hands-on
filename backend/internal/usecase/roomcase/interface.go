@@ -1,5 +1,5 @@
 // room usecaseのinterface
-package room
+package roomcase
 
 import (
 	"context"
@@ -25,7 +25,7 @@ type RoomUseCaseInterface interface {
 
 	// JoinRoom は部屋にユーザーを参加させる(membership.go)
 	JoinRoom(ctx context.Context, req JoinRoomRequest) error
-	
+
 	// LeaveRoom は部屋からユーザーを退出させる(membership.go)
 	LeaveRoom(ctx context.Context, req LeaveRoomRequest) error
 }

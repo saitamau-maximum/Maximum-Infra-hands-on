@@ -1,4 +1,4 @@
-package room_test
+package roomcase_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	roomUC "example.com/infrahandson/internal/usecase/room"
+	"example.com/infrahandson/internal/usecase/roomcase"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -21,10 +21,10 @@ func TestCreateRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	roomUseCase, mockDeps := roomUC.NewTestRoomUseCase(ctrl)
+	roomUseCase, mockDeps := roomcase.NewTestRoomUseCase(ctrl)
 
 	t.Run("1. 正常系", func(t *testing.T) {
-		req := roomUC.CreateRoomRequest{
+		req := roomcase.CreateRoomRequest{
 			Name: "Test Room",
 		}
 		roomID := entity.RoomID("public_room_1")
@@ -44,7 +44,7 @@ func TestCreateRoom(t *testing.T) {
 	})
 
 	t.Run("2. RoomID生成失敗時", func(t *testing.T) {
-		req := roomUC.CreateRoomRequest{
+		req := roomcase.CreateRoomRequest{
 			Name: "Test Room",
 		}
 		expectedErr := errors.New("failed to generate room ID")
@@ -60,7 +60,7 @@ func TestCreateRoom(t *testing.T) {
 	})
 
 	t.Run("3. SaveRoom失敗", func(t *testing.T) {
-		req := roomUC.CreateRoomRequest{
+		req := roomcase.CreateRoomRequest{
 			Name: "Test Room",
 		}
 		publicID := entity.RoomID("public_room_1")
@@ -74,7 +74,7 @@ func TestCreateRoom(t *testing.T) {
 	})
 
 	t.Run("4. GetRoomByID失敗", func(t *testing.T) {
-		req := roomUC.CreateRoomRequest{
+		req := roomcase.CreateRoomRequest{
 			Name: "Test Room",
 		}
 		publicID := entity.RoomID("public_room_1")

@@ -1,11 +1,11 @@
-package room_test
+package roomcase_test
 
 import (
 	"context"
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	roomUC "example.com/infrahandson/internal/usecase/room"
+	"example.com/infrahandson/internal/usecase/roomcase"
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	mock_factory "example.com/infrahandson/test/mocks/interface/factory"
 	"github.com/stretchr/testify/assert"
@@ -21,12 +21,12 @@ func TestJoinRoom(t *testing.T) {
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	params := roomUC.NewRoomUseCaseParams{
+	params := roomcase.NewRoomUseCaseParams{
 		RoomRepo:      mockRoomRepo,
 		UserRepo:      mockUserRepo,
 		RoomIDFactory: mockRoomIDFactory,
 	}
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase := roomcase.NewRoomUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
 		roomID := entity.RoomID("room_1")
@@ -34,7 +34,7 @@ func TestJoinRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().AddMemberToRoom(context.Background(), roomID, userID).Return(nil)
 
-		err := roomUseCase.JoinRoom(context.Background(), roomUC.JoinRoomRequest{
+		err := roomUseCase.JoinRoom(context.Background(), roomcase.JoinRoomRequest{
 			RoomID: roomID,
 			UserID: userID,
 		})
@@ -49,7 +49,7 @@ func TestJoinRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().AddMemberToRoom(context.Background(), roomID, userID).Return(expectedErr)
 
-		err := roomUseCase.JoinRoom(context.Background(), roomUC.JoinRoomRequest{
+		err := roomUseCase.JoinRoom(context.Background(), roomcase.JoinRoomRequest{
 			RoomID: roomID,
 			UserID: userID,
 		})
@@ -68,12 +68,12 @@ func TestLeaveRoom(t *testing.T) {
 	mockRoomRepo := mock_repository.NewMockRoomRepository(ctrl)
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	mockRoomIDFactory := mock_factory.NewMockRoomIDFactory(ctrl)
-	params := roomUC.NewRoomUseCaseParams{
+	params := roomcase.NewRoomUseCaseParams{
 		RoomRepo:      mockRoomRepo,
 		UserRepo:      mockUserRepo,
 		RoomIDFactory: mockRoomIDFactory,
 	}
-	roomUseCase := roomUC.NewRoomUseCase(params)
+	roomUseCase := roomcase.NewRoomUseCase(params)
 
 	t.Run("正常系", func(t *testing.T) {
 		roomID := entity.RoomID("room_1")
@@ -81,7 +81,7 @@ func TestLeaveRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().RemoveMemberFromRoom(context.Background(), roomID, userID).Return(nil)
 
-		err := roomUseCase.LeaveRoom(context.Background(), roomUC.LeaveRoomRequest{
+		err := roomUseCase.LeaveRoom(context.Background(), roomcase.LeaveRoomRequest{
 			RoomID: roomID,
 			UserID: userID,
 		})
@@ -96,7 +96,7 @@ func TestLeaveRoom(t *testing.T) {
 
 		mockRoomRepo.EXPECT().RemoveMemberFromRoom(context.Background(), roomID, userID).Return(expectedErr)
 
-		err := roomUseCase.LeaveRoom(context.Background(), roomUC.LeaveRoomRequest{
+		err := roomUseCase.LeaveRoom(context.Background(), roomcase.LeaveRoomRequest{
 			RoomID: roomID,
 			UserID: userID,
 		})
