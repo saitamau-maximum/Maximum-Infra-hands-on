@@ -1,11 +1,11 @@
-package websocket_test
+package websocketcase_test
 
 import (
 	"context"
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	wsUC "example.com/infrahandson/internal/usecase/websocket"
+	"example.com/infrahandson/internal/usecase/websocketcase"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -14,7 +14,7 @@ func TestSendMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	useCase, mocks := wsUC.NewTestWebsocketUseCase(ctrl)
+	useCase, mocks := websocketcase.NewTestWebsocketUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
 		roomID := entity.RoomID("room123")
@@ -27,7 +27,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(context.Background(), roomID, gomock.Any()).Return(nil)
 
-		request := wsUC.SendMessageRequest{
+		request := websocketcase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -44,7 +44,7 @@ func TestSendMessage(t *testing.T) {
 
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(entity.MessageID(""), assert.AnError)
 
-		request := wsUC.SendMessageRequest{
+		request := websocketcase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -63,7 +63,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgIDFactory.EXPECT().NewMessageID().Return(messageID, nil)
 		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(assert.AnError)
 
-		request := wsUC.SendMessageRequest{
+		request := websocketcase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -83,7 +83,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgRepo.EXPECT().CreateMessage(context.Background(), gomock.Any()).Return(nil)
 		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(assert.AnError)
 
-		request := wsUC.SendMessageRequest{
+		request := websocketcase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,
@@ -104,7 +104,7 @@ func TestSendMessage(t *testing.T) {
 		mocks.MsgCache.EXPECT().AddMessage(context.Background(), roomID, gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().BroadcastToRoom(context.Background(), roomID, gomock.Any()).Return(assert.AnError)
 
-		request := wsUC.SendMessageRequest{
+		request := websocketcase.SendMessageRequest{
 			RoomID:  roomID,
 			Sender:  senderID,
 			Content: content,

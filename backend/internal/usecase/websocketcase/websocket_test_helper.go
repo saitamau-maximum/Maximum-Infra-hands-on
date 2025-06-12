@@ -1,4 +1,4 @@
-package websocket
+package websocketcase
 
 import (
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"

@@ -1,11 +1,11 @@
-package websocket_test
+package websocketcase_test
 
 import (
 	"context"
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	wsUC "example.com/infrahandson/internal/usecase/websocket"
+	"example.com/infrahandson/internal/usecase/websocketcase"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -21,7 +21,7 @@ func TestDisconnectUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	useCase, mocks := wsUC.NewTestWebsocketUseCase(ctrl)
+	useCase, mocks := websocketcase.NewTestWebsocketUseCase(ctrl)
 
 	t.Run("正常系", func(t *testing.T) {
 		userID := entity.UserID("user123")
@@ -37,7 +37,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().Unregister(context.Background(), mockConn).Return(nil)
 		mocks.WsClientRepo.EXPECT().DeleteClient(context.Background(), mockClient.GetID()).Return(nil)
 
-		request := wsUC.DisconnectUserRequest{UserID: userID}
+		request := websocketcase.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.NoError(t, err)
@@ -49,7 +49,7 @@ func TestDisconnectUser(t *testing.T) {
 
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(context.Background(), userID).Return(nil, expectedErr)
 
-		request := wsUC.DisconnectUserRequest{UserID: userID}
+		request := websocketcase.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)
@@ -64,7 +64,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().GetConnectionByUserID(context.Background(), userID).Return(mockConn, nil)
 		mocks.WsClientRepo.EXPECT().GetClientsByUserID(context.Background(), userID).Return(nil, expectedErr)
 
-		request := wsUC.DisconnectUserRequest{UserID: userID}
+		request := websocketcase.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)
@@ -86,7 +86,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WsClientRepo.EXPECT().GetClientsByUserID(context.Background(), userID).Return(mockClient, nil)
 		mocks.WebsocketManager.EXPECT().Unregister(context.Background(), mockConn).Return(expectedErr)
 
-		request := wsUC.DisconnectUserRequest{UserID: userID}
+		request := websocketcase.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)
@@ -109,7 +109,7 @@ func TestDisconnectUser(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().Unregister(context.Background(), mockConn).Return(nil)
 		mocks.WsClientRepo.EXPECT().DeleteClient(context.Background(), mockClient.GetID()).Return(expectedErr)
 
-		request := wsUC.DisconnectUserRequest{UserID: userID}
+		request := websocketcase.DisconnectUserRequest{UserID: userID}
 		err := useCase.DisconnectUser(context.Background(), request)
 
 		assert.Error(t, err)

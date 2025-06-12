@@ -1,4 +1,4 @@
-package websocket_test
+package websocketcase_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	wsUC "example.com/infrahandson/internal/usecase/websocket"
+	"example.com/infrahandson/internal/usecase/websocketcase"
 	mock_service "example.com/infrahandson/test/mocks/domain/service"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -22,7 +22,7 @@ func TestConnectUserToRoom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	useCase, mocks := wsUC.NewTestWebsocketUseCase(ctrl)
+	useCase, mocks := websocketcase.NewTestWebsocketUseCase(ctrl)
 
 	// テストデータ
 	userID := entity.UserID("user123")
@@ -46,7 +46,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.WebsocketManager.EXPECT().Register(context.Background(), mockConn, userID, roomID).Return(nil)
 
 		// テスト実行
-		request := wsUC.ConnectUserToRoomRequest{
+		request := websocketcase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -61,7 +61,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		// モックの期待値設定
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(nil, assert.AnError)
 		// テスト実行
-		request := wsUC.ConnectUserToRoomRequest{
+		request := websocketcase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -77,7 +77,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.UserRepo.EXPECT().GetUserByID(context.Background(), userID).Return(testUser, nil)
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(entity.WsClientID(""), assert.AnError)
 		// テスト実行
-		request := wsUC.ConnectUserToRoomRequest{
+		request := websocketcase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -94,7 +94,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.ClientIDFactory.EXPECT().NewWsClientID().Return(clientID, nil)
 		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(assert.AnError)
 		// テスト実行
-		request := wsUC.ConnectUserToRoomRequest{
+		request := websocketcase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,
@@ -112,7 +112,7 @@ func TestConnectUserToRoom(t *testing.T) {
 		mocks.WsClientRepo.EXPECT().CreateClient(context.Background(), gomock.Any()).Return(nil)
 		mocks.WebsocketManager.EXPECT().Register(context.Background(), mockConn, userID, roomID).Return(assert.AnError)
 		// テスト実行
-		request := wsUC.ConnectUserToRoomRequest{
+		request := websocketcase.ConnectUserToRoomRequest{
 			UserID: userID,
 			RoomID: roomID,
 			Conn:   mockConn,

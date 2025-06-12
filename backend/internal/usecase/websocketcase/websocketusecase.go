@@ -1,4 +1,4 @@
-package websocket
+package websocketcase
 
 import (
 	"example.com/infrahandson/internal/domain/repository"
