@@ -1,12 +1,11 @@
 package userhandler
 
 import (
-	"net/http"
+	"errors"
 
 	"example.com/infrahandson/internal/interface/adapter"
 	"example.com/infrahandson/internal/interface/factory"
 	"example.com/infrahandson/internal/usecase/usercase"
-	"github.com/labstack/echo/v4"
 )
 
 type NewUserHandlerParams struct {
@@ -17,13 +16,13 @@ type NewUserHandlerParams struct {
 
 func (p *NewUserHandlerParams) Validate() error {
 	if p.UserUseCase == nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "UserUseCase is required")
+		return errors.New("userUseCase is required")
 	}
 	if p.UserIDFactory == nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "UserIDFactory is required")
+		return errors.New("userIDFactory is required")
 	}
 	if p.Logger == nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Logger is required")
+		return errors.New("logger is required")
 	}
 	return nil
 }
