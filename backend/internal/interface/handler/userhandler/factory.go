@@ -28,7 +28,7 @@ func (p *NewUserHandlerParams) Validate() error {
 	return nil
 }
 
-func NewUserHandler(params NewUserHandlerParams) *UserHandler {
+func NewUserHandler(params NewUserHandlerParams) UserHandlerInterface {
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}

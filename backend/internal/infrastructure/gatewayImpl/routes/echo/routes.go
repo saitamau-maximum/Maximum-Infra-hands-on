@@ -3,6 +3,7 @@ package routes
 import (
 	"example.com/infrahandson/config"
 	"example.com/infrahandson/internal/interface/handler"
+	"example.com/infrahandson/internal/interface/handler/userhandler"
 	"github.com/labstack/echo/v4"
 )
 
@@ -10,13 +11,13 @@ func SetupRoutes(
 	e *echo.Echo,
 	cfg *config.Config,
 	AuthMiddleware echo.MiddlewareFunc,
-	userHandler handler.UserHandler,
+	userHandler userhandler.UserHandlerInterface,
 	roomHandler handler.RoomHandler,
 	wsHandler handler.WebSocketHandler,
 	msgHansler handler.MessageHandler,
 ) {
 	userGroup := e.Group("/api/user")
-	RegisterUserRoutes(userGroup, &userHandler, AuthMiddleware)
+	RegisterUserRoutes(userGroup, userHandler, AuthMiddleware)
 	roomGroup := e.Group("/api/room", AuthMiddleware)
 	RegisterRoomRoutes(roomGroup, &roomHandler)
 	wsGroup := e.Group("/api/ws", AuthMiddleware)
@@ -25,7 +26,8 @@ func SetupRoutes(
 	RegisterMsgRoutes(msgGroup, &msgHansler)
 }
 
-func RegisterUserRoutes(g *echo.Group, h *handler.UserHandler, authMiddleware echo.MiddlewareFunc) {
+// RegisterUserRoutes はユーザー関連のルートを登録する
+func RegisterUserRoutes(g *echo.Group, h userhandler.UserHandlerInterface, authMiddleware echo.MiddlewareFunc) {
 	g.POST("/register", h.RegisterUser)
 	g.POST("/login", h.Login)
 	g.POST("/logout", h.Logout, authMiddleware)
@@ -47,5 +49,5 @@ func RegisterWsRoutes(g *echo.Group, h *handler.WebSocketHandler) {
 }
 
 func RegisterMsgRoutes(g *echo.Group, h *handler.MessageHandler) {
-	g.GET("/:room_id", h.GetMessageHistoryInRoom)
+	g.GET("/:room_id", h.GetRoomMessage)
 }

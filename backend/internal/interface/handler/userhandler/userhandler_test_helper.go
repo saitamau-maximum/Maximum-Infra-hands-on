@@ -23,7 +23,7 @@ type mockDeps struct {
 // NewTestUserHandler ( ハンドラ, モック依存関係, Echoインスタンス ) を生成する
 func NewTestUserHandler(
 	ctrl *gomock.Controller,
-) (*UserHandler, mockDeps, *echo.Echo) {
+) (UserHandlerInterface, mockDeps, *echo.Echo) {
 	mockUserUseCase := mock_usercase.NewMockUserUseCaseInterface(ctrl)
 	mockUserIDFactory := mock_factory.NewMockUserIDFactory(ctrl)
 	mockLogger := mock_adapter.NewMockLoggerAdapter(ctrl)
