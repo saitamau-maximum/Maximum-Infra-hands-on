@@ -42,6 +42,10 @@ func (res *AuthenticateUserResponse) SetToken(token string) {
 	res.token = &token
 }
 
+func (res *AuthenticateUserResponse) SetExp(exp int) {
+	res.exp = &exp
+}
+
 // AuthenticateUser ユーザー認証
 func (u *UserUseCase) AuthenticateUser(ctx context.Context, req AuthenticateUserRequest) (AuthenticateUserResponse, error) {
 	user, err := u.userRepo.GetUserByEmail(ctx, req.Email)
