@@ -21,25 +21,25 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		h.Logger.Error("Failed to bind request", err, req)
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format")
 	}
 
 	if err := c.Validate(req); err != nil {
 		h.Logger.Error("Validation failed", err)
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Validation failed"})
+		return echo.NewHTTPError(http.StatusBadRequest, "Validation failed: "+err.Error())
 	}
 
 	userID, ok := c.Get("user_id").(string)
 	if !ok || userID == "" {
 		h.Logger.Error("User ID is missing or invalid")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
+		return echo.NewHTTPError(http.StatusUnauthorized, "User ID is required")
 	}
 
 	// 部屋作成
 	createRoomRes, err := h.RoomUseCase.CreateRoom(ctx, roomcase.CreateRoomRequest{Name: req.Name})
 	if err != nil {
 		h.Logger.Error("Failed to create room", err)
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to create room"})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create room: "+err.Error())
 	}
 	room := createRoomRes.Room
 
@@ -48,7 +48,7 @@ func (h *RoomHandler) CreateRoom(c echo.Context) error {
 		UserID: entity.UserID(userID),
 	}); err != nil {
 		h.Logger.Error("Failed to add user to room", err)
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to add user to room"})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to join room: "+err.Error())
 	}
 
 	// NOTE: WebSocketの接続 (ConnectUserToRoom) はこのタイミングでは行わない。
