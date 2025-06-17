@@ -31,6 +31,15 @@ type MessageResponse struct {
 	SentAt  time.Time `json:"sent_at"`
 }
 
+// GetRoomMessage は指定されたルームのメッセージ履歴を取得するハンドラーです。
+// 無限スクロールを想定しており、
+// - `before_sent_at` パラメータを使用して、指定された時刻より前のメッセージを取得します。
+// - `limit` パラメータで取得するメッセージ数を制限できます（デフォルトは10）。
+// - レスポンスには次の `before_sent_at` と、次のページが存在するかどうかのフラグも含まれます。
+// 
+// NOTE:
+// - `before_sent_at` が指定されない場合は、現在時刻をデフォルト値として使用します。
+// - `limit` が指定されない場合は、デフォルトで10件のメッセージを取得します。
 func (h *MessageHandler) GetRoomMessage(c echo.Context) error {
 	ctx := c.Request().Context()
 	h.Logger.Info("GetMessageHistoryInRoom called")
