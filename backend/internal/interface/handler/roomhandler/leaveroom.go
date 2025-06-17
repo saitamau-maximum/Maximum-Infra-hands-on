@@ -13,13 +13,13 @@ func (h *RoomHandler) LeaveRoom(c echo.Context) error {
 	userID, ok := c.Get("user_id").(string)
 	if !ok || userID == "" {
 		h.Logger.Error("User ID is missing or invalid")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "User ID is missing or invalid"})
+		return echo.NewHTTPError(http.StatusBadRequest, "User ID is missing or invalid")
 	}
 
 	roomID := c.Param("room_id")
 	if roomID == "" {
 		h.Logger.Error("Room ID is missing")
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Room ID is missing"})
+		return echo.NewHTTPError(http.StatusBadRequest, "Room ID is missing")
 	}
 
 	// 部屋から退出
@@ -28,7 +28,7 @@ func (h *RoomHandler) LeaveRoom(c echo.Context) error {
 		UserID: entity.UserID(userID),
 	}); err != nil {
 		h.Logger.Error("Failed to leave room", err)
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to leave room"})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to leave room")
 	}
 
 	h.Logger.Info("Left room successfully", map[string]any{
