@@ -41,10 +41,10 @@ func ServerStart(cfg *config.Config) (*echo.Echo, *sqlx.DB, *memcache.Client) {
 		e,
 		cfg,
 		middleware.AuthMiddleware(tokenService),
-		*dependencies.UserHandler,
-		*dependencies.RoomHandler,
-		*dependencies.WsHandler,
-		*dependencies.MsgHandler,
+		dependencies.UserHandler,
+		dependencies.RoomHandler,
+		dependencies.WsHandler,
+		dependencies.MsgHandler,
 	)
 
 	return e, dependencies.DB, dependencies.Cache

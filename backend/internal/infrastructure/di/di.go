@@ -28,11 +28,14 @@ import (
 	memcachedmsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/memcached"
 	inmemorywsmanagerimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/websocketManagerImpl/InMemory"
 	"example.com/infrahandson/internal/interface/gateway"
-	"example.com/infrahandson/internal/interface/handler"
-	messageUC "example.com/infrahandson/internal/usecase/message"
-	roomUC "example.com/infrahandson/internal/usecase/room"
-	userUC "example.com/infrahandson/internal/usecase/user"
-	wsUC "example.com/infrahandson/internal/usecase/websocket"
+	"example.com/infrahandson/internal/interface/handler/messagehandler"
+	"example.com/infrahandson/internal/interface/handler/roomhandler"
+	"example.com/infrahandson/internal/interface/handler/userhandler"
+	"example.com/infrahandson/internal/interface/handler/websockethandler"
+	"example.com/infrahandson/internal/usecase/messagecase"
+	"example.com/infrahandson/internal/usecase/roomcase"
+	"example.com/infrahandson/internal/usecase/usercase"
+	"example.com/infrahandson/internal/usecase/websocketcase"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
@@ -41,10 +44,10 @@ import (
 type Dependencies struct {
 	DB          *sqlx.DB
 	Cache       *memcache.Client
-	UserHandler *handler.UserHandler
-	RoomHandler *handler.RoomHandler
-	WsHandler   *handler.WebSocketHandler
-	MsgHandler  *handler.MessageHandler
+	UserHandler userhandler.UserHandlerInterface
+	RoomHandler roomhandler.RoomHandlerInterface
+	WsHandler   websockethandler.WebSocketHandlerInterface
+	MsgHandler  messagehandler.MessageHandlerInterface
 }
 
 func InitializeDependencies(cfg *config.Config) *Dependencies {
@@ -168,19 +171,19 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	})
 
 	// UseCaseの初期化
-	userUseCase := userUC.NewUserUseCase(userUC.NewUserUseCaseParams{
+	userUseCase := usercase.NewUserUseCase(usercase.NewUserUseCaseParams{
 		UserRepo:      userRepository,
 		Hasher:        hasher,
 		TokenSvc:      tokenService,
 		IconSvc:       iconSvc,
 		UserIDFactory: userIDFactory,
 	})
-	roomUseCase := roomUC.NewRoomUseCase(roomUC.NewRoomUseCaseParams{
+	roomUseCase := roomcase.NewRoomUseCase(roomcase.NewRoomUseCaseParams{
 		RoomRepo:      roomRepository,
 		UserRepo:      userRepository,
 		RoomIDFactory: roomIDFactory,
 	})
-	wsUseCase := wsUC.NewWebsocketUseCase(wsUC.NewWebsocketUseCaseParams{
+	wsUseCase := websocketcase.NewWebsocketUseCase(websocketcase.NewWebsocketUseCaseParams{
 		UserRepo:         userRepository,
 		RoomRepo:         roomRepository,
 		MsgRepo:          msgRepository,
@@ -190,7 +193,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		MsgIDFactory:     MsgIDFactory,
 		ClientIDFactory:  clientDFactory,
 	})
-	msgUseCase := messageUC.NewMessageUseCase(messageUC.NewMessageUseCaseParams{
+	msgUseCase := messagecase.NewMessageUseCase(messagecase.NewMessageUseCaseParams{
 		MsgRepo:  msgRepository,
 		MsgCache: msgCache,
 		RoomRepo: roomRepository,
@@ -198,18 +201,18 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	})
 
 	// Handlerの初期化
-	userHandler := handler.NewUserHandler(handler.NewUserHandlerParams{
+	userHandler := userhandler.NewUserHandler(userhandler.NewUserHandlerParams{
 		UserUseCase:   userUseCase,
 		UserIDFactory: userIDFactory,
 		Logger:        logger,
 	})
-	roomHandler := handler.NewRoomHandler(handler.NewRoomHandlerParams{
+	roomHandler := roomhandler.NewRoomHandler(roomhandler.NewRoomHandlerParams{
 		RoomUseCase:   roomUseCase,
 		UserIDFactory: userIDFactory,
 		RoomIDFactory: roomIDFactory,
 		Logger:        logger,
 	})
-	wsHandler := handler.NewWebSocketHandler(handler.NewWebSocketHandlerParams{
+	wsHandler := websockethandler.NewWebSocketHandler(websockethandler.NewWebSocketHandlerParams{
 		WsUseCase:     wsUseCase,
 		WsUpgrader:    upgrader,
 		WsConnFactory: wsConnFactory,
@@ -217,7 +220,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		RoomIDFactory: roomIDFactory,
 		Logger:        logger,
 	})
-	msgHansler := handler.NewMessageHandler(handler.NewMessageHandlerParams{
+	msgHansler := messagehandler.NewMessageHandler(messagehandler.NewMessageHandlerParams{
 		MsgUseCase: msgUseCase,
 		Logger:     logger,
 	})
