@@ -16,7 +16,7 @@ func (h *RoomHandler) GetRooms(c echo.Context) error {
 	rooms, err := h.RoomUseCase.GetAllRooms(ctx)
 	if err != nil {
 		h.Logger.Error("Failed to get rooms", err)
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to get rooms"})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get rooms")
 	}
 
 	res := []GetRoomsResponse{}
