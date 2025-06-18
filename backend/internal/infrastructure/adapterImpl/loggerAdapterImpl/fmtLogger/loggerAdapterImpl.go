@@ -1,4 +1,4 @@
-package fmtloggerimpl
+package fmtlogger
 
 import (
 	"fmt"

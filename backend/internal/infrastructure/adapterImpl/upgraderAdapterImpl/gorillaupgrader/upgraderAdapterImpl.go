@@ -1,9 +1,9 @@
-package gorillawebsocketupgraderImpl
+package gorillaupgrader
 
 import (
 	"net/http"
 
-	gorillawebsocketconnadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/connAdapterImpl/gorillawebsocket"
+	"example.com/infrahandson/internal/infrastructure/adapterImpl/connAdapterImpl/gorillaconn"
 	"example.com/infrahandson/internal/interface/adapter"
 	"github.com/gorilla/websocket"
 )
@@ -32,5 +32,5 @@ func (g *GorillaWebSocketUpgrader) Upgrade(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return nil, err
 	}
-	return gorillawebsocketconnadapterimpl.NewGorillaConnAdapter(conn), nil
+	return gorillaconn.NewGorillaConnAdapter(conn), nil
 }

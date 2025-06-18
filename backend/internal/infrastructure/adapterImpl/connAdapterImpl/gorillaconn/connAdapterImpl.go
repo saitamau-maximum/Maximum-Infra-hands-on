@@ -1,4 +1,4 @@
-package gorillawebsocketconnadapterimpl
+package gorillaconn
 
 import (
 	"github.com/gorilla/websocket"

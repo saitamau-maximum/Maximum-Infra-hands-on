@@ -1,4 +1,4 @@
-package tokenadapterimpl_test
+package jwt_test
 
 import (
 	"testing"

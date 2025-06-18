@@ -1,4 +1,4 @@
-package bcryptadapterimpl_test
+package bcrypt_test
 
 import (
 	"testing"

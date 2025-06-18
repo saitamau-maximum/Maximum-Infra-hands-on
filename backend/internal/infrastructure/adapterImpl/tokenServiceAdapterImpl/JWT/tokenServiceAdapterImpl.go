@@ -1,4 +1,4 @@
-package tokenadapterimpl
+package jwt
 
 import (
 	"errors"
