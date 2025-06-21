@@ -1,4 +1,4 @@
-package sqlitemsgrepoimpl_test
+package sqlitemsgrepo_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"example.com/infrahandson/internal/domain/entity"
-	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
+	"example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlitemsgrepo"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // SQLiteドライバ
 	"github.com/stretchr/testify/assert"
@@ -37,16 +37,16 @@ CREATE TABLE messages (
 
 func TestMessageRepositoryImpl_CreateAndGetMessageHistoryInRoom(t *testing.T) {
 	db := setupTestDB(t)
-	repo := sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
+	repo := sqlitemsgrepo.NewMessageRepositoryImpl(&sqlitemsgrepo.NewMessageRepositoryImplParams{DB: db})
 
 	// メッセージを作成
 	now := time.Now().UTC()
 	message := entity.NewMessage(entity.MessageParams{
-		ID: entity.MessageID("test-public-id"),
-		RoomID:   entity.RoomID("test-room-id"),
-		UserID:   entity.UserID("test-user-id"),
-		Content:  "Hello, World!",
-		SentAt:   now,
+		ID:      entity.MessageID("test-public-id"),
+		RoomID:  entity.RoomID("test-room-id"),
+		UserID:  entity.UserID("test-user-id"),
+		Content: "Hello, World!",
+		SentAt:  now,
 	})
 
 	err := repo.CreateMessage(context.Background(), message)
