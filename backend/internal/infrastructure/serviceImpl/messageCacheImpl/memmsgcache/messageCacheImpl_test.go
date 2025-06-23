@@ -1,4 +1,4 @@
-package inmemorymsgcacheimpl_test
+package memmsgcache_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	"example.com/infrahandson/internal/domain/service"
-	inmemorymsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/Inmemory"
+	"example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/memmsgcache"
 	mock_repository "example.com/infrahandson/test/mocks/domain/repository"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -18,7 +18,7 @@ import (
 func TestMessageCache(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockMsgRepo := mock_repository.NewMockMessageRepository(ctrl)
-	cache := inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{
+	cache := memmsgcache.NewMessageCacheService(&memmsgcache.NewMessageCacheServiceParams{
 		MsgRepo: mockMsgRepo,
 	})
 	roomID := entity.RoomID("test_room")

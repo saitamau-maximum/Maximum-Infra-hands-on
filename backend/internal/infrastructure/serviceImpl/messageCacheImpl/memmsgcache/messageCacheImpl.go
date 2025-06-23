@@ -1,4 +1,4 @@
-package inmemorymsgcacheimpl
+package memmsgcache
 
 import (
 	"container/list"

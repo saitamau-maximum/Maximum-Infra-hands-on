@@ -1,5 +1,5 @@
 // s3を使用したアイコン保存の実装
-package s3iconstoreimpl
+package s3iconsvc
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package localiconstoreimpl
+package localiconsvc
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package inmemorywsmanagerimpl
+package memwsmanager
 
 import (
 	"context"

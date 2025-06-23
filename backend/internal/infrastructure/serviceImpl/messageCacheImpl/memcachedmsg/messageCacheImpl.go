@@ -1,4 +1,4 @@
-package memcachedmsgcacheimpl
+package memcachedmsg
 
 import (
 	"bytes"

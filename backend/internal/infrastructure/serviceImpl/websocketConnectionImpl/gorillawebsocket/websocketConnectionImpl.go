@@ -1,4 +1,4 @@
-package gorillawsconnectionimpl
+package gorillawebsocket
 
 import (
 	"errors"
