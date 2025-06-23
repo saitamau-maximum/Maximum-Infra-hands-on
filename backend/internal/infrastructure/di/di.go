@@ -5,21 +5,15 @@ import (
 	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	"example.com/infrahandson/internal/interface/gateway"
-	"example.com/infrahandson/internal/interface/handler/messagehandler"
-	"example.com/infrahandson/internal/interface/handler/roomhandler"
-	"example.com/infrahandson/internal/interface/handler/userhandler"
-	"example.com/infrahandson/internal/interface/handler/websockethandler"
+	"example.com/infrahandson/internal/interface/handler"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
 )
 
 type Dependencies struct {
-	DB          *sqlx.DB
-	Cache       *memcache.Client
-	UserHandler userhandler.UserHandlerInterface
-	RoomHandler roomhandler.RoomHandlerInterface
-	WsHandler   websockethandler.WebSocketHandlerInterface
-	MsgHandler  messagehandler.MessageHandlerInterface
+	DB      *sqlx.DB
+	Cache   *memcache.Client
+	Handler *handler.Handler
 }
 
 func InitializeDependencies(cfg *config.Config) *Dependencies {
@@ -71,6 +65,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	services, cacheClient := ServiceInitialize(cfg, repositories)
 
 	// UseCaseの初期化
+// 詳細は internal/infrastructure/di/usecase.go を参照
 	usecases := UseCaseInitialize(&UseCaseDependency{
 		Adapter: adapters,
 		Factory: factorys,
@@ -79,36 +74,16 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	})
 
 	// Handlerの初期化
-	userHandler := userhandler.NewUserHandler(userhandler.NewUserHandlerParams{
-		UserUseCase:   usecases.UserUseCase,
-		UserIDFactory: factorys.UserIDFactory,
-		Logger:        adapters.LoggerAdapter,
-	})
-	roomHandler := roomhandler.NewRoomHandler(roomhandler.NewRoomHandlerParams{
-		RoomUseCase:   usecases.RoomUseCase,
-		UserIDFactory: factorys.UserIDFactory,
-		RoomIDFactory: factorys.RoomIDFactory,
-		Logger:        adapters.LoggerAdapter,
-	})
-	wsHandler := websockethandler.NewWebSocketHandler(websockethandler.NewWebSocketHandlerParams{
-		WsUseCase:     usecases.WebsocketUseCase,
-		WsUpgrader:    adapters.Upgrader,
-		WsConnFactory: factorys.WsConnFactory,
-		UserIDFactory: factorys.UserIDFactory,
-		RoomIDFactory: factorys.RoomIDFactory,
-		Logger:        adapters.LoggerAdapter,
-	})
-	msgHandler := messagehandler.NewMessageHandler(messagehandler.NewMessageHandlerParams{
-		MsgUseCase: usecases.MessageUseCase,
-		Logger:     adapters.LoggerAdapter,
+	// 詳細は internal/infrastructure/di/handler.go を参照
+	handlers := HandlerInitialize(&HandlerInitializeParams{
+		Adapter: adapters,
+		Factory: factorys,
+		UseCase: usecases,
 	})
 
 	return &Dependencies{
-		DB:          db,
-		Cache:       cacheClient,
-		UserHandler: userHandler,
-		RoomHandler: roomHandler,
-		WsHandler:   wsHandler,
-		MsgHandler:  msgHandler,
+		DB:      db,
+		Cache:   cacheClient,
+		Handler: handlers,
 	}
 }

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"example.com/infrahandson/config"
+	"example.com/infrahandson/internal/interface/handler"
 	"example.com/infrahandson/internal/interface/handler/messagehandler"
 	"example.com/infrahandson/internal/interface/handler/roomhandler"
 	"example.com/infrahandson/internal/interface/handler/userhandler"
@@ -13,19 +14,16 @@ func SetupRoutes(
 	e *echo.Echo,
 	cfg *config.Config,
 	AuthMiddleware echo.MiddlewareFunc,
-	userHandler userhandler.UserHandlerInterface,
-	roomHandler roomhandler.RoomHandlerInterface,
-	wsHandler websockethandler.WebSocketHandlerInterface,
-	msgHansler messagehandler.MessageHandlerInterface,
+	handler *handler.Handler,
 ) {
 	userGroup := e.Group("/api/user")
-	RegisterUserRoutes(userGroup, userHandler, AuthMiddleware)
+	RegisterUserRoutes(userGroup, handler.UserHandler, AuthMiddleware)
 	roomGroup := e.Group("/api/room", AuthMiddleware)
-	RegisterRoomRoutes(roomGroup, roomHandler)
+	RegisterRoomRoutes(roomGroup, handler.RoomHandler)
 	wsGroup := e.Group("/api/ws", AuthMiddleware)
-	RegisterWsRoutes(wsGroup, wsHandler)
+	RegisterWsRoutes(wsGroup, handler.WsHandler)
 	msgGroup := e.Group("/api/message", AuthMiddleware)
-	RegisterMsgRoutes(msgGroup, msgHansler)
+	RegisterMsgRoutes(msgGroup, handler.MsgHandler)
 }
 
 // RegisterUserRoutes はユーザー関連のルートを登録する
