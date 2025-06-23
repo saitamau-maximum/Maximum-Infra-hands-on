@@ -75,7 +75,7 @@ func (h *WebSocketHandler) ConnectToChatRoom(c echo.Context) error {
 			})
 			if err != nil {
 				h.Logger.Error("connection closed", err)
-				break
+				return
 			}
 		}
 	}()
