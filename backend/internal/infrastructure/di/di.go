@@ -9,10 +9,6 @@ import (
 	"example.com/infrahandson/internal/interface/handler/roomhandler"
 	"example.com/infrahandson/internal/interface/handler/userhandler"
 	"example.com/infrahandson/internal/interface/handler/websockethandler"
-	"example.com/infrahandson/internal/usecase/messagecase"
-	"example.com/infrahandson/internal/usecase/roomcase"
-	"example.com/infrahandson/internal/usecase/usercase"
-	"example.com/infrahandson/internal/usecase/websocketcase"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jmoiron/sqlx"
 )
@@ -55,7 +51,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
 		})
 	}
-	
+
 	db, err := initializer.Init()
 	if err != nil {
 		panic("failed to initialize database: " + err.Error())
@@ -75,57 +71,35 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	services, cacheClient := ServiceInitialize(cfg, repositories)
 
 	// UseCaseの初期化
-	userUseCase := usercase.NewUserUseCase(usercase.NewUserUseCaseParams{
-		UserRepo:      repositories.UserRepository,
-		Hasher:        adapters.HasherAdapter,
-		TokenSvc:      adapters.TokenServiceAdapter,
-		IconSvc:       services.IconStoreService,
-		UserIDFactory: factorys.UserIDFactory,
-	})
-	roomUseCase := roomcase.NewRoomUseCase(roomcase.NewRoomUseCaseParams{
-		RoomRepo:      repositories.RoomRepository,
-		UserRepo:      repositories.UserRepository,
-		RoomIDFactory: factorys.RoomIDFactory,
-	})
-	wsUseCase := websocketcase.NewWebsocketUseCase(websocketcase.NewWebsocketUseCaseParams{
-		UserRepo:         repositories.UserRepository,
-		RoomRepo:         repositories.RoomRepository,
-		MsgRepo:          repositories.MessageRepository,
-		MsgCache:         services.MessageCacheService,
-		WsClientRepo:     repositories.WsClientRepository,
-		WebsocketManager: services.WebsocketManager,
-		MsgIDFactory:     factorys.MessageIDFactory,
-		ClientIDFactory:  factorys.WsClientIDFactory,
-	})
-	msgUseCase := messagecase.NewMessageUseCase(messagecase.NewMessageUseCaseParams{
-		MsgRepo:  repositories.MessageRepository,
-		MsgCache: services.MessageCacheService,
-		RoomRepo: repositories.RoomRepository,
-		UserRepo: repositories.UserRepository,
+	usecases := UseCaseInitialize(&UseCaseDependency{
+		Adapter: adapters,
+		Factory: factorys,
+		Repo:    repositories,
+		Svc:     services,
 	})
 
 	// Handlerの初期化
 	userHandler := userhandler.NewUserHandler(userhandler.NewUserHandlerParams{
-		UserUseCase:   userUseCase,
+		UserUseCase:   usecases.UserUseCase,
 		UserIDFactory: factorys.UserIDFactory,
 		Logger:        adapters.LoggerAdapter,
 	})
 	roomHandler := roomhandler.NewRoomHandler(roomhandler.NewRoomHandlerParams{
-		RoomUseCase:   roomUseCase,
+		RoomUseCase:   usecases.RoomUseCase,
 		UserIDFactory: factorys.UserIDFactory,
 		RoomIDFactory: factorys.RoomIDFactory,
 		Logger:        adapters.LoggerAdapter,
 	})
 	wsHandler := websockethandler.NewWebSocketHandler(websockethandler.NewWebSocketHandlerParams{
-		WsUseCase:     wsUseCase,
+		WsUseCase:     usecases.WebsocketUseCase,
 		WsUpgrader:    adapters.Upgrader,
 		WsConnFactory: factorys.WsConnFactory,
 		UserIDFactory: factorys.UserIDFactory,
 		RoomIDFactory: factorys.RoomIDFactory,
 		Logger:        adapters.LoggerAdapter,
 	})
-	msgHansler := messagehandler.NewMessageHandler(messagehandler.NewMessageHandlerParams{
-		MsgUseCase: msgUseCase,
+	msgHandler := messagehandler.NewMessageHandler(messagehandler.NewMessageHandlerParams{
+		MsgUseCase: usecases.MessageUseCase,
 		Logger:     adapters.LoggerAdapter,
 	})
 
@@ -135,6 +109,6 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		UserHandler: userHandler,
 		RoomHandler: roomHandler,
 		WsHandler:   wsHandler,
-		MsgHandler:  msgHansler,
+		MsgHandler:  msgHandler,
 	}
 }
