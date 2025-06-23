@@ -22,7 +22,12 @@ const (
 	DBTypeSQLite DBType = "sqlite"
 )
 
-func RepoistoryInitialize(
+// RepositoryInitialize はリポジトリの初期化を行います。
+// dbType でデータベースの種類を指定し、
+// db でデータベース接続を受け取ります。
+// 返り値は repository.Repository で、
+// これはリポジトリ層をまとめた構造体です（詳細：internal/domain/repository/repository.go）。
+func RepositoryInitialize(
 	dbType DBType,
 	db *sqlx.DB,
 ) repository.Repository {
@@ -31,6 +36,7 @@ func RepoistoryInitialize(
 	var msgRepository repository.MessageRepository
 
 	// Repositoryの初期化
+	// dbType に応じて適した種類のDBにリポジトリを初期化
 	switch dbType {
 	case DBTypeMySQL:
 		userRepository = mysqluserrepo.NewUserRepositoryImpl(&mysqluserrepo.NewUserRepositoryImplParams{DB: db})

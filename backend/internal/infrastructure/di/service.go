@@ -17,6 +17,12 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
+// ServiceInitialize はサービスの初期化を行います。
+// cfg でアプリケーション設定を受け取り、
+// repo でリポジトリを受け取ります。
+// 返り値は service.Service と *memcache.Client です。
+// service.Service はサービス層をまとめた構造体（詳細：internal/domain/service/service.go）で、
+// *memcache.Client は Memcached クライアントです。
 func ServiceInitialize(
 	cfg *config.Config,
 	repo repository.Repository,

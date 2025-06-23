@@ -5,6 +5,8 @@ import (
 	"example.com/infrahandson/internal/interface/factory"
 )
 
+// InitializeFactory はファクトリーの初期化を行います。
+// 返り値 factory.Factory はファクトリー層をまとめた構造体（詳細：internal/interface/factory/factory.go）です。
 func InitializeFactory() factory.Factory {
 	// Factoryの初期化
 	userIDFactory := factoryimpl.NewUserIDFactory()

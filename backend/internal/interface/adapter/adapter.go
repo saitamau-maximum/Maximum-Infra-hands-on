@@ -2,8 +2,15 @@
 package adapter
 
 type Adapter struct {
+	// HasherAdapter はハッシュ化を行うアダプターです。
 	HasherAdapter HasherAdapter
+
+	// TokenServiceAdapter はトークンの生成や検証を行うアダプターです。
 	TokenServiceAdapter TokenServiceAdapter
+
+	// LoggerAdapter はロギングを行うアダプターです。
 	LoggerAdapter LoggerAdapter
+
+	// Upgrader はWebSocketのアップグレードを行うアダプターです。
 	Upgrader WebSocketUpgraderAdapter
 }

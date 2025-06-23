@@ -28,8 +28,12 @@ type Dependencies struct {
 
 func InitializeDependencies(cfg *config.Config) *Dependencies {
 
+	// アダプターの初期化
+	// 詳細は internal/infrastructure/di/adapter.go を参照
 	adapters := InitializeAdapter(cfg)
 
+	// Factoryの初期化
+	// 詳細は internal/infrastructure/di/factory.go を参照
 	factorys := InitializeFactory()
 
 	// DBの初期化
@@ -51,6 +55,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
 		})
 	}
+	
 	db, err := initializer.Init()
 	if err != nil {
 		panic("failed to initialize database: " + err.Error())
@@ -62,9 +67,11 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	}
 
 	// Repositoryの初期化
-	repositories := RepoistoryInitialize(dbType, db)
+	// 詳細は internal/infrastructure/di/repository.go を参照
+	repositories := RepositoryInitialize(dbType, db)
 
 	// Serviceの初期化
+	// 詳細は internal/infrastructure/di/service.go を参照
 	services, cacheClient := ServiceInitialize(cfg, repositories)
 
 	// UseCaseの初期化
