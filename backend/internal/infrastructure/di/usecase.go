@@ -6,16 +6,17 @@ import (
 	"example.com/infrahandson/internal/interface/adapter"
 	"example.com/infrahandson/internal/interface/factory"
 	"example.com/infrahandson/internal/usecase"
+	"example.com/infrahandson/internal/usecase/messagecase"
 	"example.com/infrahandson/internal/usecase/roomcase"
 	"example.com/infrahandson/internal/usecase/usercase"
 	"example.com/infrahandson/internal/usecase/websocketcase"
 )
 
 type UseCaseDependency struct {
-	Adapter adapter.Adapter
-	Factory factory.Factory
-	Repo    repository.Repository
-	Svc     service.Service
+	Adapter *adapter.Adapter
+	Factory *factory.Factory
+	Repo    *repository.Repository
+	Svc     *service.Service
 }
 
 // UseCaseInitialize はUseCase層の初期化を行います。
@@ -45,6 +46,12 @@ func UseCaseInitialize(
 			WebsocketManager: dep.Svc.WebsocketManager,
 			MsgIDFactory:     dep.Factory.MessageIDFactory,
 			ClientIDFactory:  dep.Factory.WsClientIDFactory,
+		}),
+		MessageUseCase: messagecase.NewMessageUseCase(messagecase.NewMessageUseCaseParams{
+			MsgRepo:  dep.Repo.MessageRepository,
+			MsgCache: dep.Svc.MessageCacheService,
+			RoomRepo: dep.Repo.RoomRepository,
+			UserRepo: dep.Repo.UserRepository,
 		}),
 	}
 }
