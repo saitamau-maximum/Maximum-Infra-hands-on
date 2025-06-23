@@ -25,8 +25,8 @@ import (
 // *memcache.Client は Memcached クライアントです。
 func ServiceInitialize(
 	cfg *config.Config,
-	repo repository.Repository,
-) (service.Service, *memcache.Client) {
+	repo *repository.Repository,
+) (*service.Service, *memcache.Client) {
 	// Serviceの初期化
 	wsManager := memwsmanager.NewInMemoryWebSocketManager()
 	var msgCache service.MessageCacheService
@@ -84,7 +84,7 @@ func ServiceInitialize(
 		})
 	}
 
-	return service.Service{
+	return &service.Service{
 		IconStoreService: iconSvc,
 		MessageCacheService: msgCache,
 		WebsocketManager: wsManager,

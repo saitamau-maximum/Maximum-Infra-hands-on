@@ -30,7 +30,7 @@ const (
 func RepositoryInitialize(
 	dbType DBType,
 	db *sqlx.DB,
-) repository.Repository {
+) *repository.Repository {
 	var userRepository repository.UserRepository
 	var roomRepository repository.RoomRepository
 	var msgRepository repository.MessageRepository
@@ -50,7 +50,7 @@ func RepositoryInitialize(
 
 	wsClientRepository := memwsclientrepo.NewInMemoryWebsocketClientRepository(memwsclientrepo.NewInMemoryWebsocketClientRepositoryParams{})
 
-	return repository.Repository{
+	return &repository.Repository{
 		UserRepository:     userRepository,
 		RoomRepository:     roomRepository,
 		MessageRepository:  msgRepository,
