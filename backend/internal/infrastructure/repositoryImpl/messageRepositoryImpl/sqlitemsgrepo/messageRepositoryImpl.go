@@ -1,4 +1,4 @@
-package sqlitemsgrepoimpl
+package sqlitemsgrepo
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package sqliteroomrepoimpl
+package sqliteroomrepo
 
 import (
 	"context"

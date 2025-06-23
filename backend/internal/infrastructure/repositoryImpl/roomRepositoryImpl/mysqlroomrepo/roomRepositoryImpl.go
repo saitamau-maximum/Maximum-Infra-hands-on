@@ -1,4 +1,4 @@
-package mysqlroomrepoimpl
+package mysqlroomrepo
 
 import (
 	"context"

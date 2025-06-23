@@ -1,4 +1,4 @@
-package sqliteuserrepoimpl_test
+package sqliteuserrepo_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
-	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
+	"example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqliteuserrepo"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -54,7 +54,7 @@ func TestSaveUser(t *testing.T) {
 	defer db.Close()
 
 	// UserRepositoryをインスタンス化
-	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
+	userRepo := sqliteuserrepo.NewUserRepositoryImpl(&sqliteuserrepo.NewUserRepositoryImplParams{DB: db})
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{
@@ -85,7 +85,7 @@ func TestGetUserByEmail(t *testing.T) {
 	defer db.Close()
 
 	// UserRepositoryをインスタンス化
-	userRepo := sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
+	userRepo := sqliteuserrepo.NewUserRepositoryImpl(&sqliteuserrepo.NewUserRepositoryImplParams{DB: db})
 
 	// テスト用ユーザーを作成
 	user := entity.NewUser(entity.UserParams{

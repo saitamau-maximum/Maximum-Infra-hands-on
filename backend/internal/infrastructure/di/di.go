@@ -4,24 +4,11 @@ import (
 	"fmt"
 
 	"example.com/infrahandson/config"
-	"example.com/infrahandson/internal/domain/repository"
 	"example.com/infrahandson/internal/domain/service"
-	bcryptadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/hasherAdapterImpl/bcrypt"
-	fmtloggerimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/loggerAdapterImpl/fmtLogger"
-	tokenadapterimpl "example.com/infrahandson/internal/infrastructure/adapterImpl/tokenServiceAdapterImpl/JWT"
-	gorillawebsocketupgraderImpl "example.com/infrahandson/internal/infrastructure/adapterImpl/upgraderAdapterImpl/gorillawebsocket"
-	factoryimpl "example.com/infrahandson/internal/infrastructure/factoryImpl"
 	"example.com/infrahandson/internal/infrastructure/gatewayImpl/cache"
 	mysqlgatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/mysql"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
 	"example.com/infrahandson/internal/infrastructure/gatewayImpl/s3client"
-	mysqlmsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/mysql"
-	sqlitemsgrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/messageRepositoryImpl/sqlite"
-	mysqlroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/mysql"
-	sqliteroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/sqlite"
-	mysqluserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/mysql"
-	sqliteuserrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/userRepositoryImpl/sqlite"
-	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
 	s3iconstoreimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/iconStoreServiceImpl/S3"
 	localiconstoreimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/iconStoreServiceImpl/local"
 	inmemorymsgcacheimpl "example.com/infrahandson/internal/infrastructure/serviceImpl/messageCacheImpl/Inmemory"
@@ -51,20 +38,25 @@ type Dependencies struct {
 }
 
 func InitializeDependencies(cfg *config.Config) *Dependencies {
-	// Loggerの設定
-	logger := fmtloggerimpl.NewFmtLogger()
+
+	adapters := InitializeAdapter(cfg)
+
+	factorys := InitializeFactory()
 
 	// DBの初期化
 	var initializer gateway.DBInitializer
+	var dbType DBType
 	// initializerの作成
 	if cfg.MySQLDSN != nil {
-		// MySQL用のDSNが設定されている場合、MySQL用の初期化処理を行う
+		// MySQL用のDSNが設定されている場合、MySQL用のイニシャライザーを用意
+		dbType = DBTypeMySQL
 		initializer = mysqlgatewayimpl.NewMySQLInitializer(&mysqlgatewayimpl.NewMySQLInitializerParams{
 			DSN:            cfg.MySQLDSN,
 			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/mysql/migrations",
 		})
 	} else {
-		// SQLite用の初期化処理を行う
+		// SQLite用のイニシャライザーを用意
+		dbType = DBTypeSQLite
 		initializer = sqlitegatewayimpl.NewSQLiteInitializer(&sqlitegatewayimpl.NewSQLiteInitializerParams{
 			Path:           cfg.DBPath,
 			MigrationsPath: "./internal/infrastructure/gatewayImpl/db/sqlite/migrations",
@@ -80,30 +72,8 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		panic("failed to initialize schema: " + err.Error())
 	}
 
-	// Factoryの初期化
-	userIDFactory := factoryimpl.NewUserIDFactory()
-	roomIDFactory := factoryimpl.NewRoomIDFactory()
-	MsgIDFactory := factoryimpl.NewMessageIDFactory()
-	clientDFactory := factoryimpl.NewWsClientIDFactory()
-	upgrader := gorillawebsocketupgraderImpl.NewGorillaWebSocketUpgrader()
-	wsConnFactory := factoryimpl.NewWebSocketConnectionFactoryImpl()
-
-	var userRepository repository.UserRepository
-	var roomRepository repository.RoomRepository
-	var msgRepository repository.MessageRepository
-
 	// Repositoryの初期化
-	if cfg.MySQLDSN != nil {
-		userRepository = mysqluserrepoimpl.NewUserRepositoryImpl(&mysqluserrepoimpl.NewUserRepositoryImplParams{DB: db})
-		roomRepository = mysqlroomrepoimpl.NewRoomRepositoryImpl(&mysqlroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
-		msgRepository = mysqlmsgrepoimpl.NewMessageRepositoryImpl(&mysqlmsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
-	} else {
-		userRepository = sqliteuserrepoimpl.NewUserRepositoryImpl(&sqliteuserrepoimpl.NewUserRepositoryImplParams{DB: db})
-		roomRepository = sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{DB: db})
-		msgRepository = sqlitemsgrepoimpl.NewMessageRepositoryImpl(&sqlitemsgrepoimpl.NewMessageRepositoryImplParams{DB: db})
-	}
-
-	wsClientRepository := inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepository(inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepositoryParams{})
+	repositories := RepoistoryInitialize(dbType, db)
 
 	// Serviceの初期化
 	wsManager := inmemorywsmanagerimpl.NewInMemoryWebSocketManager()
@@ -119,11 +89,11 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		}
 		fmt.Println("Memcached client initialized successfully")
 		msgCache = memcachedmsgcacheimpl.NewMessageCacheService(&memcachedmsgcacheimpl.NewMessageCacheServiceParams{
-			MsgRepo: msgRepository,
+			MsgRepo: repositories.MessageRepository,
 			Client:  cacheClient,
 		})
 	} else {
-		msgCache = inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{MsgRepo: msgRepository})
+		msgCache = inmemorymsgcacheimpl.NewMessageCacheService(&inmemorymsgcacheimpl.NewMessageCacheServiceParams{MsgRepo: repositories.MessageRepository})
 	}
 
 	var iconSvc service.IconStoreService
@@ -131,7 +101,7 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 	if isS3 {
 		var StorageClient *s3.Client
 		if Type == "aws_s3" {
-
+			// TODO: AWS S3のクライアントを初期化
 		} else if Type == "minio" {
 			StorageClient = s3client.NewMinIOClient(s3client.NewMinIOClientParams{
 				Endpoint:  *cfg.IconStoreEndpoint,
@@ -161,68 +131,59 @@ func InitializeDependencies(cfg *config.Config) *Dependencies {
 		})
 	}
 
-	// AdapterとServiceの初期化
-	hasher := bcryptadapterimpl.NewHasherAdapter(bcryptadapterimpl.NewHasherAddapterParams{
-		Cost: cfg.HashCost,
-	})
-	tokenService := tokenadapterimpl.NewTokenServiceAdapter(tokenadapterimpl.NewTokenServiceAdapterParams{
-		SecretKey:     cfg.SecretKey,
-		ExpireMinutes: int(cfg.TokenExpiry),
-	})
-
 	// UseCaseの初期化
 	userUseCase := usercase.NewUserUseCase(usercase.NewUserUseCaseParams{
-		UserRepo:      userRepository,
-		Hasher:        hasher,
-		TokenSvc:      tokenService,
+		UserRepo:      repositories.UserRepository,
+		Hasher:        adapters.HasherAdapter,
+		TokenSvc:      adapters.TokenServiceAdapter,
 		IconSvc:       iconSvc,
-		UserIDFactory: userIDFactory,
+		UserIDFactory: factorys.UserIDFactory,
 	})
 	roomUseCase := roomcase.NewRoomUseCase(roomcase.NewRoomUseCaseParams{
-		RoomRepo:      roomRepository,
-		UserRepo:      userRepository,
-		RoomIDFactory: roomIDFactory,
+		RoomRepo:      repositories.RoomRepository,
+		UserRepo:      repositories.UserRepository,
+		RoomIDFactory: factorys.RoomIDFactory,
 	})
 	wsUseCase := websocketcase.NewWebsocketUseCase(websocketcase.NewWebsocketUseCaseParams{
-		UserRepo:         userRepository,
-		RoomRepo:         roomRepository,
-		MsgRepo:          msgRepository,
+		UserRepo:         repositories.UserRepository,
+		RoomRepo:         repositories.RoomRepository,
+		MsgRepo:          repositories.MessageRepository,
 		MsgCache:         msgCache,
-		WsClientRepo:     wsClientRepository,
+		WsClientRepo:     repositories.WsClientRepository,
 		WebsocketManager: wsManager,
-		MsgIDFactory:     MsgIDFactory,
-		ClientIDFactory:  clientDFactory,
+		MsgIDFactory:     factorys.MessageIDFactory,
+		ClientIDFactory:  factorys.WsClientIDFactory,
 	})
 	msgUseCase := messagecase.NewMessageUseCase(messagecase.NewMessageUseCaseParams{
-		MsgRepo:  msgRepository,
+		MsgRepo:  repositories.MessageRepository,
 		MsgCache: msgCache,
-		RoomRepo: roomRepository,
-		UserRepo: userRepository,
+		RoomRepo: repositories.RoomRepository,
+		UserRepo: repositories.UserRepository,
 	})
 
 	// Handlerの初期化
 	userHandler := userhandler.NewUserHandler(userhandler.NewUserHandlerParams{
 		UserUseCase:   userUseCase,
-		UserIDFactory: userIDFactory,
-		Logger:        logger,
+		UserIDFactory: factorys.UserIDFactory,
+		Logger:        adapters.LoggerAdapter,
 	})
 	roomHandler := roomhandler.NewRoomHandler(roomhandler.NewRoomHandlerParams{
 		RoomUseCase:   roomUseCase,
-		UserIDFactory: userIDFactory,
-		RoomIDFactory: roomIDFactory,
-		Logger:        logger,
+		UserIDFactory: factorys.UserIDFactory,
+		RoomIDFactory: factorys.RoomIDFactory,
+		Logger:        adapters.LoggerAdapter,
 	})
 	wsHandler := websockethandler.NewWebSocketHandler(websockethandler.NewWebSocketHandlerParams{
 		WsUseCase:     wsUseCase,
-		WsUpgrader:    upgrader,
-		WsConnFactory: wsConnFactory,
-		UserIDFactory: userIDFactory,
-		RoomIDFactory: roomIDFactory,
-		Logger:        logger,
+		WsUpgrader:    adapters.Upgrader,
+		WsConnFactory: factorys.WsConnFactory,
+		UserIDFactory: factorys.UserIDFactory,
+		RoomIDFactory: factorys.RoomIDFactory,
+		Logger:        adapters.LoggerAdapter,
 	})
 	msgHansler := messagehandler.NewMessageHandler(messagehandler.NewMessageHandlerParams{
 		MsgUseCase: msgUseCase,
-		Logger:     logger,
+		Logger:     adapters.LoggerAdapter,
 	})
 
 	return &Dependencies{

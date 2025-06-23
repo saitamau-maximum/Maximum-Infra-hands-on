@@ -1,11 +1,11 @@
-package inmemorywsclientrepoimpl_test
+package memwsclientrepo_test
 
 import (
 	"context"
 	"testing"
 
 	"example.com/infrahandson/internal/domain/entity"
-	inmemorywsclientrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/InMemory"
+	"example.com/infrahandson/internal/infrastructure/repositoryImpl/websocketClientRepositoryImpl/memwsclientrepo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +18,7 @@ func newTestClient(roomID entity.RoomID, userID entity.UserID) *entity.Websocket
 }
 
 func TestInMemoryWebsocketClientRepository(t *testing.T) {
-	repo := inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepository(inmemorywsclientrepoimpl.NewInMemoryWebsocketClientRepositoryParams{})
+	repo := memwsclientrepo.NewInMemoryWebsocketClientRepository(memwsclientrepo.NewInMemoryWebsocketClientRepositoryParams{})
 
 	roomID := entity.RoomID("test-room")
 	userID := entity.UserID("test-user")

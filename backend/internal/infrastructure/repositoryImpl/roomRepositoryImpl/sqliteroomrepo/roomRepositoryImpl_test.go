@@ -1,4 +1,4 @@
-package sqliteroomrepoimpl_test
+package sqliteroomrepo_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"example.com/infrahandson/internal/domain/entity"
 	sqlitegatewayimpl "example.com/infrahandson/internal/infrastructure/gatewayImpl/db/sqlite"
-	sqliteroomrepoimpl "example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/sqlite"
+	"example.com/infrahandson/internal/infrastructure/repositoryImpl/roomRepositoryImpl/sqliteroomrepo"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -52,7 +52,7 @@ func TestRoomRepositoryImpl_GetUsersInRoom(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	repo := sqliteroomrepoimpl.NewRoomRepositoryImpl(&sqliteroomrepoimpl.NewRoomRepositoryImplParams{
+	repo := sqliteroomrepo.NewRoomRepositoryImpl(&sqliteroomrepo.NewRoomRepositoryImplParams{
 		DB: db,
 	})
 

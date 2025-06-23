@@ -1,4 +1,4 @@
-package sqliteuserrepoimpl
+package mysqluserrepo
 
 import (
 	"context"
@@ -38,11 +38,17 @@ func (r *UserRepositoryImpl) SaveUser(ctx context.Context, user *entity.User) (*
 	if user == nil {
 		return nil, errors.New("user cannot be nil")
 	}
-
-	_, err := r.db.ExecContext(ctx, `
+	// UserID -> UUID
+	id := user.GetID()
+	idUUID, err := id.UserID2UUID()
+	if err != nil {
+		return nil, err
+	}
+	// UUID -> BIN
+	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO users (id, name, email, password_hash, created_at)
-		VALUES (?, ?, ?, ?, ?)`,
-		string(user.GetID()),
+		VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`,
+		idUUID,
 		user.GetName(),
 		user.GetEmail(),
 		user.GetPasswdHash(),
@@ -57,13 +63,18 @@ func (r *UserRepositoryImpl) SaveUser(ctx context.Context, user *entity.User) (*
 
 func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id entity.UserID) (*entity.User, error) {
 	if id == "" {
-		return nil, errors.New("id cannot be 0")
+		return nil, errors.New("id cannot be empty")
 	}
-
+	// UserID -> UUID
+	idUUID, err := id.UserID2UUID()
+	if err != nil {
+		return nil, err
+	}
+	// UUID -> BIN
 	row := r.db.QueryRowxContext(ctx, `
-		SELECT id, name, email, password_hash, created_at, updated_at
+		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
-		WHERE id = ?`, id)
+		WHERE id = UUID_TO_BIN(?)`, idUUID)
 
 	var userModel model.UserModel
 	if err := row.StructScan(&userModel); err != nil {
@@ -79,7 +90,7 @@ func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	}
 
 	row := r.db.QueryRowxContext(ctx, `
-		SELECT id, name, email, password_hash, created_at, updated_at
+		SELECT BIN_TO_UUID(id) AS id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)
 

@@ -1,4 +1,4 @@
-package inmemorywsclientrepoimpl
+package memwsclientrepo
 
 import (
 	"context"
