@@ -1,3 +1,5 @@
+// ID生成のインターフェース
+// 具体実装はbackend/internal/infrastructure/factoryImpl/idFactoryImpl.go
 package factory
 
 import "example.com/infrahandson/internal/domain/entity"

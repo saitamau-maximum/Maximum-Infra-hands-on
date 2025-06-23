@@ -1,3 +1,5 @@
+// メッセージキャッシュのロジックインターフェース
+// 具体実装は/infrastructure/messageCacheImpl
 package service
 
 import (
@@ -13,13 +15,14 @@ import (
 const RECENT_MESSAGE_LIMIT = 20
 
 type MessageCacheService interface {
-	// 指定したルームの最近のメッセージを取得（RECENT_MESSAGE_LIMIT件）
+	// GetRecentMessage は指定したルームの最近のメッセージを取得（RECENT_MESSAGE_LIMIT件）
 	GetRecentMessages(ctx context.Context, roomID entity.RoomID) ([]*entity.Message, error)
-	// メッセージをキャッシュに追加（RECENT_MESSAGE_LIMIT件を超えた場合は古いものから削除）
+
+	// AddMessage はメッセージをキャッシュに追加（RECENT_MESSAGE_LIMIT件を超えた場合は古いものから削除）
 	AddMessage(ctx context.Context, roomID entity.RoomID, message *entity.Message) error
 }
 
-// デフォルトの最近のメッセージLimit数を取得
+// DefaultRecentMessageLimit はデフォルトの最近のメッセージLimit数を取得
 func DefaultRecentMessageLimit() int {
 	return RECENT_MESSAGE_LIMIT
 }

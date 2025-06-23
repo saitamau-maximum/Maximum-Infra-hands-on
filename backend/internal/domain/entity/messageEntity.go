@@ -1,3 +1,4 @@
+// チャットメッセージのエンティティ
 package entity
 
 import "time"
@@ -10,6 +11,7 @@ type Message struct {
 	sentAt  time.Time // 送信日時
 }
 
+// メッセージ作成の時のパラメータ
 type MessageParams struct {
 	ID      MessageID
 	RoomID  RoomID
@@ -28,6 +30,7 @@ func NewMessage(params MessageParams) *Message {
 	}
 }
 
+// Getters for Message fields
 func (m *Message) GetID() MessageID {
 	return m.id
 }

@@ -1,3 +1,5 @@
+// アダプターをサービスに変換するファクトリインターフェース
+// 具体実装はbackend/internal/infrastructure/factoryImpl/wsConnectionFactoryImpl.go
 package factory
 
 import (

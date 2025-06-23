@@ -1,3 +1,4 @@
+// 部屋に属するコネクションの管理とメッセージ送信ロジックのインターフェース
 package service
 
 import (
@@ -6,13 +7,13 @@ import (
 	"example.com/infrahandson/internal/domain/entity"
 )
 
+// コネクションの抽象化
 type WebSocketConnection interface {
 	ReadMessage() (*entity.Message, error)
 	WriteMessage(*entity.Message) error
 	Close() error
 }
 
-// 内部的にBroadcaster（Adapter）を使う予定。chan と Redisの差し替えを可能にしたい
 type WebsocketManager interface {
 	// コネクションの登録・削除
 	Register(ctx context.Context, conn WebSocketConnection, userID entity.UserID, roomID entity.RoomID) error

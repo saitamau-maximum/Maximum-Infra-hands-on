@@ -1,4 +1,4 @@
-package bcryptadapterimpl
+package bcrypt
 
 import (
 	"errors"
