@@ -166,12 +166,11 @@ sudo cp -r ~/Maximum-Infra-hands-on/frontend/dist/* /var/www/InfraHandsOn/
 
 できたら、中の必要な部分を埋めていきましょう。
 
-`root`の部分は、例のままで大丈夫です。
-
 `server_name`の部分は`localhost`にします。これはポートフォワーディングによってリクエストurlがlocalhostになってしまうからです。
 
 外部サーバーなどにデプロイするときは、この部分を自身のIPアドレスにします。
 
+他の部分は、例と同じようにするとハンズオンが動きます。
 
 おけたら、
 ```bash
