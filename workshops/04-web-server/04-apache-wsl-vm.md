@@ -77,7 +77,7 @@ sudo systemctl enable apache2
 正常にできたかどうか確認します。
 
 ```bash
-sudo systemclt status apache2
+sudo systemctl status apache2
 ```
 結果として、
 ```bash
