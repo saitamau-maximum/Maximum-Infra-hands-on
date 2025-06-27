@@ -112,7 +112,7 @@ sudo systemctl start nginx
 この２つの問題をNginxを使って改善していきましょう。
 
 ### 準備を整えましょう。
-まずは、nginxに必要なポートを開けて、不必要なポートを閉じましょう。
+まずは、Nginxに必要なポートを開けて、不必要なポートを閉じましょう。
 ```bash 
 sudo ufw allow 80,443/tcp
 sudo ufw delete allow 5173
