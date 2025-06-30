@@ -117,7 +117,7 @@ ssh -L 8080:localhost:8080 -L 5173:localhost:5173 [user]@[IP]
 
 `~/Maximum-Infra-hands-on`で
 ```bash
-bash ./script/start-dev
+bash ./scripts/start-dev
 ```
 と実行してください。
 そのIPアドレスの5173番ポートに訪れることで、アプリを見ることができます。
