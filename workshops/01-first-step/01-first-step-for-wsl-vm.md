@@ -82,7 +82,7 @@ Goのinstallは、Ubuntuのバージョンなどによって異なるような�
 ```bash
 cd ~/Maximum-Infra-hands-on/backend
 go mod tidy
-go build
+go build ./cmd/main.go
 ```
 をしましょう。
 
