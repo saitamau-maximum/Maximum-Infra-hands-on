@@ -198,7 +198,7 @@ root:[パスワード]@tcp(localhost:3306)/[データベース名]?charset=utf8&
 Goアプリケーションは常駐化しているので、`.service`ファイルを編集することで環境変数を設定できます。
 
 ```bash
-sudo vim /etc/systemctl/system/InfraHandsOn.service
+sudo vim /etc/systemd/system/InfraHandsOn.service
 ```
 などで、編集します。編集に使うエディタは何でもいいです。
 
